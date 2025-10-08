@@ -21,6 +21,7 @@ import {
   SoapDispenserDroplet,
   Star,
 } from "lucide-react";
+import { api } from "../lib/api";
 
 /* ----------------------- Types (match your backend) ----------------------- */
 type MediaResponse = {
@@ -508,15 +509,15 @@ const FilteredPropertiesPage: React.FC = () => {
 
           if (tab === "land") {
             // /filterByPlotAndLocation?state=&city=&locality=
-            const { data } = await axios.get<ApiResponse>(
-              `${API_BASE_URL}/user/filterByPlotAndLocation`,
+            const { data } = await api.get<ApiResponse>(
+              "/user/filterByPlotAndLocation",
               {
                 params: {
                   state: stateName || "",
                   city: city || "",
                   locality: locality || "",
                 },
-                withCredentials: true,
+                // withCredentials: true,
               }
             );
             if (!active) return;
@@ -524,8 +525,8 @@ const FilteredPropertiesPage: React.FC = () => {
             setCommercial(data.commercial ?? []);
           } else {
             // /filterByPreferenceAndLocation?preference=&state=&city=&locality=
-            const { data } = await axios.get<ApiResponse>(
-              `${API_BASE_URL}/user/filterByPreferenceAndLocation`,
+            const { data } = await api.get<ApiResponse>(
+              "/user/filterByPreferenceAndLocation",
               {
                 params: {
                   preference: preference || "all", // backend expects sale|rent|pg
@@ -533,7 +534,7 @@ const FilteredPropertiesPage: React.FC = () => {
                   city: city || "",
                   locality: locality || "",
                 },
-                withCredentials: true,
+                // withCredentials: true,
               }
             );
             if (!active) return;
@@ -567,10 +568,10 @@ const FilteredPropertiesPage: React.FC = () => {
             age: fAny?.ageRanges ?? [],
           };
 
-          const { data } = await axios.post<ApiResponse>(
-            `${API_BASE_URL}/user/getDetailedFilteredProperties`,
+          const { data } = await api.post<ApiResponse>(
+            "/user/getDetailedFilteredProperties",
             body,
-            { withCredentials: true }
+            // { withCredentials: true }
           );
 
           if (!active) return;

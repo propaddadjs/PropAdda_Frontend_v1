@@ -8,6 +8,7 @@ import {
   Tag, IndianRupee, Armchair, MapPin, Sparkles, CalendarCheck,
   Maximize2, History, ChevronUp, ChevronDown, Search, RotateCw,
 } from "lucide-react";
+import { api } from "../lib/api";
 
 export type Filters = {
   category: "All" | "Residential" | "Commercial";
@@ -160,10 +161,10 @@ const FilterSidebarBuyer: React.FC<Props> = ({ initial = {}, onApply, onReset })
         age: f.ageRanges ?? [],
         };
 
-        const { data } = await axios.post<ApiResponse>(
-        `${API_BASE_URL}/user/getDetailedFilteredProperties`,
-        body,
-        { withCredentials: true }
+        const { data } = await api.post<ApiResponse>(
+        "/user/getDetailedFilteredProperties",
+        // body,
+        // { withCredentials: true }
         );
         onApply(f, data); // <-- pass results to page
     } catch (e) {

@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { api } from "../lib/api";
 
 // === Types that match your backend responses ===
 type MediaResponse = {
@@ -395,8 +396,8 @@ export default function SearchResults() {
         //   preference:
         //     initialFilters.preference === "Buy" ? "Sale" : initialFilters.preference,
         };
-        const { data } = await axios.post<BackendResponse>(
-          `${API_BASE_URL}/user/getFilteredProperties`,
+        const { data } = await api.post<BackendResponse>(
+          "/user/getFilteredProperties",
           payload
         );
         setResults(data);

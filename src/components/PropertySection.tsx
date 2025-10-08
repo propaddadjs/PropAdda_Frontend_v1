@@ -21,6 +21,7 @@ import {
   Maximize2,
   SoapDispenserDroplet,
 } from "lucide-react";
+import { api } from "../lib/api";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
@@ -284,7 +285,7 @@ const PropertySection: React.FC = () => {
       setErr(null);
       try {
         if (active === "pg") {
-          const { data } = await axios.get<ApiResponse>(`${API_BASE_URL}/user/getVipFilterByPG`, {
+          const { data } = await api.get<ApiResponse>(`${API_BASE_URL}/user/getVipFilterByPG`, {
             withCredentials: true,
           });
           if (!on) return;
@@ -292,7 +293,7 @@ const PropertySection: React.FC = () => {
           setCommercial(data.commercial ?? []);
         } else {
           const url = `${API_BASE_URL}/user/getVipFilterByPropertyType/${active}`;
-          const { data } = await axios.get<ApiResponse>(url, { withCredentials: true });
+          const { data } = await api.get<ApiResponse>(url, { withCredentials: true });
           if (!on) return;
           setResidential(data.residential ?? []);
           setCommercial(data.commercial ?? []);
@@ -326,8 +327,8 @@ const PropertySection: React.FC = () => {
       preference: filters.preference === "Buy" ? "Sale" : filters.preference,
     };
     try {
-      const { data } = await axios.post(`${API_BASE_URL}/user/getFilteredProperties`, payload, {
-        withCredentials: true,
+      const { data } = await api.post("/user/getFilteredProperties", payload, {
+        // withCredentials: true,
       });
       navigate("/search-results", { state: { filters, results: data } });
     } catch (e) {

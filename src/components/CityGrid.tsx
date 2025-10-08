@@ -16,6 +16,7 @@ import city10 from "../images/city10.jpeg";
 import city11 from "../images/city11.jpg";
 import city12 from "../images/city12.png";
 import { ChevronRight } from "lucide-react";
+import { api } from "../lib/api";
 
 type CountMap = Record<string, number>;
 
@@ -56,8 +57,8 @@ const CityGrid: React.FC = () => {
       setLoading(true);
       setErr(null);
       try {
-        const { data } = await axios.get<CountMap>(`${API_BASE_URL}/user/getCountByCity`, {
-          withCredentials: true,
+        const { data } = await api.get<CountMap>("/user/getCountByCity", {
+          // withCredentials: true,
         });
         if (!active) return;
         setCounts(data || {});
@@ -76,7 +77,7 @@ const CityGrid: React.FC = () => {
   // Click → call /user/filterByCity/{city}, then navigate and pass prefetched result
   const onCityClick = async (cityKey: string) => {
     try {
-      const { data } = await axios.get(`${API_BASE_URL}/user/filterByCity/${encodeURIComponent(cityKey)}`, {
+      const { data } = await api.get(`${API_BASE_URL}/user/filterByCity/${encodeURIComponent(cityKey)}`, {
         withCredentials: true,
       });
       navigate(`/search-results`, {

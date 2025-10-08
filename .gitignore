@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 
+AboutUs.tsx
+
 .env
 .env.development
 .env.production
