@@ -49,8 +49,8 @@ import PropertyDetailsPage from "./pages/PropertyDetailsPage";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import FAQ from "./pages/FAQ";
-import AboutUs from "./pages/Aboutus";
-import ContactUs from "./pages/Contactus";
+import AboutUs from "./pages/AboutUs";
+import ContactUs from "./pages/ContactUs";
 
 const App: React.FC = () => {
   return (
