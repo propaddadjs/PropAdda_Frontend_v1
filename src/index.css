@@ -108,7 +108,7 @@ button {
       position: relative;
       background-image: 
         linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 50%),
-        url('../src/images/img_2.png');
+        url('../src/images/header.jpg');
       background-size: cover;
       background-position: center top;
       height: 400px;
