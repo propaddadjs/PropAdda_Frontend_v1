@@ -4,7 +4,7 @@ import axios from "axios";
 import { useAuth } from "../auth/AuthContext";
 import logo from "../images/logo.png";
 
-const CSC_API_KEY = import.meta.env.VITE_CSC_API_KEY as string;
+const CSC_API_KEY = (import.meta.env.VITE_CSC_API_KEY as string) || "ZXBOVkxVdmVaNjhiMHlqQm5PZXpxWmRSanlIUHB4a0hCSHBwNGRFRA==";
 export type StateItem = { iso2: string; name: string };
 export type CityItem = { name: string };
 export default function Signup() {

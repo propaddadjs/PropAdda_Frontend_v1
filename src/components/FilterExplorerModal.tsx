@@ -37,7 +37,7 @@ export default function FilterExplorerModal({ open, onClose, onExplore, initial 
   const [loadingGeo, setLoadingGeo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const CSC_API_KEY = (import.meta.env.VITE_CSC_API_KEY as string) || "";
+  const CSC_API_KEY = (import.meta.env.VITE_CSC_API_KEY as string) || "ZXBOVkxVdmVaNjhiMHlqQm5PZXpxWmRSanlIUHB4a0hCSHBwNGRFRA==";
 
   // Freeze background scroll while modal is open
     useEffect(() => {

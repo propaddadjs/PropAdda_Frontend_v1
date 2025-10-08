@@ -15,7 +15,7 @@ type Props = {
   cityPlaceholder?: string;
 };
 
-const CSC_API_KEY = import.meta.env.VITE_CSC_API_KEY as string;
+const CSC_API_KEY = (import.meta.env.VITE_CSC_API_KEY as string) || "ZXBOVkxVdmVaNjhiMHlqQm5PZXpxWmRSanlIUHB4a0hCSHBwNGRFRA==";
 
 const GeoSelector: React.FC<Props> = ({
   stateIso,
