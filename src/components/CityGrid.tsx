@@ -77,7 +77,7 @@ const CityGrid: React.FC = () => {
   // Click → call /user/filterByCity/{city}, then navigate and pass prefetched result
   const onCityClick = async (cityKey: string) => {
     try {
-      const { data } = await api.get(`${API_BASE_URL}/user/filterByCity/${encodeURIComponent(cityKey)}`, {
+      const { data } = await api.get("/user/filterByCity/${encodeURIComponent(cityKey)}", {
         withCredentials: true,
       });
       navigate(`/search-results`, {

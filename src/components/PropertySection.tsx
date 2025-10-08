@@ -285,15 +285,17 @@ const PropertySection: React.FC = () => {
       setErr(null);
       try {
         if (active === "pg") {
-          const { data } = await api.get<ApiResponse>(`${API_BASE_URL}/user/getVipFilterByPG`, {
-            withCredentials: true,
+          const { data } = await api.get<ApiResponse>("/user/getVipFilterByPG", {
+            //withCredentials: true,
           });
           if (!on) return;
           setResidential(data.residential ?? []);
           setCommercial(data.commercial ?? []);
         } else {
-          const url = `${API_BASE_URL}/user/getVipFilterByPropertyType/${active}`;
-          const { data } = await api.get<ApiResponse>(url, { withCredentials: true });
+          const url = "/user/getVipFilterByPropertyType/${active}";
+          const { data } = await api.get<ApiResponse>(url, 
+            // { withCredentials: true }
+          );
           if (!on) return;
           setResidential(data.residential ?? []);
           setCommercial(data.commercial ?? []);
