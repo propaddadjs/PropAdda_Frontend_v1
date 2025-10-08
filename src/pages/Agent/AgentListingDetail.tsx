@@ -198,7 +198,7 @@ const AgentListingDetail: React.FC = () => {
   const [showAll, setShowAll] = useState(false);
 
    const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-506455747754.asia-south2.run.app";
+  import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
 
 
   useEffect(() => {

@@ -5,7 +5,7 @@ import { api } from "../../lib/api";
 
 // --- Configuration ---
  const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-506455747754.asia-south2.run.app";
+  import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
 
 const AGENT_ID = Number(localStorage.getItem("agentId") || 2);
 const PAGE_SIZE_OPTIONS = [5, 10, 15]; 

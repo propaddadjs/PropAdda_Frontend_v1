@@ -116,7 +116,7 @@ type FiltersPayload = {
 // === Config ===
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
-  "https://propadda-backend-506455747754.asia-south2.run.app";
+  "https://propadda-backend-v1-506455747754.asia-south2.run.app";
 
 // === Helpers ===
 function getFirstImageUrl(media?: MediaResponse[]): string | null {
