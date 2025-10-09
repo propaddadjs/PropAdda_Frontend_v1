@@ -6,6 +6,7 @@ import MediaUploader, { type SavedMeta } from "./MediaUploader";
 import AmenitiesPanel from "./AmenitiesPanel";
 import { Loader2, CheckCircle2, XCircle, BadgeCheck, Bath, BatteryCharging, BedDouble, BookMarked, Briefcase, Building, CalendarCheck, CalendarRange, Car, CarFront, ChevronsUpDown, Compass, ConciergeBell, DoorClosed, FileText, History, HousePlus, IndianRupee, Layers, LockIcon, MapPin, Maximize2, PanelsTopLeft, Projector, Shield, SoapDispenserDroplet, Sofa, TagIcon, TrendingUp, Users, Wrench } from "lucide-react";
 import { api } from "../lib/api";
+import { useAuth } from "../auth/AuthContext";
 
 // ---------------- Types ----------------
 type PropertyCategory = "residential" | "commercial";
@@ -717,7 +718,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
   }, [isCommercialPlot]);
 
   const navigate = useNavigate();
-
+  const { user } = useAuth();
+  const ownerId = user?.userId ?? null;
   // -------------- Submit --------------
   const handleSubmit = async () => {
     const isCommercialPlotNow = category === "commercial" && formData.propertyType === "Plot/Land";
@@ -789,7 +791,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     setSaveStatus('saving');
     setSaveMsg('We are saving your property details. Please wait…');
 
-    const HARD_CODED_USER_ID = 2;
+    //const HARD_CODED_USER_ID = 2;
 
     const payload = { ...formData, media: mediaMeta };
     console.log("POST payload:", payload);
@@ -797,9 +799,9 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     const url = category === "residential" ? "/residential-properties/add" : "/commercial-properties/add";
 
     if (category.toLowerCase() === "commercial") {
-      (payload as any).commercialOwnerId = HARD_CODED_USER_ID;
+      (payload as any).commercialOwnerId = ownerId;
     } else {
-      (payload as any).residentialOwnerId = HARD_CODED_USER_ID;
+      (payload as any).residentialOwnerId = ownerId;
     }
 
     try {

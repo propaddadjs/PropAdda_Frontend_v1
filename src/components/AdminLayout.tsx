@@ -5,6 +5,7 @@ import AdminSidebar from "./AdminSidebar";
 import { Menu, Bell, ChevronDown, ChevronsRight } from "lucide-react"; // <-- [NEW] Added ChevronsRight
 import axios from "axios";
 import { api } from "../lib/api";
+import { useAuth } from "../auth/AuthContext";
 
 // --- [NEW] Breadcrumbs Component ---
 // This component reads the URL and generates the navigation trail
@@ -46,6 +47,30 @@ const Breadcrumbs: React.FC = () => {
   );
 };
 
+const MiniAvatar: React.FC<{
+  src?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}> = ({ src, firstName, lastName }) => {
+  const hasSrc = typeof src === 'string' && src.trim() !== '';
+  const initials =
+    `${firstName?.[0]?.toUpperCase() ?? ''}${lastName?.[0]?.toUpperCase() ?? ''}` || 'U';
+
+  if (hasSrc) {
+    return (
+      <img
+        src={src as string}
+        alt="Profile"
+        className="w-9 h-9 rounded-full object-cover shadow-sm ring-2 ring-orange-100"
+      />
+    );
+  }
+  return (
+    <div className="w-9 h-9 rounded-full bg-themeOrange text-white flex items-center justify-center font-bold shadow-sm ring-2 ring-orange-100">
+      {initials}
+    </div>
+  );
+};
 
 const AdminLayout: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -53,6 +78,8 @@ const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   //const location = useLocation();
   const mainContentMargin = sidebarCollapsed ? 'ml-16' : 'ml-56';
+    const { user } = useAuth();
+    const adminId = user?.userId ?? null;
 
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -91,7 +118,6 @@ const AdminLayout: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
 
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden">
@@ -141,19 +167,21 @@ const AdminLayout: React.FC = () => {
                 onClick={() => setProfileOpen(prev => !prev)}
               >
                 <div className="text-right hidden sm:block">
-                  <div className="text-sm font-medium leading-4">Admin</div>
-                  <div className="text-xs text-gray-500 leading-4">propaddadjs@gmail.com</div>
+                  <div className="text-sm font-medium leading-4">{user?.firstName} {user?.lastName}</div>
+                  <div className="text-xs text-gray-500 leading-4">{user?.email}</div>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-themeOrange text-white flex items-center justify-center font-bold shadow-sm">
-                  A
-                </div>
+                <MiniAvatar
+                  src={(user as any)?.profileImageUrl} // if your auth user includes it
+                  firstName={user?.firstName}
+                  lastName={user?.lastName}
+                />
                 <ChevronDown className={`w-4 h-4 text-gray-500 hidden sm:block transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {profileOpen && (
                 <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-xl z-40 animate-in fade-in-0 zoom-in-95">
                   <div className="p-1">
-                    <Link onClick={() => setProfileOpen(false)} to="/" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Homepage</Link>
+                    <Link onClick={() => setProfileOpen(false)} to="/" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Home</Link>
                     <Link onClick={() => setProfileOpen(false)} to="/agent" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Agent Dashboard</Link>
                     <Link onClick={() => setProfileOpen(false)} to="/admin" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Admin Dashboard</Link>
                     <div className="h-px bg-gray-200 my-1"></div>

@@ -12,6 +12,7 @@ import handshakeOverlay from "../images/img_4.png";
 import Footer from '../components/Footer';
 import Header from '../components/Header';
 import PropertyAction from '../components/PropertyAction';
+import Breadcrumb from '../components/Breadcrumb';
 
 // -- Utility types
 interface IconCardProps {
@@ -178,36 +179,42 @@ export default function AboutUs() {
     },
   ];
 
-  const teamMembers: TeamCardProps[] = [
-    {
-      src: img1,
-      alt: "Pawan Rajput",
-      name: "Mr. Pawan Rajput",
-      role: "Owner & Director",
-    },
-    {
-      src: img2,
-      alt: "Dhruv Rajput",
-      name: "Mr. Dhruv Rajput",
-      role: "CEO",
-    },
-    {
-      src: img3,
-      alt: "Pritham Singh",
-      name: "Mr. Pritham Singh",
-      role: "Chairman",
-    },
-    {
-      src: img4,
-      alt: "K.P. Sharan Rao",
-      name: "Mr. K.P. Sharan Rao",
-      role: "Operations Manager",
-    },
-  ];
+  // const teamMembers: TeamCardProps[] = [
+  //   {
+  //     src: img1,
+  //     alt: "Pawan Rajput",
+  //     name: "Mr. Pawan Rajput",
+  //     role: "Owner & Director",
+  //   },
+  //   {
+  //     src: img2,
+  //     alt: "Dhruv Rajput",
+  //     name: "Mr. Dhruv Rajput",
+  //     role: "CEO",
+  //   },
+  //   {
+  //     src: img3,
+  //     alt: "Pritham Singh",
+  //     name: "Mr. Pritham Singh",
+  //     role: "Chairman",
+  //   },
+  //   {
+  //     src: img4,
+  //     alt: "K.P. Sharan Rao",
+  //     name: "Mr. K.P. Sharan Rao",
+  //     role: "Operations Manager",
+  //   },
+  // ];
 
   return (
     <div>
       <Header title="ABOUT US" />
+      <Breadcrumb
+        items={[
+          { label: "Home" },
+          { label: "About Us" },
+        ]}
+      />
     <main>
       <section className="about-section">
         <AboutHeader description={aboutParagraphs} />
@@ -220,11 +227,11 @@ export default function AboutUs() {
         />
       </section>
 
-      <TeamSection
+      {/* <TeamSection
         intro="PropAdda.in is proudly promoted by Dada Jaisingh and Sons, known for trusted ventures in land and development."
         members={teamMembers}
         conclusion="Our leadership combines vision, expertise, and execution, ensuring every project under PropAdda is delivered with excellence."
-      />
+      /> */}
 
       <TeamBanner
         text={

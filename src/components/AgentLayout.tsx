@@ -78,7 +78,8 @@ const AgentLayout: React.FC = () => {
   const { user } = useAuth();
   const agentId = user?.userId ?? null;
   //const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://propadda-backend-v1-506455747754.asia-south2.run.app";
-
+  const isAdmin = String((user as any)?.role ?? "").toUpperCase() === "ADMIN";
+  
   const fetchUnreadCount = async () => {
     try {
       // const { data } = await axios.get<number>(`${API_BASE}/agent/getUnreadNotificationCountForAgent/${agentId}`, {
@@ -187,6 +188,17 @@ const AgentLayout: React.FC = () => {
                     >
                       Agent Dashboard
                     </Link>
+
+                     {/* NEW: Admin Panel (ADMIN only) */}
+                    {isAdmin && (
+                      <Link
+                        onClick={() => setProfileOpen(false)}
+                        to="/admin"
+                        className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded"
+                      >
+                        Admin Dashboard
+                      </Link>
+                    )}
                     <Link
                       onClick={() => setProfileOpen(false)}
                       to="/agent/postproperty"

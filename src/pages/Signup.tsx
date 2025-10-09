@@ -167,9 +167,9 @@ export default function Signup() {
               className="max-h-56 max-w-56 mb-6 opacity-90 transition hover:opacity-100"
             /> </div>
             <h2 className="text-4xl font-extrabold leading-tight mt-4 mb-4">
-              <span className="text-themeOrange">your perfect </span>
+              <span className="text-black">your perfect </span>
               {/* <br /> */}
-              <span className="text-[#046A38]">home awaits</span>
+              <span className="text-themeOrange">home</span> awaits
             </h2>
             <div className="mt-6 grid grid-cols-3 gap-4 text-sm">
               <div className="group">
@@ -221,7 +221,7 @@ export default function Signup() {
               {/* Name row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="first" className="block text-sm mb-1">First name</label>
+                  <label htmlFor="first" className="block text-sm mb-1">First name<span className="text-red-500">*</span></label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400">
                       <User className="w-4 h-4" />
@@ -237,7 +237,7 @@ export default function Signup() {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="last" className="block text-sm mb-1">Last name</label>
+                  <label htmlFor="last" className="block text-sm mb-1">Last name<span className="text-red-500">*</span></label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400">
                       <User className="w-4 h-4" />
@@ -256,7 +256,7 @@ export default function Signup() {
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm mb-1">Email</label>
+                <label htmlFor="email" className="block text-sm mb-1">Email<span className="text-red-500">*</span></label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400">
                     <Mail className="w-4 h-4" />
@@ -280,7 +280,7 @@ export default function Signup() {
 
               {/* Phone (with hardcoded +91 prefix, UI only) */}
               <div>
-                <label htmlFor="phone" className="block text-sm mb-1">Phone number</label>
+                <label htmlFor="phone" className="block text-sm mb-1">Phone number<span className="text-red-500">*</span></label>
                 <div className="flex">
                   <span className="inline-flex items-center gap-1 px-3 rounded-l-lg border border-orange-100 bg-orange-50 text-gray-700 text-sm">
                     <PhoneIcon className="w-4 h-4 text-orange-600" />
@@ -306,7 +306,7 @@ export default function Signup() {
               {/* State / City */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="state" className="block text-sm mb-1">State</label>
+                  <label htmlFor="state" className="block text-sm mb-1">State<span className="text-red-500">*</span></label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400">
                       <MapPin className="w-4 h-4" />
@@ -325,7 +325,7 @@ export default function Signup() {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="city" className="block text-sm mb-1">City</label>
+                  <label htmlFor="city" className="block text-sm mb-1">City<span className="text-red-500">*</span></label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400">
                       <MapPinned className="w-4 h-4" />
@@ -349,7 +349,7 @@ export default function Signup() {
               {/* Passwords (only min 8 char rule) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="password" className="block text-sm mb-1">Create password</label>
+                  <label htmlFor="password" className="block text-sm mb-1">Create password<span className="text-red-500">*</span></label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400">
                       <Lock className="w-4 h-4" />
@@ -380,7 +380,7 @@ export default function Signup() {
                 </div>
 
                 <div>
-                  <label htmlFor="confirm" className="block text-sm mb-1">Repeat password</label>
+                  <label htmlFor="confirm" className="block text-sm mb-1">Repeat password<span className="text-red-500">*</span></label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400">
                       <Lock className="w-4 h-4" />

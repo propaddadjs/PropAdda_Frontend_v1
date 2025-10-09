@@ -296,7 +296,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
        {/* 5) Center: dynamic page title (omit on homepage by not passing title) */}
         {title ? (
   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-    <h1 className="text-white text-4xl font-bold text-center">
+    <h1 className="text-white text-4xl font-bold text-center [text-shadow:2px_2px_5px_rgba(0,0,0,0.5)]">
       {/* Visual styles from the CSS are applied here */}
       {title}
     </h1>

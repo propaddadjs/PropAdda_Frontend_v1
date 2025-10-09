@@ -86,9 +86,9 @@ export default function Login() {
             />
             </div>
             <h2 className="text-4xl font-extrabold leading-tight mt-4 mb-4">
-              <span className="text-themeOrange">your perfect </span>
+              <span className="text-black">your perfect </span>
               {/* <br /> */}
-              <span className="text-[#046A38]">home awaits</span>
+              <span className="text-themeOrange">home</span> awaits
             </h2>
 
             <ul className="mt-6 grid grid-cols-3 gap-4 text-sm">
@@ -230,7 +230,7 @@ export default function Login() {
             {/* Little footer inside card */}
             <div className="mt-6 text-xs text-gray-500 flex items-center gap-2">
               <Home className="w-3.5 h-3.5 text-orange-600" />
-              Secure portal • Please do not share your credentials.
+              Secure portal
             </div>
           </section>
         </div>

@@ -48,7 +48,7 @@ export default function AgentKycInit() {
 
       setMsg("Your KYC has been initiated and is pending for approval with the admin.");
       setBusy(false);
-      setTimeout(() => nav("/account/kycStatus"), 2000);
+      setTimeout(() => nav("/account/checkKycStatus"), 2000);
     } catch (e: any) {
       setMsg(e?.response?.data?.message ?? "Failed to submit KYC");
       setBusy(false);

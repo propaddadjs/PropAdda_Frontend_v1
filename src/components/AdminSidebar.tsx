@@ -1,7 +1,7 @@
 // src/components/AdminSidebar.tsx
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { NavLink, useLocation, type Location } from "react-router-dom";
+import { Link, NavLink, useLocation, type Location } from "react-router-dom";
 import logo from "../images/logo.png";
 import {
   LayoutDashboard,
@@ -167,6 +167,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ collapsed = false, className = '
       <div className="h-full flex flex-col">
         {/* Brand */}
         <div className="flex items-center justify-center px-2 py-2 border-b">
+          <Link to="/" className="flex items-center justify-center px-2 py-2 border-b">
           <img
             src={logo}
             alt="PropAdda"
@@ -175,6 +176,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ collapsed = false, className = '
               collapsed ? "w-18 h-16" : "w-20 h-16"
             }`}
           />
+          </Link>
           {/* {!collapsed && (
             <div className="ml-2">
               <div className="font-semibold leading-5">PropAdda</div>
@@ -256,7 +258,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ collapsed = false, className = '
         <div className="px-3 py-4 border-t">
           {!collapsed && (
             <div className="text-xs text-gray-500">
-              Copyright © {new Date().getFullYear()} PropAdda
+              {/* Copyright © {new Date().getFullYear()} PropAdda */}
         <p>
           © {new Date().getFullYear()} PropAdda. All Rights Reserved. Powered by  
           <a className="hover:text-themeOrange" href="https://studiobyrelabel.com/"> Studio by ReLabel</a>
