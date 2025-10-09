@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Link } from "react-router-dom";
 import {
   Home,
@@ -204,7 +205,7 @@ const AdminDashboard: React.FC = () => {
       setLoadingMetrics(true);
       setErrMetrics(null);
       try {
-        const resp = await axios.get<DashboardMetrics>(`${API_BASE_URL}/admin/dashboardMetrics`);
+        const resp = await api.get<DashboardMetrics>("/admin/dashboardMetrics");
         setMetrics(resp.data ?? {});
       } catch (e) {
         console.error(e);
@@ -223,8 +224,8 @@ const AdminDashboard: React.FC = () => {
       setErrPending(null);
       try {
         // Ask for a generous page size so we can sort locally and pick top 4
-        const resp = await axios.get<PageResponse | PropertyResponse[] | any>(
-          `${API_BASE_URL}/admin/pendingProperties`,
+        const resp = await api.get<PageResponse | PropertyResponse[] | any>(
+          "/admin/pendingProperties",
           { params: { page: 0, size: 50 } }
         );
         const body = resp.data;

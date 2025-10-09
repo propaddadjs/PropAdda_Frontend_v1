@@ -1,6 +1,7 @@
 // KycRequests.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Phone, Mail, MapPin, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -234,8 +235,8 @@ const KycRequests: React.FC = () => {
     setLoading(true);
     setErr(null);
     try {
-      const resp = await axios.get<SellerResponse[]>(
-        `${API_BASE_URL}/admin/pendingKycUsers`
+      const resp = await api.get<SellerResponse[]>(
+        "/admin/pendingKycUsers"
       );
       setPending(resp.data || []);
       setPage(1);
@@ -280,7 +281,7 @@ const KycRequests: React.FC = () => {
 
   const approve = async (id: number) => {
     try {
-      await axios.patch(`${API_BASE_URL}/admin/sellerKyc/approve/${id}`);
+      await api.patch(`/admin/sellerKyc/approve/${id}`);
       navigate("/admin/users/agent");
     } catch (e) {
       console.error(e);
@@ -304,8 +305,8 @@ const KycRequests: React.FC = () => {
       return;
     }
     try {
-      await axios.patch(
-        `${API_BASE_URL}/admin/sellerKyc/reject/${rejectId}`,
+      await api.patch(
+        `/admin/sellerKyc/reject/${rejectId}`,
         { reason: rejectReason.trim() }
       );
       setShowRejectModal(false);

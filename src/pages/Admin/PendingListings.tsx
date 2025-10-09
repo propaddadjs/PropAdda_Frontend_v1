@@ -1,6 +1,7 @@
 // src/pages/admin/PendingListings.tsx
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Link } from "react-router-dom";
 import FilterSidebar, { type Filters as SidebarFilters } from "../../components/FilterSidebar";
 import {
@@ -391,7 +392,7 @@ const PendingListings: React.FC = () => {
       const filterParams = buildParamsFromSidebar(filters);
       if (filters) {
         // server-side filtered endpoint
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/filterPendingProperties`, {
+        const resp = await api.get<PageResponse | any>("/admin/filterPendingProperties", {
           params: { ...paging, ...filterParams },
         });
         const body = resp.data;
@@ -434,7 +435,7 @@ const PendingListings: React.FC = () => {
         return;
       } else {
         // no filters => call existing pending endpoint
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/pendingProperties`, { params: paging });
+        const resp = await api.get<PageResponse | any>("/admin/pendingProperties", { params: paging });
         const body = resp.data;
         if (body && Array.isArray(body.content)) {
           const pageContent: PropertyResponse[] = body.content;
@@ -496,7 +497,7 @@ const PendingListings: React.FC = () => {
   /* --- action handlers --- */
   const approve = async (id: number, category: string) => {
     try {
-      await axios.patch(`${API_BASE_URL}/admin/properties/approve/${category}/${id}`);
+      await api.patch(`/admin/properties/approve/${category}/${id}`);
       fetch(appliedFilters);
     } catch (e) { console.error(e); alert("Approve failed"); }
   };
@@ -510,14 +511,14 @@ const PendingListings: React.FC = () => {
 
   const toggleVip = async (id: number, category: string) => {
     try {
-      await axios.patch(`${API_BASE_URL}/admin/toggleVip/${category}/${id}`);
+      await api.patch(`/admin/toggleVip/${category}/${id}`);
       fetch(appliedFilters);
     } catch (e) { console.error(e); alert("VIP toggle failed"); }
   };
 
   const toggleRera = async (id: number, category: string) => {
     try {
-      await axios.patch(`${API_BASE_URL}/admin/toggleReraVerified/${category}/${id}`);
+      await api.patch(`/admin/toggleReraVerified/${category}/${id}`);
       fetch(appliedFilters);
     } catch (e) { console.error(e); alert("RERA toggle failed"); }
   };
@@ -533,8 +534,8 @@ const PendingListings: React.FC = () => {
     }
     if (!rejectTarget.id || !rejectTarget.category) return;
     try {
-      await axios.patch(
-        `${API_BASE_URL}/admin/properties/reject/${rejectTarget.category}/${rejectTarget.id}`,
+      await api.patch(
+        `/admin/properties/reject/${rejectTarget.category}/${rejectTarget.id}`,
         { reason: rejectReason.trim() }
       );
       setShowRejectModal(false);

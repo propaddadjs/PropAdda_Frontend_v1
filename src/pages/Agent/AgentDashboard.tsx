@@ -161,6 +161,30 @@ const AgentDashboard: React.FC = () => {
   const [loadingExpired, setLoadingExpired] = useState<boolean>(true);
   const [errorExpired, setErrorExpired] = useState<string | null>(null);
 
+  const AgentAvatar: React.FC<{
+  src?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}> = ({ src, firstName, lastName }) => {
+  const hasSrc = typeof src === 'string' && src.trim() !== '';
+  const initials = `${firstName?.[0]?.toUpperCase() ?? ''}${lastName?.[0]?.toUpperCase() ?? ''}` || 'U';
+
+  if (hasSrc) {
+    return (
+      <img
+        src={src as string}
+        alt="Agent Profile"
+        className="w-24 h-24 rounded-full object-cover border-4 border-gray-200 shadow-inner ring-4 ring-orange-100"
+      />
+    );
+  }
+  return (
+    <div className="w-24 h-24 rounded-full bg-orange-500 flex items-center justify-center border-4 border-gray-200 shadow-inner ring-4 ring-orange-100">
+      <span className="text-white text-2xl font-semibold">{initials}</span>
+    </div>
+  );
+};
+
   /* Fetch profile + metrics */
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -302,10 +326,15 @@ const AgentDashboard: React.FC = () => {
         {/* Profile */}
         <div className="lg:col-span-1 bg-white shadow-xl rounded-2xl p-6 border-t-4 border-orange-500">
           <div className="flex flex-col items-center">
-            <img
+            {/* <img
               src={details?.profileImageUrl || "https://placehold.co/100x100/eeeeee/333333?text=Agent"}
               alt="Agent Profile"
               className="w-24 h-24 rounded-full object-cover border-4 border-gray-200 shadow-inner"
+            /> */}
+            <AgentAvatar
+              src={details?.profileImageUrl}
+              firstName={details?.firstName}
+              lastName={details?.lastName}
             />
             <h2 className="text-xl font-bold mt-4 text-gray-900">
               {details?.firstName} {details?.lastName}

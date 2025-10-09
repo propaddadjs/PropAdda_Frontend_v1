@@ -89,7 +89,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
   const isBuyer = user?.role === "BUYER";
 
   return (
-    <div className="hero-wrapper">
+    <div className="hero-wrapper w-full">
       <div className="header relative flex items-center justify-between px-4 py-3">
         {/* Left: Logo + Location */}
         <div className="logo flex items-center gap-3">
@@ -107,8 +107,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
             <ChevronDown className="w-4 h-4" />
           </button>
         </div>
-
-       
 
         {/* Right: Post + Auth / Profile */}
         <div className="header-buttons relative flex items-center gap-3">
@@ -193,7 +191,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                     className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
                     onClick={() => {
                       close();
-                      navigate("/shortlisted");
+                      navigate("/account/shortlisted");
                     }}
                   >
                     Shortlisted Properties
@@ -203,7 +201,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                     className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
                     onClick={() => {
                       close();
-                      navigate("/enquiries");
+                      navigate("/account/enquiries");
                     }}
                   >
                     Enquiries
@@ -226,7 +224,8 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                       onClick={() => {
                         close();
                         if (user.kycVerified === "INAPPLICABLE") navigate("/account/initiateKyc");
-                        else navigate("/account/checkKycStatus");
+                        else if (user.kycVerified === "PENDING") navigate("/account/checkKycStatus");
+                        else navigate("/")
                       }}
                     >
                       Become an Agent
@@ -296,10 +295,13 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
 
        {/* 5) Center: dynamic page title (omit on homepage by not passing title) */}
         {title ? (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <h1 className="text-base md:text-4xl font-extrabold text-black bg-orange-50 p-5 bg-opacity-50">{title}</h1>
-          </div>
-        ) : null}
+  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+    <h1 className="text-white text-4xl font-bold text-center">
+      {/* Visual styles from the CSS are applied here */}
+      {title}
+    </h1>
+  </div>
+) : null}
 
       {/* The minimal filter modal */}
       <FilterExplorerModal

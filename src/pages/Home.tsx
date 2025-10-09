@@ -15,7 +15,7 @@ const Home: React.FC = () => {
   return (
     <>
       <Header />
-      <KycStatusCTA />
+      {/* <KycStatusCTA /> */}
       <Hero />
       <PropertySection />
       <CityGrid />

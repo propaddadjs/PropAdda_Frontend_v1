@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 
@@ -234,8 +235,8 @@ const ListingDetail: React.FC = () => {
     if (!category || !id) return;
     setLoading(true);
     try {
-      const resp = await axios.get<PropertyDetail>(
-        `${API_BASE_URL}/admin/property/${category}/${id}`
+      const resp = await api.get<PropertyDetail>(
+        `/admin/property/${category}/${id}`
       );
       console.log("getById response::",resp.data);
       setProperty(resp.data);
@@ -251,7 +252,7 @@ const ListingDetail: React.FC = () => {
   const handleSold = async () => {
     if (!category || !id) return;
     try {
-      await axios.patch(`${API_BASE_URL}/admin/properties/markPropertyAsSold/${category}/${id}`);
+      await api.patch(`/admin/properties/markPropertyAsSold/${category}/${id}`);
       navigate("/admin/listings/active");
     } catch (e) {
       console.error(e);
@@ -261,7 +262,7 @@ const ListingDetail: React.FC = () => {
   const handleApprove = async () => {
     if (!category || !id) return;
     try {
-      await axios.patch(`${API_BASE_URL}/admin/properties/approve/${category}/${id}`);
+      await api.patch(`/admin/properties/approve/${category}/${id}`);
       navigate("/admin/listings/active");
     } catch (e) {
       console.error(e);
@@ -283,7 +284,7 @@ const ListingDetail: React.FC = () => {
     }
     if (!category || !id) return;
     try {
-      await axios.patch(`${API_BASE_URL}/admin/properties/reject/${category}/${id}`, {
+      await api.patch(`/admin/properties/reject/${category}/${id}`, {
         reason: rejectReason.trim()
       });
       setShowRejectModal(false);
@@ -296,7 +297,7 @@ const ListingDetail: React.FC = () => {
   const toggleVip = async () => {
     if (!category || !id) return;
     try {
-      await axios.patch(`${API_BASE_URL}/admin/toggleVip/${category}/${id}`);
+      await api.patch(`/admin/toggleVip/${category}/${id}`);
       await fetchDetail();
     } catch (e) {
       console.error(e);
@@ -307,7 +308,7 @@ const ListingDetail: React.FC = () => {
   const toggleRera = async () => {
     if (!category || !id) return;
     try {
-      await axios.patch(`${API_BASE_URL}/admin/toggleReraVerified/${category}/${id}`);
+      await api.patch(`/admin/toggleReraVerified/${category}/${id}`);
       await fetchDetail();
     } catch (e) {
       console.error(e);

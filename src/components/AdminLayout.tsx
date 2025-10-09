@@ -4,6 +4,7 @@ import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import { Menu, Bell, ChevronDown, ChevronsRight } from "lucide-react"; // <-- [NEW] Added ChevronsRight
 import axios from "axios";
+import { api } from "../lib/api";
 
 // --- [NEW] Breadcrumbs Component ---
 // This component reads the URL and generates the navigation trail
@@ -60,7 +61,7 @@ const AdminLayout: React.FC = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const resp = await axios.get<number>(`${API_BASE_URL}/admin/getNotificationCount`);
+      const resp = await api.get<number>("/admin/getNotificationCount");
       setHasUnread((resp.data ?? 0) > 0);
     } catch (e) {
       console.error("Failed to fetch notification count", e);
@@ -153,7 +154,6 @@ const AdminLayout: React.FC = () => {
                 <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-xl z-40 animate-in fade-in-0 zoom-in-95">
                   <div className="p-1">
                     <Link onClick={() => setProfileOpen(false)} to="/" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Homepage</Link>
-                    <Link onClick={() => setProfileOpen(false)} to="/buyer" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Buyer Dashboard</Link>
                     <Link onClick={() => setProfileOpen(false)} to="/agent" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Agent Dashboard</Link>
                     <Link onClick={() => setProfileOpen(false)} to="/admin" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Admin Dashboard</Link>
                     <div className="h-px bg-gray-200 my-1"></div>

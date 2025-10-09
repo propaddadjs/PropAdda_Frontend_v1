@@ -1,6 +1,7 @@
 // src/pages/admin/VipListings.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Link } from "react-router-dom";
 import FilterSidebar, { type Filters as SidebarFilters } from "../../components/FilterSidebar";
 import {
@@ -307,7 +308,7 @@ const VipListings: React.FC = () => {
       const paging = { page, size };
       const filterParams = buildParamsFromSidebar(filters);
       if (filters) {
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/filterVipProperties`, {
+        const resp = await api.get<PageResponse | any>("/admin/filterVipProperties", {
           params: { ...paging, ...filterParams },
         });
         const body = resp.data;
@@ -347,7 +348,7 @@ const VipListings: React.FC = () => {
         setLoading(false);
         return;
       } else {
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/vipProperties`, { params: paging });
+        const resp = await api.get<PageResponse | any>("/admin/vipProperties", { params: paging });
         const body = resp.data;
 
         if (body && Array.isArray(body.content)) {
@@ -408,7 +409,7 @@ const VipListings: React.FC = () => {
 
   const unmarkVip = async (id: number, category: string) => {
     try {
-      await axios.patch(`${API_BASE_URL}/admin/toggleVip/${category}/${id}`);
+      await api.patch(`/admin/toggleVip/${category}/${id}`);
       fetch(appliedFilters); // refresh so removed from VIP list
     } catch (e) {
       console.error(e);

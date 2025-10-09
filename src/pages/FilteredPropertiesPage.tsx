@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import FilterSidebarBuyer, { type Filters as BuyerFilters } from "../components/FilterSidebarBuyer";
 // Header + Footer (add these)
-import Header_Pages from "../components/HeaderPages";
+import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 // Lucide icons
@@ -22,6 +22,7 @@ import {
   Star,
 } from "lucide-react";
 import { api } from "../lib/api";
+import PropertyAction from "../components/PropertyAction";
 
 /* ----------------------- Types (match your backend) ----------------------- */
 type MediaResponse = {
@@ -699,8 +700,8 @@ const FilteredPropertiesPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Site Header with title */}
-      <div className="hero-wrapper">
-      <Header_Pages centeredText="EXPLORE PROPERTIES" />
+      <div>
+      <Header title="EXPLORE PROPERTIES" />
       </div>
       {/* Page Header */}
       <div className="bg-white flex-shrink-0 border-b">
@@ -866,6 +867,7 @@ const FilteredPropertiesPage: React.FC = () => {
         </div>
       </div>
       {/* Site Footer */}
+      <PropertyAction />
       <Footer />
     </div>
   );

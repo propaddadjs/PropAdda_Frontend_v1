@@ -35,9 +35,6 @@ import AgentSoldListings from "./pages/Agent/AgentSoldListings";
 import PostPropPage from "./pages/Agent/PostPropertyPage";
 import EditPropertyPage from "./pages/Agent/EditPropertyPage";
 
-import BuyerLayout from "./components/BuyerLayout";
-import BuyerDashboard from "./pages/Buyer/BuyerDashboard";
-
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Logout from "./pages/Logout";
@@ -51,6 +48,14 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import FAQ from "./pages/FAQ";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
+import UserProfile from "./pages/UserProfile";
+import FavoritePropertiesPage from "./pages/FavoritePropertiesPage";
+import BuyerEnquiriesPage from "./pages/BuyerEnquiriesPage";
+import UserFeedback from "./pages/UserFeedback";
+import UserHelp from "./pages/UserHelp";
+import UserChangePassword from "./pages/UserChangePassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const App: React.FC = () => {
   return (
@@ -64,6 +69,8 @@ const App: React.FC = () => {
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
@@ -77,16 +84,18 @@ const App: React.FC = () => {
             path="/account"
             element={
               <ProtectedRoute allow={["BUYER","AGENT","ADMIN"]}>
-                <div className="mx-auto max-w-6xl px-4 py-6">
+                <div>
                   <Outlet />
                 </div>
               </ProtectedRoute>
             }
           >
-            <Route index element={<AgentProfile />} />               {/* Manage Account */}
-            <Route path="change-password" element={<AgentChangePassword />} />
-            <Route path="feedback" element={<AgentFeedback />} />
-            <Route path="help" element={<AgentHelp />} />
+            <Route index element={<UserProfile />} />               {/* Manage Account */}
+            <Route path="shortlisted" element={<FavoritePropertiesPage />} />
+            <Route path="enquiries" element={<BuyerEnquiriesPage />} />
+            <Route path="change-password" element={<UserChangePassword />} />
+            <Route path="feedback" element={<UserFeedback />} />
+            <Route path="help" element={<UserHelp />} />
             <Route path="initiateKyc" element={<AgentKycInit />} />
             <Route path="checkKycStatus" element={<AgentKycStatus />} />
           </Route>
@@ -176,14 +185,6 @@ const App: React.FC = () => {
             <Route path="changePassword" element={<AgentChangePassword />} />
           </Route>
 
-          {/* Buyer (any authenticated role is allowed) */}
-          <Route path="/buyer" element={
-            <ProtectedRoute allow={["BUYER","AGENT","ADMIN"]}>
-              <BuyerLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<BuyerDashboard />} />
-          </Route>
         </Routes>
       </Router>
     </AuthProvider>

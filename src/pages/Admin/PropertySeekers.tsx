@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Phone, Mail, MapPin } from "lucide-react";
 
 type UserResponse = {
@@ -190,7 +191,7 @@ const PropertySeekers: React.FC = () => {
       setLoading(true);
       setErr(null);
       try {
-        const resp = await axios.get<UserResponse[]>(`${API_BASE_URL}/admin/allUsers`);
+        const resp = await api.get<UserResponse[]>("/admin/allUsers");
         setUsers(resp.data || []);
         setPage(1);
       } catch (e: any) {

@@ -1,6 +1,7 @@
 // src/pages/admin/SoldListings.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Link } from "react-router-dom";
 import { type Filters as SidebarFilters } from "../../components/FilterSidebar";
 import {
@@ -307,7 +308,7 @@ const SoldListings: React.FC = () => {
       const paging = { page, size };
       const filterParams = buildParamsFromSidebar(filters);
       if (filters) {
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/filterAllProperties`, {
+        const resp = await api.get<PageResponse | any>("/admin/filterAllProperties", {
           params: { ...paging, ...filterParams },
         });
         const body = resp.data;
@@ -347,7 +348,7 @@ const SoldListings: React.FC = () => {
         setLoading(false);
         return;
       } else {
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/soldProperties`, { params: paging });
+        const resp = await api.get<PageResponse | any>("/admin/soldProperties", { params: paging });
         const body = resp.data;
 
         if (body && Array.isArray(body.content)) {
@@ -392,29 +393,6 @@ const SoldListings: React.FC = () => {
       setLoading(false);
     }
   };
-
-  /* -------------------- Event handlers -------------------- */
-  // const onFilterApply = (f: SidebarFilters) => {
-  //   setAppliedFilters(f);
-  //   setPage(0);
-  //   fetch(f);
-  // };
-
-  // const onFilterReset = () => {
-  //   setAppliedFilters(null);
-  //   setPage(0);
-  //   fetch(null);
-  // };
-
-//   const unmarkVip = async (id: number, category: string) => {
-//     try {
-//       await axios.patch(`${API_BASE_URL}/admin/toggleVip/${category}/${id}`);
-//       fetch(appliedFilters); // refresh so removed from VIP list
-//     } catch (e) {
-//       console.error(e);
-//       alert("Unmark VIP failed");
-//     }
-//   };
 
   // ----- Unified Pagination (windowed 1..10) -----
   const total = totalPages || 1;

@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import AgentSidebar from "./AgentSidebar";
 import { Menu, Bell, ChevronDown, ChevronsRight } from "lucide-react";
 import axios from "axios";
+import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";
 
 // ---- Breadcrumbs (agent-aware) ----
@@ -39,6 +40,31 @@ const Breadcrumbs: React.FC = () => {
   );
 };
 
+const MiniAvatar: React.FC<{
+  src?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}> = ({ src, firstName, lastName }) => {
+  const hasSrc = typeof src === 'string' && src.trim() !== '';
+  const initials =
+    `${firstName?.[0]?.toUpperCase() ?? ''}${lastName?.[0]?.toUpperCase() ?? ''}` || 'U';
+
+  if (hasSrc) {
+    return (
+      <img
+        src={src as string}
+        alt="Profile"
+        className="w-9 h-9 rounded-full object-cover shadow-sm ring-2 ring-orange-100"
+      />
+    );
+  }
+  return (
+    <div className="w-9 h-9 rounded-full bg-themeOrange text-white flex items-center justify-center font-bold shadow-sm ring-2 ring-orange-100">
+      {initials}
+    </div>
+  );
+};
+
 const AgentLayout: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [hasUnread, setHasUnread] = useState<boolean>(false);
@@ -48,8 +74,10 @@ const AgentLayout: React.FC = () => {
   const mainContentMargin = sidebarCollapsed ? 'ml-16' : 'ml-56';
 
   // Replace with your actual auth-sourced agent id
-  const agentId = Number(localStorage.getItem("agentId") || 2);
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://propadda-backend-v1-506455747754.asia-south2.run.app";
+  // const agentId = Number(localStorage.getItem("agentId") || 2);
+  const { user } = useAuth();
+  const agentId = user?.userId ?? null;
+  //const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://propadda-backend-v1-506455747754.asia-south2.run.app";
 
   const fetchUnreadCount = async () => {
     try {
@@ -127,12 +155,14 @@ const AgentLayout: React.FC = () => {
                 onClick={() => setProfileOpen((prev) => !prev)}
               >
                 <div className="text-right hidden sm:block">
-                  <div className="text-sm font-medium leading-4">Agent</div>
-                  <div className="text-xs text-gray-500 leading-4">agent@propadda.in</div>
+                  <div className="text-sm font-medium leading-4">{user?.firstName} {user?.lastName}</div>
+                  <div className="text-xs text-gray-500 leading-4">{user?.email}</div>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-themeOrange text-white flex items-center justify-center font-bold shadow-sm">
-                  A
-                </div>
+                <MiniAvatar
+                  src={(user as any)?.profileImageUrl} // if your auth user includes it
+                  firstName={user?.firstName}
+                  lastName={user?.lastName}
+                />
                 <ChevronDown
                   className={`w-4 h-4 text-gray-500 hidden sm:block transition-transform ${
                     profileOpen ? "rotate-180" : ""

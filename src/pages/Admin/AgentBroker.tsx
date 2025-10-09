@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Phone, Mail, MapPin, ShieldCheck } from "lucide-react";
 
 /* -------- Types -------- */
@@ -214,8 +215,8 @@ const AgentBroker: React.FC = () => {
     setLoading(true);
     setErr(null);
     try {
-      const resp = await axios.get<SellerResponse[]>(
-        `${API_BASE_URL}/admin/allSellers`
+      const resp = await api.get<SellerResponse[]>(
+        "/admin/allSellers"
       );
       setSellers(resp.data || []);
       setPage(1);
@@ -233,8 +234,8 @@ const AgentBroker: React.FC = () => {
 
   const toggleVerify = async (id: number) => {
     try {
-      await axios.patch(
-        `${API_BASE_URL}/admin/togglePropaddaVerified/${id}`
+      await api.patch(
+        `/admin/togglePropaddaVerified/${id}`
       );
       fetchSellers();
     } catch (e) {

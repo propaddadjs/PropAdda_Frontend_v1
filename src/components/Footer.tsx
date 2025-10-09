@@ -35,7 +35,7 @@ const Footer: React.FC = () => {
           </div>
           <div className="contact-box">
             <p className="headings">ADDRESS</p>
-            <p>DELHI</p>
+            <p>NEW DELHI</p>
           </div>
         </div>
 
@@ -49,13 +49,18 @@ const Footer: React.FC = () => {
       <hr />
 
       <div className="footer-bottom">
-        <div className="social-links">
-          <a href="https://www.facebook.com/PropAddaIndia"><img src={facebookLogo} alt="Facebook" /></a>
-          <a href="https://x.com/Propaddaindia"><img src={twitterLogo} alt="Twitter" /></a>
-          <a href="https://www.instagram.com/propadda/"><img src={instagramLogo} alt="Instagram" /></a>
-          <a href="#"><img src={linkedinLogo} alt="LinkedIn" /></a>
-          <a href="https://www.youtube.com/@Propaddaindia"><img src={youtubeLogo} alt="YouTube" /></a>
-        </div>
+        <div className="social-links flex justify-center">
+            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
+            <a href="https://www.facebook.com/PropAddaIndia"><img src={facebookLogo} alt="Facebook" /></a> </div>
+            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
+            <a href="https://x.com/Propaddaindia"><img src={twitterLogo} alt="Twitter" /></a> </div>
+            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
+            <a href="https://www.instagram.com/propadda/"><img src={instagramLogo} alt="Instagram" /></a> </div>
+            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
+            <a href="#"><img src={linkedinLogo} alt="LinkedIn" /></a> </div>
+            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
+            <a href="https://www.youtube.com/@Propaddaindia"><img src={youtubeLogo} alt="YouTube" /></a> </div>
+          </div>
 
         <p className="copyright">
           © {new Date().getFullYear()} PropAdda. All Rights Reserved. Powered by  

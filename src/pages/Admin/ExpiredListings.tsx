@@ -1,6 +1,7 @@
 // src/pages/admin/ExpiredListings.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 // import { Link } from "react-router-dom";
 import FilterSidebar, { type Filters as SidebarFilters } from "../../components/FilterSidebar";
 import {
@@ -275,7 +276,7 @@ const ExpiredListings: React.FC = () => {
       const paging = { page, size };
       const filterParams = buildParamsFromSidebar(filters);
       if (filters) {
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/filterExpiredProperties`, {
+        const resp = await api.get<PageResponse | any>("/admin/filterExpiredProperties", {
           params: { ...paging, ...filterParams },
         });
         const body = resp.data;
@@ -315,7 +316,7 @@ const ExpiredListings: React.FC = () => {
         setLoading(false);
         return;
       } else {
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/expiredProperties`, { params: paging });
+        const resp = await api.get<PageResponse | any>("/admin/expiredProperties", { params: paging });
         const body = resp.data;
 
         if (body && Array.isArray(body.content)) {
@@ -364,7 +365,7 @@ const ExpiredListings: React.FC = () => {
   /* ---- actions (preserve filters) ---- */
   const renewListing = async (id: number, category: string) => {
     try {
-      await axios.patch(`${API_BASE_URL}/admin/renewProperty/${category}/${id}`);
+      await api.patch(`/admin/renewProperty/${category}/${id}`);
       fetch(appliedFilters);
       alert("Renew request sent.");
     } catch (e) {
@@ -375,7 +376,7 @@ const ExpiredListings: React.FC = () => {
 
   const notifyDealer = async (id: number, category: string) => {
     try {
-      await axios.patch(`${API_BASE_URL}/admin/notifyDealer/${category}/${id}`);
+      await api.patch(`/admin/notifyDealer/${category}/${id}`);
       alert("Seller has been notified to renew this listing.");
     } catch (e) {
       console.error(e);

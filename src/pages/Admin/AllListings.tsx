@@ -1,6 +1,7 @@
 // src/pages/admin/AllListings.tsx
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Link } from "react-router-dom";
 import FilterSidebar, { type Filters as SidebarFilters } from "../../components/FilterSidebar";
 import {
@@ -330,7 +331,7 @@ const AllListings: React.FC = () => {
       const filterParams = buildParamsFromSidebar(filters);
 
       if (filters) {
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/filterAllProperties`, {
+        const resp = await api.get<PageResponse | any>("/admin/filterAllProperties", {
           params: { ...paging, ...filterParams },
         });
         const body = resp.data;
@@ -373,7 +374,7 @@ const AllListings: React.FC = () => {
         setLoading(false);
         return;
       } else {
-        const resp = await axios.get<PageResponse | any>(`${API_BASE_URL}/admin/allProperties`, { params: paging });
+        const resp = await api.get<PageResponse | any>("/admin/allProperties", { params: paging });
         const body = resp.data;
 
         if (body && Array.isArray(body.content)) {
@@ -437,7 +438,7 @@ const AllListings: React.FC = () => {
   // Toggle handlers
   const toggleVip = async (id: number, category: string) => {
     try {
-      await axios.patch(`${API_BASE_URL}/admin/toggleVip/${category}/${id}`);
+      await api.patch(`/admin/toggleVip/${category}/${id}`);
       fetch(appliedFilters);
     } catch (e) {
       console.error("toggle vip error", e);
@@ -446,7 +447,7 @@ const AllListings: React.FC = () => {
   };
   const toggleRera = async (id: number, category: string) => {
     try {
-      await axios.patch(`${API_BASE_URL}/admin/toggleReraVerified/${category}/${id}`);
+      await api.patch(`/admin/toggleReraVerified/${category}/${id}`);
       fetch(appliedFilters);
     } catch (e) {
       console.error("toggle rera error", e);

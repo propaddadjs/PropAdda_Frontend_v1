@@ -55,7 +55,7 @@ const AgentFeedback: React.FC = () => {
 
   // Mock initial agent details
 const MOCK_AGENT = {
-  name: user?.firstName,
+  name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
   email: user?.email,
 };
 

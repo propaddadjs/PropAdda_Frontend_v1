@@ -1,6 +1,7 @@
 // src/pages/admin/AdminNotifications.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { api } from "../../lib/api";
 import { Bell, Star, X } from "lucide-react";
 
 /* ------------ Types ------------- */
@@ -312,8 +313,8 @@ const AdminNotifications: React.FC = () => {
     setErr(null);
     try {
       const [allResp, newResp] = await Promise.all([
-        axios.get<NotificationDetails[]>(`${API_BASE_URL}/admin/allNotifications`),
-        axios.get<NotificationDetails[]>(`${API_BASE_URL}/admin/newNotifications`),
+        api.get<NotificationDetails[]>("/admin/allNotifications"),
+        api.get<NotificationDetails[]>("/admin/newNotifications"),
       ]);
 
       const allData = Array.isArray(allResp.data) ? allResp.data : [];
@@ -402,7 +403,7 @@ const AdminNotifications: React.FC = () => {
   const markNotificationViewed = async (id: number) => {
     markViewedLocal(id); // optimistic
     try {
-      await axios.patch(`${API_BASE_URL}/admin/markNotificationViewed/${id}`);
+      await api.patch(`/admin/markNotificationViewed/${id}`);
     } catch (e) {
       console.error(e);
     }
@@ -412,8 +413,8 @@ const AdminNotifications: React.FC = () => {
     // optimistic
     setAll((prev) => prev.map((n) => ({ ...n, notificationViewed: true })));
     try {
-      const resp = await axios.patch<NotificationDetails[]>(
-        `${API_BASE_URL}/admin/markAllNotificationViewedForAdmin`
+      const resp = await api.patch<NotificationDetails[]>(
+        "/admin/markAllNotificationViewedForAdmin"
       );
       if (Array.isArray(resp.data)) {
         const sorted = [...resp.data].sort(

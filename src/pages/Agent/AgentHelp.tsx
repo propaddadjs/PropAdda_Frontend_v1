@@ -38,9 +38,8 @@ const AgentHelp: React.FC = () => {
   const { user } = useAuth();
   // Mock initial agent details
   const MOCK_AGENT = {
-    name: user?.firstName,
+    name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
     email: user?.email,
-    phoneNumber: user?.phoneNumber,
   };
   // 1. Set initial state to empty string for placeholders
   const [formData, setFormData] = useState<{
@@ -147,7 +146,7 @@ const AgentHelp: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Name, Email, Phone Number (Readonly) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input type="text" value={MOCK_AGENT.name} disabled className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed" />
@@ -156,13 +155,13 @@ const AgentHelp: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <input type="email" value={MOCK_AGENT.email} disabled className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed" />
             </div>
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
               <div className="flex items-center w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed">
                   <Phone className="w-4 h-4 mr-2 text-gray-400" />
                   {MOCK_AGENT.phoneNumber}
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Category Dropdowns */}

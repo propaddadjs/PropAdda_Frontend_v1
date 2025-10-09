@@ -1,5 +1,17 @@
 import React from 'react';
-
+import ribbon from "../images/ribbon.png";
+import icon1 from "../images/icon1.png";
+import icon2 from "../images/icon2.png";
+import icon3 from "../images/icon3.png";
+import img1 from "../images/img_5.png";
+import img2 from "../images/img_5.png";
+import img3 from "../images/img_5.png";
+import img4 from "../images/img_5.png";
+import handshake from "../images/img_3.png";
+import handshakeOverlay from "../images/img_4.png";
+import Footer from '../components/Footer';
+import Header from '../components/Header';
+import PropertyAction from '../components/PropertyAction';
 
 // -- Utility types
 interface IconCardProps {
@@ -51,7 +63,7 @@ interface AboutHeaderProps {
 function AboutHeader({ description }: AboutHeaderProps) {
   return (
     <div className="about-header">
-      <img src="assets/ribbon.png" alt="Ribbon Background" className="ribbon-img" />
+      <img src={ribbon} alt="Ribbon Background" className="ribbon-img" />
       <div className="about-description">
         {description.map((para, i) => (
           <p key={i}>{para}</p>
@@ -147,19 +159,19 @@ export default function AboutUs() {
 
   const iconItems: IconCardProps[] = [
     {
-      src: "assets/icon1.png",
+      src: icon1,
       alt: "Individual Buyers Icon",
       title: "Individual buyers",
       subtitle: "& first-time homeowners",
     },
     {
-      src: "assets/icon2.png",
+      src: icon2,
       alt: "Verified Agents Icon",
       title: "Verified agents",
       subtitle: "& realtors",
     },
     {
-      src: "assets/icon3.png",
+      src: icon3,
       alt: "Land Developers Icon",
       title: "Land developers",
       subtitle: "& layout promoters",
@@ -168,25 +180,25 @@ export default function AboutUs() {
 
   const teamMembers: TeamCardProps[] = [
     {
-      src: "assets/img_5.png",
+      src: img1,
       alt: "Pawan Rajput",
       name: "Mr. Pawan Rajput",
       role: "Owner & Director",
     },
     {
-      src: "assets/img_5.png",
+      src: img2,
       alt: "Dhruv Rajput",
       name: "Mr. Dhruv Rajput",
       role: "CEO",
     },
     {
-      src: "assets/img_5.png",
+      src: img3,
       alt: "Pritham Singh",
       name: "Mr. Pritham Singh",
       role: "Chairman",
     },
     {
-      src: "assets/img_5.png",
+      src: img4,
       alt: "K.P. Sharan Rao",
       name: "Mr. K.P. Sharan Rao",
       role: "Operations Manager",
@@ -194,14 +206,16 @@ export default function AboutUs() {
   ];
 
   return (
+    <div>
+      <Header title="ABOUT US" />
     <main>
       <section className="about-section">
         <AboutHeader description={aboutParagraphs} />
         <IconRow items={iconItems} />
         <AboutImages
-          mainSrc="assets/img_3.png"
+          mainSrc={handshake}
           mainAlt="handshake"
-          overlaySrc="assets/img_4.png"
+          overlaySrc={handshakeOverlay}
           overlayAlt="house-hands"
         />
       </section>
@@ -218,6 +232,9 @@ export default function AboutUs() {
         }
       />
     </main>
+    <PropertyAction />
+    <Footer />
+    </div>
   );
 }
 
