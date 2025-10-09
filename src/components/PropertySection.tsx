@@ -292,7 +292,7 @@ const PropertySection: React.FC = () => {
           setResidential(data.residential ?? []);
           setCommercial(data.commercial ?? []);
         } else {
-          const url = "/user/getVipFilterByPropertyType/${active}";
+          const url = `/user/getVipFilterByPropertyType/${active}`;
           const { data } = await api.get<ApiResponse>(url, 
             // { withCredentials: true }
           );

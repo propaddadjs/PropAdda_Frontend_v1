@@ -35,6 +35,9 @@ import {X, User2,
   History,
   CheckSquare,
 } from "lucide-react";
+import Footer from "../components/Footer";
+import PropertyAction from "../components/PropertyAction";
+import Header from "../components/Header";
 
 /* ===================== Types (match your backend) ===================== */
 type MediaResponse = { url?: string; filename?: string; ord?: number };
@@ -700,6 +703,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   return (
     <div className="min-h-screen bg-orange-50">
       {/* ===================== Header ===================== */}
+      <Header />
       <div className="border-b bg-orange-100">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="flex flex-col gap-3">
@@ -1239,6 +1243,8 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         </div>
       </div>
+      <PropertyAction />
+      <Footer />
     </div>
   );
 };
