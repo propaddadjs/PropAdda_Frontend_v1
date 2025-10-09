@@ -92,16 +92,16 @@ const ContactUs: React.FC = () => {
 
           {/* Socials + "Open in Maps" link */}
           <div className="social-links mt-6 flex flex-wrap items-center gap-3">
-            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
-            <a href="https://www.facebook.com/PropAddaIndia"><img src={facebookLogo} alt="Facebook" /></a> </div>
-            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
-            <a href="https://x.com/Propaddaindia"><img src={twitterLogo} alt="Twitter" /></a> </div>
-            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
-            <a href="https://www.instagram.com/propadda/"><img src={instagramLogo} alt="Instagram" /></a> </div>
-            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
-            <a href="#"><img src={linkedinLogo} alt="LinkedIn" /></a> </div>
-            <div className="transition duration-300 hover:shadow-lg hover:scale-[1.03]">
-            <a href="https://www.youtube.com/@Propaddaindia"><img src={youtubeLogo} alt="YouTube" /></a> </div>
+            <div className="transition duration-300 hover:scale-[1.2]">
+            <a href="https://www.facebook.com/PropAddaIndia" target="_blank" rel="noopener noreferrer"><img src={facebookLogo} alt="Facebook" /></a> </div>
+            <div className="transition duration-300 hover:scale-[1.2]">
+            <a href="https://x.com/Propaddaindia" target="_blank" rel="noopener noreferrer"><img src={twitterLogo} alt="Twitter" /></a> </div>
+            <div className="transition duration-300 hover:scale-[1.2]">
+            <a href="https://www.instagram.com/propadda/" target="_blank" rel="noopener noreferrer"><img src={instagramLogo} alt="Instagram" /></a> </div>
+            <div className="transition duration-300 hover:scale-[1.2]">
+            <a href="#" target="_blank" rel="noopener noreferrer"><img src={linkedinLogo} alt="LinkedIn" /></a> </div>
+            <div className="transition duration-300 hover:scale-[1.2]">
+            <a href="https://www.youtube.com/@Propaddaindia" target="_blank" rel="noopener noreferrer"><img src={youtubeLogo} alt="YouTube" /></a> </div>
           </div>
 
           {/* Optional: Secondary info blocks */}

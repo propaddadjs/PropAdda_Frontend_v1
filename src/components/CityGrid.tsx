@@ -77,7 +77,7 @@ const CityGrid: React.FC = () => {
   // Click → call /user/filterByCity/{city}, then navigate and pass prefetched result
   const onCityClick = async (cityKey: string) => {
     try {
-      const { data } = await api.get("/user/filterByCity/${encodeURIComponent(cityKey)}", {
+      const { data } = await api.get(`/user/filterByCity/${encodeURIComponent(cityKey)}`, {
         withCredentials: true,
       });
       navigate(`/search-results`, {
@@ -92,28 +92,40 @@ const CityGrid: React.FC = () => {
     }
   };
 
-  const cityCards = useMemo(
-    () =>
-      CITIES.map((c, idx) => {
-        const img = IMAGES[idx % IMAGES.length];
-        const count = counts[c.apiKey] ?? 0;
-        // “+ Properties” suffix kept same as your design
-        const countLabel = `${count.toLocaleString("en-IN")} Properties`;
-        return (
-          <button
-            key={c.apiKey}
-            className="city-card text-left"
-            onClick={() => onCityClick(c.apiKey)}
-            title={`Explore properties in ${c.label}`}
-          >
-            <img src={img} alt={c.label} />
-            <h4>{c.label}</h4>
-            <p>{countLabel}</p>
-          </button>
-        );
-      }),
-    [counts]
-  );
+const cityCards = useMemo(
+  () =>
+    CITIES.map((c, idx) => {
+      const img = IMAGES[idx % IMAGES.length];
+      const count = counts[c.apiKey] ?? 0;
+      const countLabel = `${count.toLocaleString("en-IN")} Properties`;
+
+      return (
+        <button
+          key={c.apiKey}
+          onClick={() => onCityClick(c.apiKey)}
+          title={`Explore properties in ${c.label}`}
+          className="group flex flex-col items-center text-center focus:outline-none focus:ring-2 focus:ring-orange-300 rounded-lg"
+          aria-label={`Explore ${c.label}`}
+        >
+          {/* Circular image */}
+          <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden mb-2 ring-1 ring-orange-100 transition-all duration-300 group-hover:ring-2 group-hover:ring-orange-300">
+            <img
+              src={img}
+              alt={c.label}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+
+          {/* Text */}
+          <h4 className="text-sm font-semibold text-gray-900">{c.label}</h4>
+          <p className="mt-0.5 text-xs text-gray-600">{countLabel}</p>
+        </button>
+      );
+    }),
+  [counts]
+);
 
   return (
     <section className="explore-cities">
@@ -129,12 +141,10 @@ const CityGrid: React.FC = () => {
         </div>
       )}
 
-      <div className="city-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
-        {loading ? (
-          <div className="text-gray-600 p-4">Loading cities…</div>
-        ) : (
-          cityCards
-        )}
+      <div className="mx-auto max-w-fit">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+          {cityCards}
+        </div>
       </div>
 
       <div className="view-more-container">

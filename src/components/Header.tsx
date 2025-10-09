@@ -6,7 +6,7 @@ import userAvatar from "../images/userAvatar.png";
 import FilterExplorerModal, { type Filters as ExploreFilters } from "./FilterExplorerModal";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, UserCircle2 } from "lucide-react";
 
 type HeaderProps = {
   /** Pass a title on inner pages. Omit on homepage to show nothing. */
@@ -134,14 +134,15 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
               >
-                <img
+                {/* <img
                   src={avatarUrl || userAvatar}
                   alt="Profile"
                   className="h-10 w-10 bg-orange-400 rounded-full object-cover"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).src = userAvatar;
                   }}
-                />
+                /> */}
+                <UserCircle2 className="bg-orange-500 text-white rounded-full w-12 h-12" />
                 <ChevronDown className="w-4 h-4" />
               </button>
 
@@ -158,7 +159,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                   >
                   {/* Header with name */}
                   <div className="px-4 py-3 bg-orange-50 border-b">
-                    <div className="text-sm font-semibold text-gray-900">
+                    <div className="text-sm font-semibold text-orange-600">
                       {fullName || displayHandle}
                     </div>
                     {user?.email ? (

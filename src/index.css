@@ -461,15 +461,20 @@ button {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      background-color: #FF671F;
-      border: none;
+      background-color: white;
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
       font-size: 20px;
       padding: 8px 16px;
       cursor: pointer;
-      border-radius: 50%;
       z-index: 1;
-      color: white;
+      color: #FF671F;
+      border-color: #FF671F;
+      border-radius: 100px;
+      border-width: 2px;
+    }
+
+    .carousel-btn:hover {
+      background-color: #fef7ed;
     }
 
     .left-btn {

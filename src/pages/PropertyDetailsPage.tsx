@@ -409,7 +409,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       // lock the UI in parent
       setEnquirySent(true);
       onSubmitted?.();
-      alert("Enquiry sent successfully!");
+      alert("Enquiry sent successfully! Our team will contact you soon.");
     } catch (err: any) {
       // If server returns 409/208 for duplicate, still lock UI
       const status = err?.response?.status;
