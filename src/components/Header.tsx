@@ -224,7 +224,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                       onClick={() => {
                         close();
                         if (user.kycVerified === "INAPPLICABLE") navigate("/account/initiateKyc");
-                        else if (user.kycVerified === "PENDING") navigate("/account/checkKycStatus");
+                        else if (user.kycVerified === "PENDING" || user.kycVerified === "REJECTED") navigate("/account/checkKycStatus");
                         else navigate("/")
                       }}
                     >

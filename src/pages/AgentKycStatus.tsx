@@ -134,7 +134,11 @@ const DocumentUploadField: React.FC<{
           id={`file-${name}`}
           name={name}
           onChange={onFileChange}
-          accept={name === 'aadharCard' ? 'image/*,application/pdf' : 'image/*'}
+          accept={
+            name === 'aadharCard'
+              ? 'image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+              : 'image/*'
+          }
           disabled={disabled}
           className="hidden"
         />
@@ -521,29 +525,36 @@ const onDrop =
                     onDragOver={prevent}
                     onDragEnter={prevent}
                     onDrop={onDrop(
-                        setAadhar,
-                        [".png", ".jpg", ".jpeg", ".pdf", ".heic", ".heif", "image/", "application/pdf"],
-                        "aadharUrl"
+                      setAadhar,
+                      [
+                        ".png", ".jpg", ".jpeg", ".heic", ".heif",
+                        ".pdf", ".doc", ".docx",
+                        "image/",
+                        "application/pdf",
+                        "application/msword",
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      ],
+                      "aadharUrl"
                     )}
                     className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-orange-200 bg-[#fffaf7] px-4 py-8 text-center hover:border-orange-300 transition"
                     >
                     <UploadCloud className="h-7 w-7 text-orange-600" />
                     <div className="text-sm text-gray-700">
-                        Drag & drop front & back scans or <span className="text-orange-600 font-semibold">browse</span>
+                      Drag & drop your Aadhar file or <span className="text-orange-600 font-semibold">browse</span>
                     </div>
                     <div className="text-xs text-gray-500">
-                        Up to 2 photos • Max size 10 MB • Formats: png, jpg, jpeg, heic, heif, pdf
+                      One file only • Max size 10 MB • Formats: png, jpg, jpeg, heic, heif, pdf, doc, docx
                     </div>
                     <input
-                        type="file"
-                        accept="image/*,.pdf"
-                        onChange={(e) => {
-                        const f = e.target.files?.[0] ?? null;
+                      type="file"
+                      accept="image/*,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] ?? null; // still single-file only
                         setAadhar(f);
                         if (f) setFormData((prev) => ({ ...prev, aadharUrl: `uploaded:${f.name}` }));
-                        handleFileChange(e); // keep your existing behavior
-                        }}
-                        className="sr-only"
+                        handleFileChange(e);
+                      }}
+                      className="sr-only"
                     />
                     </label>
 

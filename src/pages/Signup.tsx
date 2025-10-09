@@ -368,10 +368,10 @@ export default function Signup() {
                     <button
                       type="button"
                       onClick={() => setShowPwd(s => !s)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-orange-100 text-gray-600"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-orange-100 text-orange-600"
                       aria-label={showPwd ? "Hide password" : "Show password"}
                     >
-                      {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                   {password.length > 0 && !passOk && (
@@ -398,10 +398,10 @@ export default function Signup() {
                     <button
                       type="button"
                       onClick={() => setShowPwd2(s => !s)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-orange-100 text-gray-600"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-orange-100 text-orange-600"
                       aria-label={showPwd2 ? "Hide password" : "Show password"}
                     >
-                      {showPwd2 ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPwd2 ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                   {confirm.length > 0 && !same && (
