@@ -34,6 +34,7 @@ import {X, User2,
   CalendarClock,
   History,
   CheckSquare,
+  PhoneIcon,
 } from "lucide-react";
 import Footer from "../components/Footer";
 import PropertyAction from "../components/PropertyAction";
@@ -378,7 +379,7 @@ const PropertyDetailsPage: React.FC = () => {
     const [buyerType, setBuyerType] = useState<"Individual" | "Dealer">("Individual");
     const [buyerReason, setBuyerReason] = useState<"Investment" | "Self Use">("Investment");
     const [name, setName] = useState("");
-    const [phoneCC, setPhoneCC] = useState("+91");
+    // const [phoneCC, setPhoneCC] = useState("+91");
     const [phone, setPhone] = useState("");
     const [msg, setMsg] = useState("");
     const [agree, setAgree] = useState(false);
@@ -398,7 +399,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       setSubmitting(true);
       const payload: EnquiryPayload = {
         buyerName: name.trim(),
-        buyerPhoneNumber: `${phoneCC} ${phone.trim()}`,
+        buyerPhoneNumber: phone.trim(),
         buyerType,
         buyerReason,
         buyerReasonDetail: msg,
@@ -465,17 +466,10 @@ const handleSubmit = async (e: React.FormEvent) => {
         />
 
         <div className="flex gap-2">
-          <select
-            value={phoneCC}
-            onChange={(e) => setPhoneCC(e.target.value)}
-            className="border rounded px-2 py-2 text-sm"
-            aria-label="Country code"
-          >
-            <option value="+91">IND (+91)</option>
-            {/* <option value="+1">USA (+1)</option>
-            <option value="+44">UK (+44)</option> */}
-            {/* add more as needed */}
-          </select>
+          <span className="inline-flex items-center gap-1 px-3 rounded-l-lg border border-orange-100 bg-orange-50 text-gray-700 text-sm">
+            <PhoneIcon className="w-4 h-4 text-orange-600" />
+            +91
+          </span>
           <input
             type="tel"
             placeholder="Phone Number"

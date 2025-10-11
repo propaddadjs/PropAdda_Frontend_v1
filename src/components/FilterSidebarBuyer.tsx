@@ -163,7 +163,7 @@ const FilterSidebarBuyer: React.FC<Props> = ({ initial = {}, onApply, onReset })
 
         const { data } = await api.post<ApiResponse>(
         "/user/getDetailedFilteredProperties",
-        // body,
+        body,
         // { withCredentials: true }
         );
         onApply(f, data); // <-- pass results to page

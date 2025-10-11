@@ -148,7 +148,7 @@ export default function Signup() {
             <Link to="/" className="hover:text-themeOrange transition">HOME</Link>
             <Link to="/testimonials" className="hover:text-themeOrange transition">TESTIMONIALS</Link>
             <Link to="/terms" className="hover:text-themeOrange transition">TERMS & CONDITIONS</Link>
-            <Link to="/policy" className="hover:text-themeOrange transition">PRIVACY POLICY</Link>
+            <Link to="/privacyPolicy" className="hover:text-themeOrange transition">PRIVACY POLICY</Link>
             <Link to="/faq" className="hover:text-themeOrange transition">FAQ’S</Link>
           </nav>
         </div>

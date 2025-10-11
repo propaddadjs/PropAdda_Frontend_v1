@@ -66,7 +66,7 @@ export default function Login() {
           <nav className="text-sm flex items-center gap-5 text-gray-600">
             <Link to="/" className="hover:text-themeOrange transition">HOME</Link>
             <Link to="/testimonials" className="hover:text-themeOrange transition">TESTIMONIALS</Link>
-            <Link to="/policy" className="hover:text-themeOrange transition">PRIVACY POLICY</Link>
+            <Link to="/privacyPolicy" className="hover:text-themeOrange transition">PRIVACY POLICY</Link>
             <Link to="/faq" className="hover:text-themeOrange transition">FAQ’S</Link>
           </nav>
         </div>
@@ -229,7 +229,7 @@ export default function Login() {
 
             {/* Little footer inside card */}
             <div className="mt-6 text-xs text-gray-500 flex items-center gap-2">
-              <Home className="w-3.5 h-3.5 text-orange-600" />
+              <ShieldCheck className="w-3.5 h-3.5 text-orange-600" />
               Secure portal
             </div>
           </section>

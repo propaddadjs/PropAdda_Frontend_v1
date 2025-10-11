@@ -56,6 +56,7 @@ import UserHelp from "./pages/UserHelp";
 import UserChangePassword from "./pages/UserChangePassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import AllLeads from "./pages/Admin/AllLeads";
 
 const App: React.FC = () => {
   return (
@@ -116,7 +117,7 @@ const App: React.FC = () => {
               <Route path="/admin/listings/view/:category/:id" element={<ListingDetail />} />
             </Route>
             <Route path="leads">
-              <Route path="active" element={<AllListings />} />
+              <Route path="all" element={<AllLeads />} />
               <Route path="pending" element={<PendingListings />} />
               <Route path="expired" element={<ExpiredListings />} />
               <Route path="vip" element={<VipListings />} />
