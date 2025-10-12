@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
-import { api } from "../../lib/api";
 import { Link } from "react-router-dom";
+import { api } from "../../lib/api";
 import {
   Home,
   DollarSign,
@@ -16,13 +15,15 @@ import {
   ExternalLink,
   TimerOff,
   RefreshCw,
+  Image,
+  CheckSquare,
+  CheckCircle as CheckCircleIcon,
+  X,
+  Maximize2,
+  ActivitySquare,
+  Drone,
+  UserCheck2,
 } from "lucide-react";
-
-/* ---------------- Config ---------------- */
-//  const API_BASE_URL =
-//   import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
-
-// const AGENT_ID = 2;
 
 /* ---------------- Types ---------------- */
 type AgentMetrics = {
@@ -67,9 +68,27 @@ type AgentAllPropertiesResponse = {
   Residential: PropertyResponse[];
 };
 
-/* ---------------- UI helpers ---------------- */
-const formatNum = (n?: number) =>
-  typeof n === "number" ? n.toLocaleString("en-IN") : "—";
+type NormProp = {
+  listingId: number;
+  category: "Residential" | "Commercial";
+  title?: string;
+  description?: string;
+  price?: number;
+  area?: number;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  cabins?: number | null;
+  meetingRoom?: boolean | null;
+  locality?: string;
+  city?: string;
+  state?: string;
+  mediaFiles?: MediaResponse[];
+  propertyType?: string | null;
+  preference?: string | null;
+};
+
+/* ---------------- Helpers / UI components ---------------- */
+const formatNum = (n?: number) => (typeof n === "number" ? n.toLocaleString("en-IN") : "—");
 
 const Shimmer: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`animate-pulse bg-gray-100 rounded ${className || ""}`} />
@@ -86,16 +105,10 @@ const StatCard: React.FC<{
     <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm hover:translate-y-0.5 transition duration-150">
       <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent}`} />
       <div className="p-4 flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50 border border-gray-200">
-          {icon}
-        </div>
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50 border border-gray-200">{icon}</div>
         <div className="min-w-0">
           <div className="text-xs text-gray-500 truncate">{title}</div>
-          {loading ? (
-            <Shimmer className="h-6 w-20 mt-2" />
-          ) : (
-            <div className="text-2xl font-semibold mt-1">{formatNum(value)}</div>
-          )}
+          {loading ? <Shimmer className="h-6 w-20 mt-2" /> : <div className="text-2xl font-semibold mt-1">{formatNum(value)}</div>}
         </div>
       </div>
     </div>
@@ -103,28 +116,28 @@ const StatCard: React.FC<{
 };
 
 const QuickActionButton: React.FC<{
-  to: string;
+  to?: string;
+  onClick?: () => void;
   label: string;
   icon: React.ReactNode;
   accent?: string;
-}> = ({ to, label, icon, accent = "from-orange-50 to-blue-50" }) => (
-  <Link
-    to={to}
-    className="relative overflow-hidden flex flex-col items-center justify-center p-4 text-sm font-medium rounded-2xl bg-white border border-gray-100 shadow-sm text-gray-700 hover:text-white hover:bg-themeOrange transition duration-200 text-center hover:-translate-y-0.5"
-  >
-    <div className={`absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r ${accent} opacity-0 hover:opacity-100 transition`} />
-    <div className="p-3 rounded-full bg-gray-50 border border-gray-200 group-hover:bg-orange-100 transition">
-      {icon}
+}> = ({ to, onClick, label, icon, accent = "from-orange-50 to-blue-50" }) => {
+  const content = (
+    <div className="relative overflow-hidden flex flex-col items-center justify-center p-4 text-sm font-medium rounded-2xl bg-white border-2 border-gray-100 shadow-sm text-gray-700 hover:border-orange-500 hover:bg-orange-100 transition duration-200 text-center hover:-translate-y-0.5 h-full">
+      <div className={`absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r ${accent} opacity-0 hover:opacity-100 transition`} />
+      <div className="p-3 rounded-full bg-gray-50 border border-gray-200 transition group-hover:bg-orange-100">{icon}</div>
+      <span className="mt-3 text-sm font-semibold">{label}</span>
     </div>
-    <span className="mt-3 text-sm font-semibold">{label}</span>
-  </Link>
-);
+  );
+
+  if (to) return <Link to={to}>{content}</Link>;
+  return <button onClick={onClick}>{content}</button>;
+};
 
 /* Renewal item used in dashboard preview */
 const RenewalItem: React.FC<{ p: PropertyResponse }> = ({ p }) => {
   const title = p.title || p.propertyType || "Untitled";
   const location = [p.locality, p.city].filter(Boolean).join(", ");
-
   return (
     <div className="flex items-center justify-between p-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 rounded-md transition duration-150">
       <div className="min-w-0">
@@ -139,10 +152,7 @@ const RenewalItem: React.FC<{ p: PropertyResponse }> = ({ p }) => {
         <span className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded bg-red-600 text-white">
           <TimerOff className="w-3 h-3" /> Expired
         </span>
-        <Link
-          to="/agent/listings/expired"
-          className="flex items-center text-themeOrange hover:text-orange-700 transition duration-150 text-sm font-medium"
-        >
+        <Link to="/agent/listings/expired" className="flex items-center text-themeOrange hover:text-orange-700 transition duration-150 text-sm font-medium">
           <RefreshCw className="w-4 h-4 mr-1" /> Renew
         </Link>
       </div>
@@ -161,40 +171,29 @@ const AgentDashboard: React.FC = () => {
   const [loadingExpired, setLoadingExpired] = useState<boolean>(true);
   const [errorExpired, setErrorExpired] = useState<string | null>(null);
 
-  const AgentAvatar: React.FC<{
-  src?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-}> = ({ src, firstName, lastName }) => {
-  const hasSrc = typeof src === 'string' && src.trim() !== '';
-  const initials = `${firstName?.[0]?.toUpperCase() ?? ''}${lastName?.[0]?.toUpperCase() ?? ''}` || 'U';
+  /* modal state */
+  const [reqModalOpen, setReqModalOpen] = useState(false);
+  const [reqType, setReqType] = useState<"graphics" | "photoshoot" | null>(null);
+  const [propsLoading, setPropsLoading] = useState(false);
+  const [propsError, setPropsError] = useState<string | null>(null);
+  const [propsList, setPropsList] = useState<NormProp[]>([]);
+  const [selectedProps, setSelectedProps] = useState<Record<number, boolean>>({});
+  const [sending, setSending] = useState(false);
 
-  if (hasSrc) {
-    return (
-      <img
-        src={src as string}
-        alt="Agent Profile"
-        className="w-24 h-24 rounded-full object-cover border-4 border-gray-200 shadow-inner ring-4 ring-orange-100"
-      />
-    );
-  }
-  return (
-    <div className="w-24 h-24 rounded-full bg-orange-500 flex items-center justify-center border-4 border-gray-200 shadow-inner ring-4 ring-orange-100">
-      <span className="text-white text-2xl font-semibold">{initials}</span>
-    </div>
-  );
+  // Utility function to convert a string to PascalCase
+const toPascalCase = (str: string): string => {
+    if (!str) return '';
+    return str.toLowerCase()
+              .split(/[\s_-]+/)
+              .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join('');
 };
 
-  /* Fetch profile + metrics */
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // const [detailsResp, metricsResp] = await Promise.all([
-        //   axios.get<AgentDetails>(`${API_BASE_URL}/agent/getAgentDetails/${AGENT_ID}`),
-        //   axios.get<AgentMetrics>(`${API_BASE_URL}/agent/getAgentDashboardMetrics/${AGENT_ID}`),
-        // ]);
         const { data: detailsRespData } = await api.get<AgentDetails>("/agent/getAgentDetails");
         const { data: metricsRespData } = await api.get<AgentMetrics>("/agent/getAgentDashboardMetrics");
         setDetails(detailsRespData);
@@ -209,22 +208,16 @@ const AgentDashboard: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  /* Fetch expired listings (preview top 3) */
   useEffect(() => {
     let mounted = true;
     const loadExpired = async () => {
       setLoadingExpired(true);
       setErrorExpired(null);
       try {
-        // const resp = await axios.get<AgentAllPropertiesResponse>(
-        //   `${API_BASE_URL}/agent/expiredPropertiesByAgent/${AGENT_ID}`
-        // );
-        // const data = resp.data;
         const { data } = await api.get<AgentAllPropertiesResponse>("/agent/expiredPropertiesByAgent");
         const commercial = Array.isArray(data?.Commercial) ? data.Commercial : [];
         const residential = Array.isArray(data?.Residential) ? data.Residential : [];
         const merged = [...commercial, ...residential];
-
         merged.sort((a, b) => (b.listingId ?? 0) - (a.listingId ?? 0));
         if (mounted) setExpiredPreview(merged.slice(0, 3));
       } catch (e) {
@@ -240,39 +233,14 @@ const AgentDashboard: React.FC = () => {
     };
   }, []);
 
-  const {
-    totalPropertiesListed,
-    activeProperties,
-    totalPropertiesPendingApproval,
-    totalPropertiesSold,
-  } = metrics;
+  const { totalPropertiesListed, activeProperties, totalPropertiesPendingApproval, totalPropertiesSold } = metrics;
 
   const statCards = useMemo(
     () => [
-      {
-        title: "Total Properties Sold",
-        value: totalPropertiesSold,
-        icon: <DollarSign className="w-5 h-5 text-green-600" />,
-        accent: "from-green-500 to-emerald-300",
-      },
-      {
-        title: "Total Properties Posted",
-        value: totalPropertiesListed,
-        icon: <Home className="w-5 h-5 text-blue-600" />,
-        accent: "from-blue-500 to-sky-300",
-      },
-      {
-        title: "Active Listings",
-        value: activeProperties,
-        icon: <TrendingUp className="w-5 h-5 text-orange-600" />,
-        accent: "from-orange-500 to-amber-300",
-      },
-      {
-        title: "Pending Approval",
-        value: totalPropertiesPendingApproval,
-        icon: <Clock className="w-5 h-5 text-red-600" />,
-        accent: "from-red-500 to-pink-300",
-      },
+      { title: "Total Properties Sold", value: totalPropertiesSold, icon: <DollarSign className="w-5 h-5 text-green-600" />, accent: "from-green-500 to-emerald-300" },
+      { title: "Total Properties Posted", value: totalPropertiesListed, icon: <Home className="w-5 h-5 text-blue-600" />, accent: "from-blue-500 to-sky-300" },
+      { title: "Active Listings", value: activeProperties, icon: <TrendingUp className="w-5 h-5 text-orange-600" />, accent: "from-orange-500 to-amber-300" },
+      { title: "Pending Approval", value: totalPropertiesPendingApproval, icon: <Clock className="w-5 h-5 text-red-600" />, accent: "from-red-500 to-pink-300" },
     ],
     [totalPropertiesListed, totalPropertiesPendingApproval, totalPropertiesSold, activeProperties]
   );
@@ -280,15 +248,117 @@ const AgentDashboard: React.FC = () => {
   const themeOrange = "text-orange-500";
   const themeOrangeHover = "hover:text-orange-600";
 
-  /* Loading & Error skeletons */
+  const pickMediaOrd1 = (m?: MediaResponse[]) => {
+    if (!m || m.length === 0) return null;
+    const byOrd = m.find((x) => x.ord === 1);
+    return byOrd ?? m[0] ?? null;
+  };
+
+  /* --- Modal helpers --- */
+  const openRequestModal = async (type: "graphics" | "photoshoot") => {
+    setReqType(type);
+    setReqModalOpen(true);
+    await loadPropertiesForRequest(type);
+  };
+
+  const loadPropertiesForRequest = async (type: "graphics" | "photoshoot") => {
+    setPropsLoading(true);
+    setPropsError(null);
+    setPropsList([]);
+    setSelectedProps({});
+    try {
+      const endpoint = type === "graphics" ? "/agent/getPropertiesToRequestGraphicShoot" : "/agent/getPropertiesToRequestPhotoshoot";
+      const { data } = await api.get<Record<string, any>>(endpoint);
+
+      const residential = Array.isArray(data?.Residential) ? data.Residential : [];
+      const commercial = Array.isArray(data?.Commercial) ? data.Commercial : [];
+      const normalized: NormProp[] = [];
+
+      residential.forEach((r: any) =>
+        normalized.push({
+          listingId: r.listingId ?? r.listingIdResidential ?? r.id ?? 0,
+          category: "Residential",
+          title: r.title ?? r.propertyType ?? r.listingTitle ?? "",
+          description: r.description ?? "",
+          price: r.price,
+          area: r.area,
+          bedrooms: r.bedrooms ?? null,
+          bathrooms: r.bathrooms ?? null,
+          locality: r.locality,
+          city: r.city,
+          state: r.state,
+          mediaFiles: r.mediaFiles ?? r.media ?? [],
+          propertyType: r.propertyType ?? null,
+          preference: r.preference ?? null,
+        })
+      );
+
+      commercial.forEach((c: any) =>
+        normalized.push({
+          listingId: c.listingId ?? c.listingIdCommercial ?? c.id ?? 0,
+          category: "Commercial",
+          title: c.title ?? c.propertyType ?? "",
+          description: c.description ?? "",
+          price: c.price,
+          area: c.area,
+          cabins: c.cabins ?? null,
+          meetingRoom: c.meetingRoom ?? null,
+          locality: c.locality,
+          city: c.city,
+          state: c.state,
+          mediaFiles: c.mediaFiles ?? c.media ?? [],
+          propertyType: c.propertyType ?? null,
+          preference: c.preference ?? null,
+        })
+      );
+
+      setPropsList(normalized);
+    } catch (e) {
+      console.error("Failed to load properties for request:", e);
+      setPropsError("Could not load properties right now.");
+    } finally {
+      setPropsLoading(false);
+    }
+  };
+
+  const toggleSelectProp = (listingId: number) => {
+    setSelectedProps((prev) => ({ ...prev, [listingId]: !prev[listingId] }));
+  };
+
+  const sendRequests = async () => {
+    const chosen = propsList.filter((p) => selectedProps[p.listingId]);
+    if (chosen.length === 0) {
+      alert("Select at least one property.");
+      return;
+    }
+    setSending(true);
+    try {
+      if (reqType === "graphics") {
+        const reqList = chosen.map((p) => ({ graphics: true, propertyCategory: p.category, propertyId: p.listingId }));
+        await api.post("/agent/addMediaProductionGraphicsRequestFromAgent", reqList);
+        alert("Graphic service request(s) sent successfully.");
+      } else if (reqType === "photoshoot") {
+        const reqList = chosen.map((p) => ({ photoshoot: true, propertyCategory: p.category, propertyId: p.listingId }));
+        await api.post("/agent/addMediaProductionPhotoshootRequestFromAgent", reqList);
+        alert("Photoshoot request(s) sent successfully.");
+      }
+      setReqModalOpen(false);
+      setReqType(null);
+      setPropsList([]);
+      setSelectedProps({});
+    } catch (e: any) {
+      console.error("Failed to send request:", e);
+      const serverMsg = e?.response?.data?.message ?? e?.message;
+      alert(`Failed to send request. ${serverMsg ?? ""}`);
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Shimmer key={i} className="h-20" />
-          ))}
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">{Array.from({ length: 4 }).map((_, i) => <Shimmer key={i} className="h-20" />)}</div>
         <Shimmer className="h-96" />
       </div>
     );
@@ -297,130 +367,251 @@ const AgentDashboard: React.FC = () => {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-8">
-        <div className="p-4 rounded-lg border border-red-300 bg-red-100 text-red-800">
-          Error: {error}
-        </div>
+        <div className="p-4 rounded-lg border border-red-300 bg-red-100 text-red-800">Error: {error}</div>
       </div>
     );
   }
 
-  /* Render */
+  /* ---------------- RENDER ---------------- */
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-      {/* Stats */}
+      {/* USER CARD — image covers left side on wide screens */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="flex flex-col lg:flex-row">
+          {/* Image left (cover) */}
+          <div className="w-full lg:w-72 h-44 lg:h-auto flex-shrink-0 relative">
+            {details?.profileImageUrl ? (
+              <img src={details.profileImageUrl} alt="Agent" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-orange-100 flex items-center justify-center">
+                <span className="text-orange-500 text-8xl font-semibold">{`${details?.firstName?.[0] ?? "A"}${details?.lastName?.[0] ?? ""}`}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Right content */}
+          <div className="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <div className="flex gap-4 items-center">
+                <h2 className="text-2xl font-bold text-gray-900">{details?.firstName} {details?.lastName}</h2>
+                <p className="flex text-xs font-semibold text-orange-700 bg-yellow-50 rounded-full px-2 py-2">
+                  <UserCheck2 className="w-4 h-4 mr-1" />
+                  PropAdda {toPascalCase(details?.role ?? "")}
+                </p> 
+              </div>
+              <p className="flex text-sm text-gray-600 mt-1"><MapPin className="text-orange-500 h-4 w-4 mr-1" />{details?.city}, {details?.state}</p>
+
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-6 gap-3">
+                <div className="flex items-center text-gray-700">
+                  <Mail className="w-4 h-4 mr-2 text-orange-500" /> <span className="text-sm">{details?.email}</span>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <Phone className="w-4 h-4 mr-2 text-orange-500" /> <span className="text-sm">+91 {details?.phoneNumber}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-between gap-4">
+              <div>
+                {details?.propaddaVerified && (
+                  <span className="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-700">
+                    <CheckCircle className="w-4 h-4 mr-1" /> PropAdda Verified
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Link to="/agent/listings/active" className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-600 font-semibold border border-orange-500 hover:bg-orange-500 hover:text-white transition">
+                  <ActivitySquare />View Active Listings
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         {statCards.map((s) => (
-          <StatCard
-            key={s.title}
-            title={s.title}
-            value={s.value}
-            icon={s.icon}
-            loading={loading}
-            accent={s.accent}
-          />
+          <StatCard key={s.title} title={s.title} value={s.value} icon={s.icon} loading={loading} accent={s.accent} />
         ))}
       </div>
 
-      {/* Profile + Actions + Expired Preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile */}
-        <div className="lg:col-span-1 bg-white shadow-xl rounded-2xl p-6 border-t-4 border-orange-500">
-          <div className="flex flex-col items-center">
-            {/* <img
-              src={details?.profileImageUrl || "https://placehold.co/100x100/eeeeee/333333?text=Agent"}
-              alt="Agent Profile"
-              className="w-24 h-24 rounded-full object-cover border-4 border-gray-200 shadow-inner"
-            /> */}
-            <AgentAvatar
-              src={details?.profileImageUrl}
-              firstName={details?.firstName}
-              lastName={details?.lastName}
-            />
-            <h2 className="text-xl font-bold mt-4 text-gray-900">
-              {details?.firstName} {details?.lastName}
-            </h2>
-            <p className="text-sm text-gray-500">{details?.email}</p>
+      {/* Main area: Media on left, 2x2 quick actions on right */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left — Media & Creative Services (span 2 cols on desktop) */}
+        <div className="lg:col-span-1 h-full">
+          <div className="bg-white shadow-md rounded-2xl border border-gray-100 p-6 h-full flex flex-col justify-between">
+            <h4 className="text-lg font-semibold text-gray-800">Media & Creative Services</h4>
+            <p className="text-sm text-gray-500 mt-1">Request Graphic Services or Photo Shoot / Drone Shoot for your listed properties.</p>
 
-            {details?.propaddaVerified && (
-              <span className="mt-3 inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-700">
-                <CheckCircle className="w-4 h-4 mr-1" /> VERIFIED SELLER
-              </span>
-            )}
+            <div className="mt-4 flex flex-col gap-3">
+              <button onClick={() => openRequestModal("graphics")} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-600 font-semibold hover:bg-orange-500 hover:text-white transition">
+                <Image className="w-4 h-4" /> Request Graphic Services
+              </button>
 
-            <div className="mt-6 w-full space-y-2 text-sm">
-              <div className="flex items-center text-gray-700">
-                <Mail className={`w-4 h-4 mr-3 ${themeOrange}`} /> {details?.email}
-              </div>
-              <div className="flex items-center text-gray-700">
-                <Phone className={`w-4 h-4 mr-3 ${themeOrange}`} /> {details?.phoneNumber}
-              </div>
-              <div className="flex items-center text-gray-700">
-                <MapPin className={`w-4 h-4 mr-3 ${themeOrange}`} /> {details?.city}, {details?.state}
-              </div>
+              <button onClick={() => openRequestModal("photoshoot")} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-600 font-semibold hover:bg-orange-500 hover:text-white transition">
+                <Drone className="w-4 h-4" /> Request Photo Shoot / Drone Shoot
+              </button>
             </div>
+
+            {/* Put additional content here if needed */}
           </div>
         </div>
 
-        {/* Actions + Expired Preview */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Quick actions */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <QuickActionButton
-              to="/agent/postproperty"
-              label="Add New Property"
-              icon={<Home className="w-5 h-5 text-orange-500 group-hover:text-white transition" />}
-            />
-            <QuickActionButton
-              to="/agent/notifications"
-              label="View Notifications"
-              icon={<Bell className="w-5 h-5 text-blue-500 group-hover:text-white transition" />}
-            />
-            <QuickActionButton
-              to="/agent/listings/pending"
-              label="Pending Listings"
-              icon={<Clock className="w-5 h-5 text-red-500 group-hover:text-white transition" />}
-            />
-            <QuickActionButton
-              to="/agent/support/manageProfile"
-              label="Manage Profile"
-              icon={<User className="w-5 h-5 text-green-500 group-hover:text-white transition" />}
-            />
-          </div>
-
-          {/* Listing Expiry Renewal (dynamic) */}
-          <div className="bg-white shadow-md rounded-2xl border border-gray-100 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-800">Listing Expiry Renewal</h3>
-              <Link
-                to="/agent/listings/expired"
-                className={`text-sm font-medium ${themeOrange} ${themeOrangeHover} flex items-center`}
-              >
-                View Expired <ExternalLink className="w-4 h-4 ml-1" />
-              </Link>
+        {/* Right — 2x2 grid quick action buttons */}
+        <div className="lg:col-span-1 h-full">
+          <div className="grid grid-cols-2 gap-4 h-full">
+            <div className="h-full">
+              <QuickActionButton to="/agent/postproperty" label="Add New Property" icon={<Home className="w-5 h-5 text-orange-500" />} />
             </div>
 
-            <div className="space-y-3">
-              {loadingExpired ? (
-                <>
-                  <div className="h-12 bg-gray-50 border border-gray-100 rounded-md animate-pulse" />
-                  <div className="h-12 bg-gray-50 border border-gray-100 rounded-md animate-pulse" />
-                  <div className="h-12 bg-gray-50 border border-gray-100 rounded-md animate-pulse" />
-                </>
-              ) : errorExpired ? (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-100 p-3 rounded-md">
-                  {errorExpired}
-                </div>
-              ) : expiredPreview.length === 0 ? (
-                <p className="text-gray-500">No listings currently expired.</p>
-              ) : (
-                expiredPreview.map((p) => (
-                  <RenewalItem key={`${p.category}-${p.listingId}`} p={p} />
-                ))
-              )}
+            <div className="h-full">
+              {/* Using link to listings; you can adjust route if you have a specific one for 'total posted' */}
+              <QuickActionButton to="/agent/listings/active" label={`Total Properties Posted`} icon={<DollarSign className="w-5 h-5 text-blue-600" />} />
+            </div>
+
+            <div className="h-full">
+              <QuickActionButton to="/agent/listings/pending" label="Pending Listings" icon={<Clock className="w-5 h-5 text-red-500" />} />
+            </div>
+
+            <div className="h-full">
+              <QuickActionButton to="/agent/support/manageProfile" label="Manage Profile" icon={<User className="w-5 h-5 text-green-500" />} />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Listing Expiry Renewal — full width */}
+      <div className="bg-white shadow-md rounded-2xl border border-gray-100 p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-gray-800">Listing Expiry Renewal</h3>
+          <Link to="/agent/listings/expired" className={`text-sm font-medium ${themeOrange} ${themeOrangeHover} flex items-center`}>
+            View Expired <ExternalLink className="w-4 h-4 ml-1" />
+          </Link>
+        </div>
+
+        <div className="space-y-3">
+          {loadingExpired ? (
+            <>
+              <div className="h-12 bg-gray-50 border border-gray-100 rounded-md animate-pulse" />
+              <div className="h-12 bg-gray-50 border border-gray-100 rounded-md animate-pulse" />
+              <div className="h-12 bg-gray-50 border border-gray-100 rounded-md animate-pulse" />
+            </>
+          ) : errorExpired ? (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-100 p-3 rounded-md">{errorExpired}</div>
+          ) : expiredPreview.length === 0 ? (
+            <p className="text-gray-500">No listings currently expired.</p>
+          ) : (
+            expiredPreview.map((p) => <RenewalItem key={`${p.category}-${p.listingId}`} p={p} />)
+          )}
+        </div>
+      </div>
+
+      {/* --- Request Modal (unchanged functionality, UI preserved) --- */}
+      {reqModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setReqModalOpen(false)} />
+
+          <div className="relative z-10 w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden border border-orange-100">
+            <div className="px-6 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold">{reqType === "graphics" ? "Request Graphic Services" : "Request Photo / Drone Shoot"}</h3>
+                <div className="text-sm opacity-90 mt-1">{propsList.length} properties available</div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="px-3 py-1 rounded-full bg-white/20 text-sm">{Object.values(selectedProps).filter(Boolean).length} selected</div>
+                <button onClick={() => setReqModalOpen(false)} className="p-2 rounded-full bg-white/10 hover:bg-white/20">
+                  <X className="w-5 h-5 text-white" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {propsLoading ? (
+                <div className="space-y-3">
+                  <Shimmer className="h-16 rounded" />
+                  <Shimmer className="h-16 rounded" />
+                  <Shimmer className="h-16 rounded" />
+                </div>
+              ) : propsError ? (
+                <div className="text-red-600 bg-red-50 border border-red-100 p-3 rounded">{propsError}</div>
+              ) : propsList.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-gray-600 mb-3">You have no active or pending properties.</p>
+                  <Link to="/agent/postproperty" className="text-orange-600 font-semibold">Click here to add a new property.</Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 max-h-[62vh] overflow-auto">
+                  {propsList.map((p) => {
+                    const media = pickMediaOrd1(p.mediaFiles);
+                    const imgUrl = media?.url ?? "https://via.placeholder.com/320x180?text=No+Image";
+                    const selected = !!selectedProps[p.listingId];
+                    return (
+                      <button
+                        key={`${p.category}-${p.listingId}`}
+                        onClick={() => toggleSelectProp(p.listingId)}
+                        className={`relative flex items-stretch gap-3 p-3 rounded-lg border transition text-left focus:outline-none ${
+                          selected ? "border-orange-500 bg-orange-50 shadow-md" : "border-gray-100 hover:shadow-sm"
+                        }`}
+                        aria-pressed={selected}
+                      >
+                        <div className="w-36 h-24 bg-gray-100 flex-shrink-0 overflow-hidden rounded">
+                          <img src={imgUrl} alt={p.title} className="w-full h-full object-cover" />
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-gray-900 truncate">{p.title || "Untitled"}</div>
+
+                              {/* TAGS: category, propertyType, preference */}
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-blue-50 text-blue-700">{p.category}</span>
+                                {p.propertyType && <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-red-50 text-red-700">{p.propertyType}</span>}
+                                {p.preference && <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-green-50 text-green-700">{p.preference}</span>}
+                              </div>
+
+                              <div className="text-xs text-gray-500 mt-1 truncate">{[p.locality, p.city, p.state].filter(Boolean).join(" • ")}</div>
+                            </div>
+
+                            <div className="text-right">
+                              <div className="text-orange-600 font-bold">₹ {p.price ? p.price.toLocaleString("en-IN") : "—"}</div>
+                              <div className="flex text-xs text-right text-gray-500"><Maximize2 className="h-3 w-3 mr-1 text-right"/> {p.area ? `${p.area} sqft` : "—"}</div>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className="text-xs text-gray-600 line-clamp-2">{p.description ?? "—"}</div>
+
+                            <div className="ml-3 flex items-center">
+                              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${selected ? "bg-orange-600 text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
+                                {selected ? <CheckCircleIcon className="w-4 h-4 mr-2" /> : <CheckSquare className="w-4 h-4 mr-2" />}
+                                {selected ? "Selected" : "Select"}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t flex items-center justify-between bg-gray-50">
+              <div className="text-sm text-gray-600">Selected: <span className="font-medium">{Object.values(selectedProps).filter(Boolean).length}</span></div>
+              <div className="flex items-center gap-3">
+                <button onClick={() => { setReqModalOpen(false); setPropsList([]); setSelectedProps({}); }} className="px-4 py-2 rounded bg-white border">Cancel</button>
+                <button onClick={sendRequests} disabled={Object.values(selectedProps).filter(Boolean).length === 0 || sending} className="px-4 py-2 rounded bg-orange-500 text-white font-semibold disabled:opacity-60">
+                  {sending ? "Sending..." : "Send Request"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

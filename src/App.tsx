@@ -57,6 +57,8 @@ import UserChangePassword from "./pages/UserChangePassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AllLeads from "./pages/Admin/AllLeads";
+import AssignedLeads from "./pages/Admin/AssignedLeads";
+import ShootRequests from "./pages/Admin/ShootRequests";
 
 const App: React.FC = () => {
   return (
@@ -118,9 +120,8 @@ const App: React.FC = () => {
             </Route>
             <Route path="leads">
               <Route path="all" element={<AllLeads />} />
-              <Route path="pending" element={<PendingListings />} />
-              <Route path="expired" element={<ExpiredListings />} />
-              <Route path="vip" element={<VipListings />} />
+              <Route path="assigned" element={<AssignedLeads />} />
+              <Route path="shoots" element={<ShootRequests />} />
             </Route>
             <Route path="users">
               <Route path="propertySeekers" element={<PropertySeekers />} />
