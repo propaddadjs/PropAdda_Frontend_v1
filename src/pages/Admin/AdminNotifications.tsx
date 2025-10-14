@@ -440,7 +440,7 @@ const AdminNotifications: React.FC = () => {
             <div className="text-sm text-black backdrop-blur px-3 py-1.5 font-medium">
               {loading ? "Loading..." : (
                 <>
-                  <span className="font-bold">{unreadLocal}</span> Unread •{" "}
+                  <span className="font-bold">{unreadLocal ?? total}</span> Unread •{" "}
                   <span className="font-bold">{total}</span> Total
                 </>
               )}
@@ -466,9 +466,9 @@ const AdminNotifications: React.FC = () => {
                   window.dispatchEvent(new Event("admin:markAllRead"));
                 }
               }}
-              disabled={total <= 0}
+              disabled={total <= 0 || (unreadLocal ?? 0) <= 0}
               className={`px-3 py-1.5 rounded-full border-2 text-sm font-bold transition
-                ${total > 0
+                ${total > 0 && (unreadLocal ?? 0) > 0
                   ? "border-orange-600 bg-white hover:bg-orange-50 text-orange-600 cursor-pointer"
                   : "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}

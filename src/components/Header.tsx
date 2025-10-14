@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ReactDOM from "react-dom";
 import logo from "../images/logo.png";
-import userAvatar from "../images/userAvatar.png";
 import FilterExplorerModal, { type Filters as ExploreFilters } from "./FilterExplorerModal";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";

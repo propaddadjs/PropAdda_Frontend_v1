@@ -1,7 +1,8 @@
 // src/pages/PropertyDetailsPage.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api"; // use the axios instance with interceptor
 import { Carousel } from "react-responsive-carousel";
@@ -35,6 +36,9 @@ import {X, User2,
   History,
   CheckSquare,
   PhoneIcon,
+  Building2Icon,
+  Building,
+  ArrowUpRightFromSquare,
 } from "lucide-react";
 import Footer from "../components/Footer";
 import PropertyAction from "../components/PropertyAction";
@@ -238,19 +242,107 @@ const pretty = (s: string) =>
     .trim()
     .replace(/^\w/, (c) => c.toUpperCase());
 
-/** From admin: ord semantics
- *  ord >= 1 => images (and possibly videos) in order, primary image ord=1
- *  ord = 0  => video
- *  ord = -1 => brochure/pdf
+/** Ord semantics (server-side):
+ *  - images: ord starts at 1 (orderImage = 1, increment)
+ *  - videos: ord starts at 11 (orderVideo = 11, increment)
+ *  - brochures: ord starts at 21 (orderBrochure = 21, increment)
+ *
+ * We also accept older values (ord === 0 for video, ord === -1 for brochure).
+ * Primary classification tries filename/url extension first, then falls back to ord ranges.
  */
+// function splitMedia(arr?: MediaResponse[]) {
+//   const media = [...(arr ?? [])];
+
+//   // helpers to detect by URL/filename
+//   const byUrl = (m: MediaResponse) => m.url ?? "";
+//   const byName = (m: MediaResponse) => (m.filename ?? m.url ?? "").toLowerCase().split("?")[0];
+
+//   const isImage = (m: MediaResponse) => {
+//     const u = byUrl(m).toLowerCase();
+//     const n = byName(m);
+//     return /\.(jpe?g|png|webp|gif|bmp|avif)$/i.test(u) || /\.(jpe?g|png|webp|gif|bmp|avif)$/i.test(n);
+//   };
+//   const isVideo = (m: MediaResponse) => {
+//     const u = byUrl(m).toLowerCase();
+//     const n = byName(m);
+//     return /\.(mp4|webm|ogg|mov|m4v|avi)$/i.test(u) || /\.(mp4|webm|ogg|mov|m4v|avi)$/i.test(n);
+//   };
+//   const isPdfFile = (m: MediaResponse) => {
+//     const n = byName(m);
+//     return /\.pdf$/i.test(n);
+//   };
+
+//   // Candidate arrays
+//   const imagesByExt = media.filter((m) => isImage(m));
+//   const videosByExt = media.filter((m) => isVideo(m));
+//   const brochuresByExt = media.filter((m) => isPdfFile(m));
+
+//   // If extension detection found something, prefer it. Otherwise fall back to ord-ranges.
+//   const images = (
+//     imagesByExt.length > 0
+//       ? imagesByExt
+//       : media.filter((m) => {
+//           const ord = m.ord ?? -999;
+//           // server scheme: images ord in [1, 10]
+//           return ord >= 1 && ord < 11;
+//         })
+//   ).sort((a, b) => (a.ord ?? 999) - (b.ord ?? 999));
+
+//   const videos = (
+//     videosByExt.length > 0
+//       ? videosByExt
+//       : media.filter((m) => {
+//           const ord = m.ord ?? -999;
+//           // server scheme: videos ord in [11, 20], but accept ord === 0 for backwards compat
+//           return ord === 0 || (ord >= 11 && ord < 21);
+//         })
+//   ).sort((a, b) => (a.ord ?? 999) - (b.ord ?? 999));
+
+//   const brochures = (
+//     brochuresByExt.length > 0
+//       ? brochuresByExt
+//       : media.filter((m) => {
+//           const ord = m.ord ?? -999;
+//           // server scheme: brochures ord >= 21, accept ord === -1 for backwards compat
+//           return ord === -1 || ord >= 21;
+//         })
+//   ).sort((a, b) => (a.ord ?? 999) - (b.ord ?? 999));
+
+//   // pick first video (if any) and first brochure (if any)
+//   const video = videos.length ? videos[0] : undefined;
+//   const brochure = brochures.length ? brochures[0] : undefined;
+
+//   return { images, videos, video, brochure };
+// }
 function splitMedia(arr?: MediaResponse[]) {
   const media = [...(arr ?? [])];
+
   const images = media
     .filter((m) => (m.ord ?? -999) >= 1 && isImageUrl(m.url))
     .sort((a, b) => (a.ord ?? 999) - (b.ord ?? 999));
-  const video = media.find((m) => m.ord === 0 && isVideoUrl(m.url));
-  const brochure = media.find((m) => m.ord === -1 && (isPdf(m.url, m.filename)));
-  return { images, video, brochure };
+
+  // any ord===0 marked as video OR recognized video extension
+  const videos = media
+    .filter((m) => (m.ord === 0 || isVideoUrl(m.url)) && isVideoUrl(m.url))
+    // preserve original order (or sort by ord if your backend sets a video order)
+    .sort((a, b) => (a.ord ?? 999) - (b.ord ?? 999));
+
+  // brochures: extension-based OR ord >= 21 (your service used orderBrochure starting 21)
+  const brochures = media
+    .filter((m) => {
+      const name = (m.filename || m.url || "").toLowerCase().split("?")[0];
+      const isDoc =
+        name.endsWith(".pdf") ||
+        name.endsWith(".doc") ||
+        name.endsWith(".docx") ||
+        name.endsWith(".pptx") ||
+        (m.ord !== undefined && m.ord >= 21);
+      return isDoc;
+    })
+    .sort((a, b) => (a.ord ?? 999) - (b.ord ?? 999));
+
+  // if backend uses ord=-1 semantics for brochure, keep both checks above
+  return { images, videos, brochures };
 }
 
 function booleanAmenityKeys(obj: Record<string, any>): string[] {
@@ -306,6 +398,41 @@ const PropertyDetailsPage: React.FC = () => {
   const enquiryKey = `enq:${buyerId ?? "anon"}:${categoryParam}:${listingIdParam}`;
   const [enquirySent, setEnquirySent] = useState(false);
   const favKey = `fav:${buyerId ?? "anon"}:${categoryParam}:${listingIdParam}`;
+
+  const downloadBrochuresClientZip = async () => {
+    if (!brochures || brochures.length === 0) return;
+
+    // If there's only 1 brochure, just open/download
+    if (brochures.length === 1) {
+      const b = brochures[0];
+      // prefer to open in new tab so browser handles content-disposition
+      window.open(b.url, "_blank");
+      return;
+    }
+
+    // multiple brochures -> zip them
+    try {
+      const zip = new JSZip();
+      // iterate and fetch each URL as blob
+      for (let i = 0; i < brochures.length; i++) {
+        const b = brochures[i];
+        const filename = b.filename || `brochure-${i + 1}`;
+        // fetch the file (CORS must allow this)
+        const res = await fetch(b.url!, { mode: "cors" });
+        if (!res.ok) {
+          throw new Error(`Failed to fetch ${filename}: ${res.status}`);
+        }
+        const blob = await res.blob();
+        zip.file(filename, blob);
+      }
+      const contentBlob = await zip.generateAsync({ type: "blob" });
+      const safeTitle = (data?.title || "brochures").replace(/[\/\\:*?"<>|]/g, "_");
+      saveAs(contentBlob, `${safeTitle}.zip`);
+    } catch (err) {
+      console.error("Failed to create brochures zip:", err);
+      alert("Failed to download brochures. This may be due to CORS or network restrictions. Try downloading brochures individually.");
+    }
+  };
 
   useEffect(() => {
     // only check when we know who the user is and which listing we’re on
@@ -645,14 +772,18 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   // --- Derived ---
   const safeMedia = (data?.mediaFiles ?? []) as MediaResponse[];
-  const { images, video, brochure } = useMemo(() => splitMedia(safeMedia), [safeMedia]);
+  // const { images, videos, brochure } = useMemo(() => splitMedia(safeMedia), [safeMedia]);
+  const { images, videos, brochures } = useMemo(() => splitMedia(safeMedia), [safeMedia]);
 
   const slides = useMemo(() => {
     const s: { type: "image" | "video"; url: string; filename?: string }[] = [];
     images.forEach((img) => img.url && s.push({ type: "image", url: img.url!, filename: img.filename }));
-    if (video?.url) s.push({ type: "video", url: video.url!, filename: video.filename });
+    // append ALL videos (in returned order)
+    (videos ?? []).forEach((v) => {
+      if (v?.url) s.push({ type: "video", url: v.url!, filename: v.filename });
+    });
     return s;
-  }, [images, video]);
+  }, [images, videos]);
 
   const owner: OwnerResponse | undefined = useMemo(() => {
     if (!data) return undefined;
@@ -712,7 +843,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               </button>
               <div className="text-right">
                 <div className="text-2xl font-bold">{priceLabel}</div>
-                <div className="text-xs text-gray-500">{uiPref || "—"}</div>
+                <Link to="/calculateEMI" target="_blank" rel="noopener noreferrer" className="flex justify-end text-orange-800 font-semibold text-md hover:text-orange-600"><ArrowUpRightFromSquare className="h-5 w-5 mr-1" />Calculate EMI</Link>
               </div>
             </div>
 
@@ -744,9 +875,15 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             {/* Sub info */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-              {data.propertyType && (
+              {uiPref && (
                 <span className="inline-flex items-center gap-1">
                   <Tag className="h-4 w-4" />
+                  {uiPref || "—"}
+                </span>
+              )}
+              {data.propertyType && (
+                <span className="inline-flex items-center gap-1">
+                  <Building className="h-4 w-4" />
                   {data.propertyType}
                 </span>
               )}
@@ -766,7 +903,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         <div className="rounded-xl border bg-orange-100 p-4 flex flex-col gap-4">
           {/* top row: brochure + shortlist + contact */}
           <div className="flex flex-wrap items-center gap-3">
-            {brochure?.url && (
+            {/* {brochure?.url && (
               <a
                 href={brochure.url}
                 download={brochure.filename ?? "brochure.pdf"}
@@ -777,7 +914,17 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <FileDown className="h-4 w-4" />
                 Download Brochure
               </a>
+            )} */}
+            {(brochures && brochures.length > 0) && (
+              <button
+                onClick={downloadBrochuresClientZip}
+                className="inline-flex items-center gap-2 rounded-lg bg-orange-500 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-orange-600"
+              >
+                <FileDown className="h-4 w-4" />
+                {brochures.length === 1 ? "Download Brochure" : `Download ${brochures.length} Brochures (ZIP)`}
+              </button>
             )}
+
             {/* <button
               onClick={handleShortlist}
               className={[
@@ -828,9 +975,9 @@ const handleSubmit = async (e: React.FormEvent) => {
               <span className="inline-flex items-center gap-1">
                 <Images className="h-4 w-4" /> {images.length} image(s)
               </span>
-              {video && (
+              {videos && (
                 <span className="inline-flex items-center gap-1">
-                  <Film className="h-4 w-4" /> 1 video
+                  <Film className="h-4 w-4" /> {videos.length} video(s)
                 </span>
               )}
             </div>
@@ -866,13 +1013,17 @@ const handleSubmit = async (e: React.FormEvent) => {
               showStatus={false}
               dynamicHeight={false}
               // accept the arg to satisfy types (like in your admin panel)
-              renderThumbs={(children) =>
+              renderThumbs={() =>
                 slides.map((s, i) => {
                   if (s.type === "image") {
                     return <img key={i} src={s.url} alt={s.filename ?? `thumb-${i}`} />;
                   }
+                  // For video thumbnails use the first image as poster if available
                   const poster = images.length ? images[0].url : undefined;
-                  if (poster) return <img key={i} src={poster} alt={s.filename ?? `video-thumb-${i}`} />;
+                  if (poster) {
+                    return <img key={i} src={poster} alt={s.filename ?? `video-thumb-${i}`} />;
+                  }
+                  // fallback: simple placeholder
                   return (
                     <div
                       key={i}

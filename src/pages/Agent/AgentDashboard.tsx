@@ -381,7 +381,7 @@ const toPascalCase = (str: string): string => {
           {/* Image left (cover) */}
           <div className="w-full lg:w-72 h-44 lg:h-auto flex-shrink-0 relative">
             {details?.profileImageUrl ? (
-              <img src={details.profileImageUrl} alt="Agent" className="w-full h-full object-cover" />
+              <img src={details.profileImageUrl} alt="Agent" className="max-h-52 w-full object-cover" />
             ) : (
               <div className="w-full h-full bg-orange-100 flex items-center justify-center">
                 <span className="text-orange-500 text-8xl font-semibold">{`${details?.firstName?.[0] ?? "A"}${details?.lastName?.[0] ?? ""}`}</span>

@@ -176,13 +176,13 @@ function numberToIndianWords(amount: number): string {
   return parts.join(" ") || "Zero";
 }
 
-const RESIDENTIAL_SUBTYPES = ["Flat", "House", "Villa", "Apartment"] as const;
+const RESIDENTIAL_SUBTYPES = ["Flat", "House", "Villa", "Apartment", "Plot/Land"] as const;
 const COMMERCIAL_SUBTYPES = ["Office", "Plot/Land", "Storage/Warehouse"] as const;
 
 type FilesPayload = {
-  video: File | null;
-  images: File[];
-  brochure: File | null;
+  images: File[];      // max 10
+  videos: File[];      // max 4
+  brochures: File[];   // max 4
 };
 // --- UI helpers (white fields + focus rings + soft shadow) ---
 const INPUT_CLASS =
@@ -231,7 +231,11 @@ const Row: React.FC<{
 const PropertyForm: React.FC = () => {
   const [category, setCategory] = useState<PropertyCategory>("residential");
   const [mediaMeta, setMediaMeta] = useState<SavedMeta[]>([]);
-  const [mediaFiles, setMediaFiles] = useState<FilesPayload | null>(null);
+  const [mediaFiles, setMediaFiles] = useState<FilesPayload>({
+  images: [],
+  videos: [],
+  brochures: [],
+});
   // const [, setResetKey] = useState(0);
 
   const [formData, setFormData] = useState<FormData>({
@@ -430,7 +434,7 @@ const handleSwitchCategory = (next: PropertyCategory) => {
   setTotalFloorsInput("0");
   setPriceInput("");
   // (Optional) if you want a complete reset of media too, uncomment:
-  setMediaFiles({ images: [], video: null, brochure: null });
+  setMediaFiles({ images: [], videos: [], brochures: [] });
   setMediaMeta([]);
   setMediaKey((k) => k + 1);   // ← force remount
   setAddressKey((k) => k + 1); 
@@ -445,14 +449,38 @@ const handleSwitchCategory = (next: PropertyCategory) => {
     return same ? prev : meta;
   });
 
+  // if (files) {
+  //   setMediaFiles((prev) => {
+  //     const same =
+  //       prev?.videos?.length === files.videos.length &&
+  //       prev?.videos?.every((f, i) => f === files.videos[i]) &&
+  //       prev?.brochures?.length === files.brochures.length &&
+  //       prev?.brochures?.every((f, i) => f === files.brochures[i]) &&
+  //       prev?.images?.length === files.images.length &&
+  //       prev?.images?.every((f, i) => f === files.images[i]);
+  //     return same ? prev : files;
+  //   });
+  // }
   if (files) {
     setMediaFiles((prev) => {
+      const prevFiles = prev ?? { images: [], videos: [], brochures: [] };
+
+      const sameFileArray = (a: File[] = [], b: File[] = []) => {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+          const x = a[i], y = b[i];
+          if (!x || !y) return false;
+          if (x.name !== y.name || x.size !== y.size || x.type !== y.type || x.lastModified !== y.lastModified) return false;
+        }
+        return true;
+      };
+
       const same =
-        prev?.video === files.video &&
-        prev?.brochure === files.brochure &&
-        prev?.images?.length === files.images.length &&
-        prev?.images?.every((f, i) => f === files.images[i]);
-      return same ? prev : files;
+        sameFileArray(prevFiles.videos, files.videos) &&
+        sameFileArray(prevFiles.brochures, files.brochures) &&
+        sameFileArray(prevFiles.images, files.images);
+
+      return same ? prevFiles : files;
     });
   }
 };
@@ -465,10 +493,10 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
   // -------------- Derived UI flags --------------
   const isCommercial = category === "commercial";
   const isSell = (formData.preference || "").toLowerCase() === "sale";
-  const isCommercialPlot = isCommercial && formData.propertyType === "Plot/Land";
-  const showFloorsUI = !isCommercialPlot; // (1) Hide floors when Commercial + Plot/Land
-  const showAvailability = isSell && !isCommercialPlot; // (1) Hide availability when Commercial + Plot/Land
-  const showCabins = isCommercial && !isCommercialPlot; // (1) Hide cabins when Commercial + Plot/Land
+  const isPlot = formData.propertyType === "Plot/Land";
+  const showFloorsUI = !isPlot; // (1) Hide floors when Commercial + Plot/Land
+  const showAvailability = isSell && !isPlot; // (1) Hide availability when Commercial + Plot/Land
+  const showCabins = isCommercial && !isPlot; // (1) Hide cabins when Commercial + Plot/Land
 
   // Furnishing/facing/age options
   const FURNISHING_OPTIONS = ["Unfurnished", "Semi-furnished", "Fully-furnished"] as const;
@@ -676,7 +704,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
   setPriceInput("");
   setTotalFloorsInput("0");
   setMediaMeta([]);
-  setMediaFiles({ images: [], video: null, brochure: null });
+  setMediaFiles({ images: [], videos: [], brochures: [] });
 
   // 4) bump the key to remount child components
   // setResetKey((k) => k + 1);
@@ -705,7 +733,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
 
   // (1) When switching to Commercial Plot/Land, clear floors, availability and cabins to avoid validation/post noise
   useEffect(() => {
-    if (isCommercialPlot) {
+    if (isPlot) {
       setFormData((prev) => ({
         ...prev,
         totalFloors: undefined,
@@ -715,14 +743,21 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
         cabins: undefined,
       }));
     }
-  }, [isCommercialPlot]);
+  }, [isPlot]);
+
+  //when user selects "sale" only then "Plot/Land" should be visible
+  useEffect(() => {
+    if ((formData.preference || "").toLowerCase() !== "sale" && formData.propertyType === "Plot/Land") {
+      setFormData((prev) => ({ ...prev, propertyType: "" }));
+    }
+  }, [formData.preference, formData.propertyType]);
 
   const navigate = useNavigate();
   const { user } = useAuth();
   const ownerId = user?.userId ?? null;
   // -------------- Submit --------------
   const handleSubmit = async () => {
-    const isCommercialPlotNow = category === "commercial" && formData.propertyType === "Plot/Land";
+    const isPlotNow = formData.propertyType === "Plot/Land";
 
     // Required rules (dynamic where applicable)
     const required: { key: keyof FormData | string; dbName: string; validator?: (v: unknown) => boolean }[] = [
@@ -736,7 +771,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       { key: "city", dbName: "city", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
       { key: "locality", dbName: "locality", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
       // totalFloors is mandatory EXCEPT when Commercial Plot/Land
-      ...(isCommercialPlotNow
+      ...(isPlotNow
         ? []
         : [{ key: "totalFloors", dbName: "total_floors", validator: (v: unknown) => typeof v === "number" && !Number.isNaN(v) }]),
       { key: "nearbyPlace", dbName: "nearbyPlace", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
@@ -778,14 +813,14 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     //   return;
     // }
 
-    // --- Media validation: 4-8 images, exactly 1 video, exactly 1 brochure ---
-    const imgCount = mediaFiles?.images?.length ?? 0;
-    // const hasVideo = Boolean(mediaFiles?.video);
-    // const hasBrochure = Boolean(mediaFiles?.brochure);
-    if (imgCount < 4 || imgCount > 8) {
-      alert("Please add 4–8 images before submitting.");
-      return;
-    }
+    // // --- Media validation: 4-8 images, exactly 1 video, exactly 1 brochure ---
+    // const imgCount = mediaFiles?.images?.length ?? 0;
+    // // const hasVideo = Boolean(mediaFiles?.video);
+    // // const hasBrochure = Boolean(mediaFiles?.brochure);
+    // if (imgCount < 4 || imgCount > 8) {
+    //   alert("Please add 4–8 images before submitting.");
+    //   return;
+    // }
 
     setSavingOpen(true);
     setSaveStatus('saving');
@@ -808,9 +843,11 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       const form = new FormData();
       const propertyBlob = new Blob([JSON.stringify(payload)], { type: "application/json" });
       form.append("property", propertyBlob);
-      if (mediaFiles?.video) form.append("files", mediaFiles.video as Blob, mediaFiles.video?.name);
+      // if (mediaFiles?.video) form.append("files", mediaFiles.video as Blob, mediaFiles.video?.name);
+      for (const vid of mediaFiles?.videos ?? []) form.append("files", vid, vid.name);
       for (const img of mediaFiles?.images ?? []) form.append("files", img, img.name);
-      if (mediaFiles?.brochure) form.append("files", mediaFiles.brochure as Blob, mediaFiles.brochure?.name);
+      for (const doc of mediaFiles?.brochures ?? []) form.append("files", doc, doc.name);
+      // if (mediaFiles?.brochure) form.append("files", mediaFiles.brochure as Blob, mediaFiles.brochure?.name);
 
       // debug entries
       // @ts-ignore
@@ -851,7 +888,18 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
 //   </Card>
 // );
 
-  const subtypeOptions = category === "residential" ? (RESIDENTIAL_SUBTYPES as readonly string[]) : (COMMERCIAL_SUBTYPES as readonly string[]);
+  // const subtypeOptions = category === "residential" ? (RESIDENTIAL_SUBTYPES as readonly string[]) : (COMMERCIAL_SUBTYPES as readonly string[]);
+
+  // Preference-aware subtype options: show "Plot/Land" only when preference === "Sale"
+  const subtypeOptions = (() => {
+    const base = category === "residential" ? [...RESIDENTIAL_SUBTYPES] : [...COMMERCIAL_SUBTYPES];
+    // if user isn't listing for Sale, filter out Plot/Land
+    const pref = (formData.preference || "").toLowerCase();
+    if (pref !== "sale") {
+      return base.filter((s) => s !== "Plot/Land");
+    }
+    return base;
+  })();
 
   // ---------------- Render ----------------
   return (

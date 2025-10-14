@@ -1,7 +1,6 @@
 // src/components/EditPropertyForm.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import AddressSelector from "./AddressSelector";
 import MediaUploader, { type SavedMeta } from "./MediaUploader";
 import AmenitiesPanel from "./AmenitiesPanel";
@@ -143,16 +142,17 @@ export type PropertyFormData = {
 };
 
 type FilesPayload = {
-  video: File | null;
-  images: File[];
-  brochure: File | null;
+  images: File[];      // max 10
+  videos: File[];      // max 4
+  brochures: File[];   // max 4
 };
 
 type ExistingMedia = {
   images: string[];
-  video?: string;
-  brochure?: string;
+  videos?: string[];     // server may return multiple video names
+  brochures?: string[];  // server may return multiple brochure names
 };
+
 
 type SavedMetaState = SavedMeta[];
 
@@ -253,10 +253,10 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
   // Derived flags
   const isCommercial = category === "Commercial";
   const isSell = (formData.preference || "").toLowerCase() === "sale";
-  const isCommercialPlot = isCommercial && formData.propertyType === "Plot/Land";
-  const showFloorsUI = !isCommercialPlot;
-  const showAvailability = isSell && !isCommercialPlot;
-  const showCabins = isCommercial && !isCommercialPlot;
+  const isPlot = formData.propertyType === "Plot/Land";
+  const showFloorsUI = !isPlot;
+  const showAvailability = isSell && !isPlot;
+  const showCabins = isCommercial && !isPlot;
 
   // Options
   const FURNISHING_OPTIONS = ["Unfurnished", "Semi-furnished", "Fully-furnished"] as const;
@@ -378,7 +378,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
   }, [isSell]);
 
   useEffect(() => {
-    if (isCommercialPlot) {
+    if (isPlot) {
       setFormData((prev) => ({
         ...prev,
         totalFloors: undefined,
@@ -389,7 +389,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCommercialPlot]);
+  }, [isPlot]);
 
   // Replace media flow
   const handleStartReplace = async () => {
@@ -430,7 +430,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     if (!formData.address?.trim()) missing.push("address");
     if (!formData.nearbyPlace?.trim()) missing.push("nearbyPlace");
     if (!formData.pincode || String(formData.pincode).length !== 6) missing.push("pincode");
-    if (!isCommercialPlot && (formData.totalFloors === undefined || formData.totalFloors === null))
+    if (!isPlot && (formData.totalFloors === undefined || formData.totalFloors === null))
       missing.push("totalFloors");
 
     if (showAvailability && formData.availability === "Under Construction" && !formData.possessionBy) {
@@ -442,15 +442,25 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       return;
     }
 
-    // If replaceMode, enforce media selection (4–8 images, 1 video, 1 brochure)
+    // If replaceMode, validate max caps only (nothing is mandatory)
     if (replaceMode) {
       const imgCount = mediaFiles?.images?.length ?? 0;
-      // const hasVideo = Boolean(mediaFiles?.video);
-      // const hasBrochure = Boolean(mediaFiles?.brochure);
-      if (imgCount < 4 || imgCount > 8) {
-        alert("Please add 4–8 images before updating.");
+      const vidCount = mediaFiles?.videos?.length ?? 0;
+      const broCount = mediaFiles?.brochures?.length ?? 0;
+
+      if (imgCount > 10) {
+        alert("You can upload up to 10 images.");
         return;
       }
+      if (vidCount > 4) {
+        alert("You can upload up to 4 videos.");
+        return;
+      }
+      if (broCount > 4) {
+        alert("You can upload up to 4 brochures.");
+        return;
+      }
+      // nothing is required — empty uploads allowed
     }
 
     setSavingOpen(true);
@@ -490,13 +500,20 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       form.append("property", propertyBlob);
 
       if (replaceMode && mediaFiles) {
-        if (mediaFiles.video) form.append("files", mediaFiles.video as Blob, mediaFiles.video?.name);
-        for (const img of mediaFiles.images ?? []) form.append("files", img, img.name);
-        if (mediaFiles.brochure) form.append("files", mediaFiles.brochure as Blob, mediaFiles.brochure?.name);
+        // append videos
+        for (const vid of mediaFiles.videos ?? []) {
+          form.append("files", vid, vid.name);
+        }
+        // append images
+        for (const img of mediaFiles.images ?? []) {
+          form.append("files", img, img.name);
+        }
+        // append brochures
+        for (const doc of mediaFiles.brochures ?? []) {
+          form.append("files", doc, doc.name);
+        }
       } else {
-        // No new media selected; backend expects files part. Most Spring setups allow empty list.
-        // If your backend *requires* at least one, you can append an empty Blob as a safeguard.
-        // form.append("files", new Blob([], { type: "application/octet-stream" }), "empty");
+        // No new media selected; backend expects files part. Most Spring setups allow an empty list.
       }
 
       const resp = await api.put(url, form, { headers: { Accept: "application/json" } });
@@ -967,12 +984,12 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <Video className="w-4 h-4" />
               <span className="font-medium">Video:</span>
-              <span>{existingMedia.video ?? "—"}</span>
+              <span>{(existingMedia.videos && existingMedia.videos.length) ? existingMedia.videos.join(", ") : "—"}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <FileText className="w-4 h-4" />
               <span className="font-medium">Brochure:</span>
-              <span>{existingMedia.brochure ?? "—"}</span>
+              <span>{(existingMedia.brochures && existingMedia.brochures.length) ? existingMedia.brochures.join(", ") : "—"}</span>
             </div>
           </div>
         ) : (

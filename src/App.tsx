@@ -59,6 +59,7 @@ import ResetPassword from "./pages/ResetPassword";
 import AllLeads from "./pages/Admin/AllLeads";
 import AssignedLeads from "./pages/Admin/AssignedLeads";
 import ShootRequests from "./pages/Admin/ShootRequests";
+import EMICalculator from "./pages/EmiCalculator";
 
 const App: React.FC = () => {
   return (
@@ -69,6 +70,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Home />} />
           <Route path="/search-results" element={<FilteredPropertiesPage />} />
           <Route path="/properties/:category/:listingId" element={<PropertyDetailsPage />} />
+          <Route path="/calculateEMI" element={<EMICalculator />} />
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

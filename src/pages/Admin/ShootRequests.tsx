@@ -272,7 +272,7 @@ function UserCard({ agent, graphics, photoshoot }: { agent?: AgentResponse | nul
       {/* Top: profile image full width at top (like earlier design) */}
       <div className="w-full h-[40%] bg-gray-100 flex-shrink-0">
         {agent.profileImageUrl ? (
-          <img src={agent.profileImageUrl} alt="agent" className="w-full h-full object-cover" />
+          <img src={agent.profileImageUrl} alt="agent" className="h-44 w-full object-cover" />
         ) : (
           <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-6xl">
             {initialsFor(agent)}

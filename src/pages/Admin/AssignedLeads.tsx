@@ -239,7 +239,7 @@ const toPascalCase = (str: string): string => {
                             <img 
                                 src={lead.user.profileImageUrl} 
                                 alt="user" 
-                                className="w-full h-full object-cover" 
+                                className="h-44 w-full object-cover" 
                             />
                         ) : ( 
                             <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-8xl">

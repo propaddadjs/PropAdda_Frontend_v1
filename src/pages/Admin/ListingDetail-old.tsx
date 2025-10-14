@@ -1,11 +1,10 @@
 // src/pages/admin/ListingDetail.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { api } from "../../lib/api";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
 
 // Lucide icons
 import {
@@ -40,10 +39,7 @@ import {
   Tag,
   Layers,
   CircleCheckBig,
-  DoorClosed,
-  CheckCircle,
-  Briefcase,
-  Lock,
+  DoorClosed
 } from "lucide-react";
 
 interface MediaResponse { filename?: string; ord?: number; url: string; }
@@ -194,22 +190,6 @@ const booleanFieldKeys = (obj: PropertyDetail) =>
       !["vip", "reraVerified", "expired"].includes(k)
   );
 
-// helpers to detect file types by filename/url
-const isImageUrl = (url?: string) => {
-  if (!url) return false;
-  const b = url.split("?")[0].toLowerCase();
-  return b.endsWith(".jpg") || b.endsWith(".jpeg") || b.endsWith(".png") || b.endsWith(".webp") || b.endsWith(".gif");
-};
-const isVideoUrl = (url?: string) => {
-  if (!url) return false;
-  const b = url.split("?")[0].toLowerCase();
-  return b.endsWith(".mp4") || b.endsWith(".webm") || b.endsWith(".ogg") || b.endsWith(".mov");
-};
-const isPdf = (url?: string, filename?: string) => {
-  const s = (filename || url || "").toLowerCase().split("?")[0];
-  return s.endsWith(".pdf");
-};
-
 const ListingDetail: React.FC = () => {
   const { category, id } = useParams<{ category?: string; id?: string }>();
   const navigate = useNavigate();
@@ -219,6 +199,7 @@ const ListingDetail: React.FC = () => {
 
   const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
+
 
   // Rejection modal state
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -335,39 +316,29 @@ const ListingDetail: React.FC = () => {
     }
   };
 
-  // --------- MEDIA LOGIC ----------
-  const allMedia = useMemo(() => property?.mediaFiles ?? property?.media ?? [], [property]);
+  // media handling (images first, then video)
+  const media: MediaResponse[] = useMemo(() => {
+    const arr = property?.mediaFiles ?? property?.media ?? [];
+    const copy = [...arr].sort((a, b) => {
+      const oa = typeof a.ord === "number" ? a.ord : 999;
+      const ob = typeof b.ord === "number" ? b.ord : 999;
+      if (oa === -1 && ob !== -1) return 1;
+      if (ob === -1 && oa !== -1) return -1;
+      return oa - ob;
+    });
+    return copy;
+  }, [property]);
 
-  // group and sort by ord (fallback to original order if ord missing)
-  const imagesAll = useMemo(() => {
-    const imgs = (allMedia || [])
-      .filter((m) => isImageUrl(m.url))
-      .sort((a, b) => (a.ord ?? 999) - (b.ord ?? 999));
-    return imgs.slice(0, 10); // allow up to 10 images
-  }, [allMedia]);
-
-  const videosAll = useMemo(() => {
-    const vids = (allMedia || [])
-      .filter((m) => isVideoUrl(m.url))
-      .sort((a, b) => (a.ord ?? 999) - (b.ord ?? 999));
-    return vids.slice(0, 4); // allow up to 4 videos
-  }, [allMedia]);
-
-  const brochuresAll = useMemo(() => {
-    const bros = (allMedia || [])
-      .filter((m) => isPdf(m.url, m.filename))
-      .sort((a, b) => (a.ord ?? 999) - (b.ord ?? 999));
-    return bros.slice(0, 4); // allow up to 4 brochures
-  }, [allMedia]);
+  const images = media.filter((m) => (typeof m.ord === "number" ? m.ord > 0 : true));
+  const video = media.find((m) => m.ord === 0);
+  const brochure = media.find((m) => m.ord === -1);
 
   const carouselSlides = useMemo(() => {
     const slides: { type: "image" | "video"; url: string; filename?: string }[] = [];
-    imagesAll.forEach((img) => slides.push({ type: "image", url: img.url, filename: img.filename }));
-    videosAll.forEach((v) => slides.push({ type: "video", url: v.url, filename: v.filename }));
+    images.forEach((img) => slides.push({ type: "image", url: img.url, filename: img.filename }));
+    if (video) slides.push({ type: "video", url: video.url, filename: video.filename });
     return slides;
-  }, [imagesAll, videosAll]);
-
-  const brochure = brochuresAll.length === 1 ? brochuresAll[0] : undefined;
+  }, [video, images]);
 
   const isPending = (prop?: PropertyDetail) => {
     return (prop?.adminApproved ?? "").toLowerCase() === "pending";
@@ -381,31 +352,6 @@ const ListingDetail: React.FC = () => {
       {label}
     </span>
   );
-
-  // ---------- BROCHURE ZIP DOWNLOAD ----------
-  const handleDownloadBrochuresZip = async () => {
-    if (!brochuresAll.length) return;
-    const zip = new JSZip();
-    const title = (property?.title || `brochures-${property?.listingId ?? "prop"}`).replace(/[\\/:"*?<>|]+/g, "_");
-    try {
-      // fetch all brochure files as blobs and add to zip
-      await Promise.all(
-        brochuresAll.map(async (b) => {
-          if (!b.url) return;
-          const resp = await fetch(b.url);
-          if (!resp.ok) throw new Error(`Failed to fetch ${b.filename || b.url}`);
-          const blob = await resp.blob();
-          const name = b.filename ?? b.url.split("/").pop() ?? `brochure-${Math.random().toString(36).slice(2,8)}.pdf`;
-          zip.file(name, blob);
-        })
-      );
-      const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, `${title}.zip`);
-    } catch (err: any) {
-      console.error("Zip error", err);
-      alert(err?.message || "Failed to download brochures.");
-    }
-  };
 
   if (loading) {
     return (
@@ -438,8 +384,10 @@ const ListingDetail: React.FC = () => {
           {property.vip && pill(<><Star className="h-3.5 w-3.5"/> VIP</>, "bg-yellow-100 text-yellow-800")}
           {property.reraVerified && pill(<><BadgeCheck className="h-3.5 w-3.5"/> RERA Verified</>, "bg-purple-100 text-purple-800")}
           {property.sold ? (
+            // Use h-3.5 w-3.5 for consistency, or keep h-5 w-5 if you want it bigger
             pill(<><CircleCheckBig className="h-5 w-5"/> Sold</>, "bg-blue-100 text-blue-700 font-bold text-[26px]")
         ) : (
+            // 2. Only show Admin/Expiration status if NOT sold
             <>
                 {!property.expired && property.adminApproved && (
                     property.adminApproved === "Pending"
@@ -474,7 +422,7 @@ const ListingDetail: React.FC = () => {
                   if (s.type === "image") {
                     return <img key={i} src={s.url} alt={s.filename ?? `thumb-${i}`} />;
                   }
-                  const poster = imagesAll.length ? imagesAll[0].url : undefined;
+                  const poster = images.length ? images[0].url : undefined;
                   if (poster) {
                     return <img key={i} src={poster} alt={s.filename ?? `video-thumb-${i}`} />;
                   }
@@ -518,52 +466,19 @@ const ListingDetail: React.FC = () => {
                     title={label}
                     className="absolute top-1/2 right-4 -translate-y-1/2 z-10 bg-orange-400 text-white rounded-full shadow p-2 transition hover:scale-105"
                   >
+                    {/* Using transform rotate-180 on ArrowLeft would also work; leave default carousel icon here if preferred */}
+                    {/* ▶ */}
                      <ArrowRight className="h-5 w-5"/>
                   </button>
                 )
               }
             >
               {carouselSlides.map((s, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    height: 560,                  // fixed slide height
-                    background: "#000",
-                    display: "flex",
-                    justifyContent: "center",     // horizontal center
-                    alignItems: "center",         // vertical center
-                    overflow: "hidden",
-                    padding: 8,
-                  }}
-                >
+                <div key={idx} style={{ maxHeight: 560, background: "#000000ff", color: "white"}}>
                   {s.type === "video" ? (
-                    <video
-                      controls
-                      src={s.url}
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: "100%",
-                        width: "auto",
-                        height: "auto",
-                        objectFit: "contain",
-                        display: "block",
-                        margin: "auto",
-                      }}
-                    />
+                    <video controls style={{ width: "100%", maxHeight: 560 }} src={s.url} />
                   ) : (
-                    <img
-                      src={s.url}
-                      alt={s.filename ?? `image-${idx}`}
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: "100%",
-                        width: "auto",
-                        height: "auto",
-                        objectFit: "contain",
-                        display: "block",
-                        margin: "auto",
-                      }}
-                    />
+                    <img src={s.url} alt={s.filename ?? `image-${idx}`} style={{ width: "100%", objectFit: "cover", maxHeight: 560 }} />
                   )}
                 </div>
               ))}
@@ -571,8 +486,7 @@ const ListingDetail: React.FC = () => {
           )}
 
           <div className="mt-3 flex items-center gap-3">
-            {/* Brochure handling */}
-            {brochuresAll.length === 1 && brochure && (
+            {brochure && (
               <a
                 href={brochure.url}
                 target="_blank"
@@ -582,33 +496,19 @@ const ListingDetail: React.FC = () => {
                 <FileDown className="h-4 w-4"/> View Brochure
               </a>
             )}
-
-            {brochuresAll.length > 1 && (
-              <button
-                onClick={handleDownloadBrochuresZip}
-                className="px-3 py-2 rounded bg-themeOrange text-white text-sm font-semibold inline-flex items-center gap-2 shadow transition hover:scale-[1.03]"
-              >
-                <FileDown className="h-4 w-4"/> Download Brochures ({brochuresAll.length})
-              </button>
-            )}
-
             <div className="text-sm text-gray-500 inline-flex items-center gap-2">
-              <Images className="h-4 w-4"/> {imagesAll.length} image(s)
-              {videosAll.length > 0 && (
+              <Images className="h-4 w-4"/> {images.length} image(s)
+              {video && (
                 <span className="inline-flex items-center gap-1 text-gray-500">
-                  • <Video className="h-4 w-4"/> {videosAll.length} video(s)
-                </span>
-              )}
-              {brochuresAll.length > 0 && (
-                <span className="inline-flex items-center gap-1 text-gray-500">
-                  • <FileText className="h-4 w-4"/> {brochuresAll.length} brochure(s)
+                  • <Video className="h-4 w-4"/> 1 video
                 </span>
               )}
             </div>
           </div>
-
-          <div className="grid grid-cols-1 gap-2">
-            {property.description && (
+           
+            {/* <div className="mt-6 bg-white rounded-lg shadow p-4"> */}
+            <div className="grid grid-cols-1 gap-2">
+               {property.description && (
               <div className="mt-4 text-sm text-gray-700">
                 <h3 className="text-base font-semibold mb-1 inline-flex items-center gap-2">
                   <FileText className="h-4 w-4"/> Description
@@ -617,39 +517,36 @@ const ListingDetail: React.FC = () => {
               </div>
             )}
 
-            <h3 className="text-xl text-center font-bold text-black mb-3 rounded inline-flex items-center justify-center gap-2 py-2">
-              <Building2 className="h-5 w-5"/> Additional Property Details
-            </h3>
-            <div className="grid grid-cols-3 gap-3 text-sm">
-              {Object.entries(property).map(([k, v]) => {
-                if (
-                  k === "media" || k === "mediaFiles" || k === "residentialPropertyMediaFiles" || k === "commercialPropertyMediaFiles" ||
-                  k === "listingId" || k === "category" || k === "preference" || k === "propertyType" || k === "title" || k === "description" ||
-                  k === "price" || k === "area" || k === "age" || k === "availability" || k === "reraNumber" || k === "reraVerified" ||
-                  k === "state" || k === "city" || k === "locality" || k === "address" || k === "pincode" || k === "nearbyPlace" ||
-                  k === "expired" || k === "residentialOwner" || k === "commercialOwner" || k === "vip" ||
-                  k === "centerCooling" || k === "fireAlarm" || k === "heating" || k === "gym" || k === "modularKitchen" || k === "pool" || k === "elevator" || k === "petFriendly" || k === "storage" || k === "laundry" || k === "dishwasher" || k === "dryer" || k === "sauna" || k === "emergencyExit" || k === "waterPurifier" || k === "gasPipeline" || k === "park" || k === "vastuCompliant" || k === "rainWaterHarvesting" || k === "maintenanceStaff" ||
-                  k === "poojaRoom" || k === "studyRoom" || k === "servantRoom" || k === "storeRoom" || k === "highCeilingHeight" || k === "falseCeilingLighting" || k === "internetConnectivity" || k === "centrallyAirConditioned" || k === "securityFireAlarm" || k === "recentlyRenovated" || k === "privateGardenTerrace" || k === "naturalLight" || k === "airyRooms" || k === "intercomFacility" || k === "spaciousInteriors" ||
-                  k === "fitnessCenter" || k === "swimmingPool" || k === "clubhouseCommunityCenter" || k === "securityPersonnel" || k === "lifts" ||
-                  k === "separateEntryForServantRoom" || k === "noOpenDrainageAround" || k === "bankAttachedProperty" || k === "lowDensitySociety" ||
-                  k === "municipalCorporation" || k === "borewellTank" || k === "water24x7" ||
-                  k === "overlookingPool" || k === "overlookingParkGarden" || k === "overlookingClub" || k === "overlookingMainRoad" ||
-                  k === "inGatedSociety" || k === "cornerProperty" || k === "petFriendlySociety" || k === "wheelchairFriendly" ||
-                  k === "closeToMetroStation" || k === "closeToSchool" || k === "closeToHospital" || k === "closeToMarket" || k === "closeToRailwayStation" || k === "closeToAirport" || k === "closeToMall" || k === "closeToHighway" ||
-                  k === "adminApproved" || k === "sold" || k === "createdAt" || k === "approvedAt"
-                ) return null;
-
-                // show boolean fields as Yes/No
-                const displayValue = typeof v === "boolean" ? (v ? "Yes" : "No") : (v === null || v === undefined ? "-" : String(v));
-
-                return (
-                  <div key={k} className="border rounded p-2">
-                    <div className="text-xs text-gray-500">{prettyKey(k)}</div>
-                    <div className="mt-1">{displayValue}</div>
-                  </div>
-                );
-              })}
-            </div>
+              <h3 className="text-xl text-center font-bold text-black mb-3 rounded inline-flex items-center justify-center gap-2 py-2">
+                <Building2 className="h-5 w-5"/> Additional Property Details
+              </h3>
+              <div className="grid grid-cols-3 gap-3 text-sm">
+                {Object.entries(property).map(([k, v]) => {
+                  if (
+                    k === "media" || k === "mediaFiles" || k === "residentialPropertyMediaFiles" || k === "commercialPropertyMediaFiles" ||
+                    k === "listingId" || k === "category" || k === "preference" || k === "propertyType" || k === "title" || k === "description" ||
+                    k === "price" || k === "area" || k === "age" || k === "availability" || k === "reraNumber" || k === "reraVerified" ||
+                    k === "state" || k === "city" || k === "locality" || k === "address" || k === "pincode" || k === "nearbyPlace" ||
+                    k === "expired" || k === "residentialOwner" || k === "commercialOwner" || k === "vip" ||
+                    k === "centerCooling" || k === "fireAlarm" || k === "heating" || k === "gym" || k === "modularKitchen" || k === "pool" || k === "elevator" || k === "petFriendly" || k === "storage" || k === "laundry" || k === "dishwasher" || k === "dryer" || k === "sauna" || k === "emergencyExit" || k === "waterPurifier" || k === "gasPipeline" || k === "park" || k === "vastuCompliant" || k === "rainWaterHarvesting" || k === "maintenanceStaff" ||
+                    k === "poojaRoom" || k === "studyRoom" || k === "servantRoom" || k === "storeRoom" || k === "highCeilingHeight" || k === "falseCeilingLighting" || k === "internetConnectivity" || k === "centrallyAirConditioned" || k === "securityFireAlarm" || k === "recentlyRenovated" || k === "privateGardenTerrace" || k === "naturalLight" || k === "airyRooms" || k === "intercomFacility" || k === "spaciousInteriors" ||
+                    k === "fitnessCenter" || k === "swimmingPool" || k === "clubhouseCommunityCenter" || k === "securityPersonnel" || k === "lifts" ||
+                    k === "separateEntryForServantRoom" || k === "noOpenDrainageAround" || k === "bankAttachedProperty" || k === "lowDensitySociety" ||
+                    k === "municipalCorporation" || k === "borewellTank" || k === "water24x7" ||
+                    k === "overlookingPool" || k === "overlookingParkGarden" || k === "overlookingClub" || k === "overlookingMainRoad" ||
+                    k === "inGatedSociety" || k === "cornerProperty" || k === "petFriendlySociety" || k === "wheelchairFriendly" ||
+                    k === "closeToMetroStation" || k === "closeToSchool" || k === "closeToHospital" || k === "closeToMarket" || k === "closeToRailwayStation" || k === "closeToAirport" || k === "closeToMall" || k === "closeToHighway" ||
+                    k === "adminApproved" || k === "sold" || k === "createdAt" || k === "approvedAt"
+                  ) return null;
+                  return (
+                    <div key={k} className="border rounded p-2">
+                      <div className="text-xs text-gray-500">{prettyKey(k)}</div>
+                      <div className="mt-1">{v === null || v === undefined ? "-" : String(v)}</div>
+                    </div>
+                  );
+                })}
+                </div>
+              {/* </div> */}
           </div>
         </div>
 
@@ -702,49 +599,31 @@ const ListingDetail: React.FC = () => {
               </div>
               </div>
               
-              {/* ---------- SHOW: cabins for Commercial, bedrooms/bathrooms for Residential ---------- */}
-              {property.category?.toLowerCase() === "commercial" ? (
-                <div className="space-y-3 rounded-lg border p-3">
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="h-5 w-5 text-gray-400 flex-shrink-0"/>
-                    <div>
-                      <div className="text-xs text-gray-500">Cabins</div>
-                      <div className="font-semibold text-gray-800">{property.cabins ?? "-"}</div>
-                    </div>
-                  </div>
-                  <div className="border-b border-gray-200"></div>
+              {/* A vertically stacked component for Beds & Baths */}
+              <div className="space-y-3 rounded-lg border p-3">
 
-                  <div className="flex items-center gap-3">
-                    <Lock className="h-5 w-5 text-gray-400 flex-shrink-0"/>
-                    <div>
-                      <div className="text-xs text-gray-500">Lock In</div>
-                      <div className="font-semibold text-gray-800">{property.lockIn ?? "-"}</div>
-                    </div>
+                {/* Bedrooms Item */}
+                <div className="flex items-center gap-3">
+                  <BedDouble className="h-5 w-5 text-gray-400 flex-shrink-0"/>
+                  <div>
+                    <div className="text-xs text-gray-500">Bedrooms</div>
+                    <div className="font-semibold text-gray-800">{property.bedrooms ?? "-"}</div>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-3 rounded-lg border p-3">
-                  <div className="flex items-center gap-3">
-                    <BedDouble className="h-5 w-5 text-gray-400 flex-shrink-0"/>
-                    <div>
-                      <div className="text-xs text-gray-500">Bedrooms</div>
-                      <div className="font-semibold text-gray-800">{property.bedrooms ?? "-"}</div>
-                    </div>
-                  </div>
 
-                  <div className="border-b border-gray-200"></div>
+                {/* Divider */}
+                <div className="border-b border-gray-200"></div>
 
-                  <div className="flex items-center gap-3">
-                    <Bath className="h-5 w-5 text-gray-400 flex-shrink-0"/>
-                    <div>
-                      <div className="text-xs text-gray-500">Bathrooms</div>
-                      <div className="font-semibold text-gray-800">{property.bathrooms ?? "-"}</div>
-                    </div>
+                {/* Bathrooms Item */}
+                <div className="flex items-center gap-3">
+                  <Bath className="h-5 w-5 text-gray-400 flex-shrink-0"/>
+                  <div>
+                    <div className="text-xs text-gray-500">Bathrooms</div>
+                    <div className="font-semibold text-gray-800">{property.bathrooms ?? "-"}</div>
                   </div>
                 </div>
-              )}
-              {/* ---------- end changed block ---------- */}
 
+              </div>
               <div className="flex items-start gap-2 p-2 rounded border">
                 <CalendarCheck className="h-4 w-4 mt-0.5 text-gray-500"/>
                 <div>
@@ -825,7 +704,7 @@ const ListingDetail: React.FC = () => {
                         key={k}
                         className="px-3 py-1 text-xs rounded-full font-medium bg-orange-100 text-orange-700 border border-themeOrange inline-flex items-center gap-1.5"
                       >
-                        <CheckCircle className="h-3.5 w-3.5"/> {prettyKey(k)}
+                        <CheckCircle2 className="h-3.5 w-3.5"/> {prettyKey(k)}
                       </span>
                     ))}
 
@@ -869,6 +748,12 @@ const ListingDetail: React.FC = () => {
                 >
                   <CircleCheckBig className="h-4 w-4"/> Mark as SOLD
                 </button>
+                {/* <button
+                  onClick={openRejectModal}
+                  className="px-4 py-2 rounded text-white bg-red-600 inline-flex items-center gap-2 shadow transition hover:scale-[1.03] hover:bg-red-600"
+                >
+                  <ThumbsDown className="h-4 w-4"/> Reject
+                </button> */}
               </div>
             )}
             <div className="flex flex-wrap gap-2">
@@ -876,7 +761,7 @@ const ListingDetail: React.FC = () => {
                 onClick={toggleVip}
                 className="px-4 py-2 rounded text-white bg-yellow-500 inline-flex items-center gap-2 shadow transition hover:scale-[1.03] hover:bg-yellow-600"
               >
-                {property.vip ? <StarOff className="w-4 h-4" /> : <Star className="w-4 h-4" />}
+                {property.vip ? <StarOff className="w-4 h-4" /> : <Star className="w-4 h-4" />} {/* <-- Changed here */}
                 {property.vip ? "Unmark VIP" : "Mark VIP"}
               </button>
 
@@ -885,7 +770,7 @@ const ListingDetail: React.FC = () => {
                   onClick={toggleRera}
                   className="px-4 py-2 rounded text-white bg-purple-600 inline-flex items-center gap-2 shadow transition hover:scale-[1.03] hover:bg-purple-700"
                 >
-                  {property.reraVerified ? <BadgeX className="w-4 h-4" /> : <BadgeCheck className="w-4 h-4" />}
+                  {property.reraVerified ? <BadgeX className="w-4 h-4" /> : <BadgeCheck className="w-4 h-4" />} {/* <-- Changed here */}
                   {property.reraVerified ? "Unmark RERA Verified" : "Mark RERA Verified"}
                 </button>
               ) : (
@@ -903,14 +788,49 @@ const ListingDetail: React.FC = () => {
         </div>
       </div>
 
+      {/* <div className="mt-6 bg-white rounded-lg shadow p-4">
+        <h3 className="text-xl text-center font-bold text-black mb-3 rounded inline-flex items-center justify-center gap-2 py-2">
+          <Building2 className="h-5 w-5"/> Additional Property Details
+        </h3>
+        <div className="grid grid-cols-4 gap-3 text-sm">
+          {Object.entries(property).map(([k, v]) => {
+            if (
+              k === "media" || k === "mediaFiles" || k === "residentialPropertyMediaFiles" || k === "commercialPropertyMediaFiles" ||
+              k === "listingId" || k === "category" || k === "preference" || k === "propertyType" || k === "title" || k === "description" ||
+              k === "price" || k === "area" || k === "age" || k === "availability" || k === "reraNumber" || k === "reraVerified" ||
+              k === "state" || k === "city" || k === "locality" || k === "address" || k === "pincode" || k === "nearbyPlace" ||
+              k === "expired" || k === "residentialOwner" || k === "commercialOwner" || k === "vip" ||
+              k === "centerCooling" || k === "fireAlarm" || k === "heating" || k === "gym" || k === "modularKitchen" || k === "pool" || k === "elevator" || k === "petFriendly" || k === "storage" || k === "laundry" || k === "dishwasher" || k === "dryer" || k === "sauna" || k === "emergencyExit" || k === "waterPurifier" || k === "gasPipeline" || k === "park" || k === "vastuCompliant" || k === "rainWaterHarvesting" || k === "maintenanceStaff" ||
+              k === "poojaRoom" || k === "studyRoom" || k === "servantRoom" || k === "storeRoom" || k === "highCeilingHeight" || k === "falseCeilingLighting" || k === "internetConnectivity" || k === "centrallyAirConditioned" || k === "securityFireAlarm" || k === "recentlyRenovated" || k === "privateGardenTerrace" || k === "naturalLight" || k === "airyRooms" || k === "intercomFacility" || k === "spaciousInteriors" ||
+              k === "fitnessCenter" || k === "swimmingPool" || k === "clubhouseCommunityCenter" || k === "securityPersonnel" || k === "lifts" ||
+              k === "separateEntryForServantRoom" || k === "noOpenDrainageAround" || k === "bankAttachedProperty" || k === "lowDensitySociety" ||
+              k === "municipalCorporation" || k === "borewellTank" || k === "water24x7" ||
+              k === "overlookingPool" || k === "overlookingParkGarden" || k === "overlookingClub" || k === "overlookingMainRoad" ||
+              k === "inGatedSociety" || k === "cornerProperty" || k === "petFriendlySociety" || k === "wheelchairFriendly" ||
+              k === "closeToMetroStation" || k === "closeToSchool" || k === "closeToHospital" || k === "closeToMarket" || k === "closeToRailwayStation" || k === "closeToAirport" || k === "closeToMall" || k === "closeToHighway" ||
+              k === "adminApproved" || k === "sold"
+            ) return null;
+            return (
+              <div key={k} className="border rounded p-2">
+                <div className="text-xs text-gray-500">{prettyKey(k)}</div>
+                <div className="mt-1">{v === null || v === undefined ? "-" : String(v)}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div> */}
+
       {/* Reject modal */}
       {showRejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" aria-modal="true" role="dialog">
+          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
             style={{ backdropFilter: 'blur(6px)' }}
             aria-hidden="true"
           />
+
+          {/* Modal */}
           <div
             className="relative border-2 border-solid bg-white w-full max-w-xl rounded shadow-lg p-6 z-50"
             onClick={(e) => e.stopPropagation()}

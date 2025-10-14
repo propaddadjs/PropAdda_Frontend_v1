@@ -25,14 +25,6 @@ export default function ForgotPassword() {
       setBusy(false);
     }
   }
-  const handleSendResetLink = async () => {
-    // 1. Perform your form validation / API call here
-    // ...
-    
-    // 2. If the operation is successful:
-    // navigate the user to the success page
-    navigate("/reset-password");
-};
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -88,7 +80,6 @@ export default function ForgotPassword() {
               )}
 
               <button
-              onClick={handleSendResetLink}
                 className="w-full bg-orange-500 text-white rounded-lg py-2 font-semibold flex items-center justify-center gap-2 hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!valid || busy}
               >
