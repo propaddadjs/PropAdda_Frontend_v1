@@ -59,7 +59,7 @@ import ResetPassword from "./pages/ResetPassword";
 import AllLeads from "./pages/Admin/AllLeads";
 import AssignedLeads from "./pages/Admin/AssignedLeads";
 import ShootRequests from "./pages/Admin/ShootRequests";
-import EMICalculator from "./pages/EmiCalculator";
+import EMICalculator from "./pages/EMICalculator";
 
 const App: React.FC = () => {
   return (
