@@ -60,6 +60,7 @@ import AllLeads from "./pages/Admin/AllLeads";
 import AssignedLeads from "./pages/Admin/AssignedLeads";
 import ShootRequests from "./pages/Admin/ShootRequests";
 import EMICalculator from "./pages/EMICalculator";
+import SoldListings from "./pages/Admin/SoldListings";
 
 const App: React.FC = () => {
   return (
@@ -116,7 +117,7 @@ const App: React.FC = () => {
               <Route path="active" element={<AllListings />} />
               <Route path="pending" element={<PendingListings />} />
               <Route path="expired" element={<ExpiredListings />} />
-              <Route path="sold" element={<AgentSoldListings />} />
+              <Route path="sold" element={<SoldListings />} />
               <Route path="vip" element={<VipListings />} />
               <Route path="/admin/listings/view/:category/:id" element={<ListingDetail />} />
             </Route>

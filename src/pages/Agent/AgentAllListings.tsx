@@ -293,7 +293,7 @@ const AgentAllListings: React.FC = () => {
       ) : rawData.length === 0 ? ( // FIX: Changed listings.length to rawData.length
         <div className="p-8 text-center bg-white rounded-xl shadow-sm text-gray-600">
           You have no properties listed yet.
-          <Link to="/agent/listings/create" className="text-orange-500 hover:underline block mt-2">
+          <Link to="/agent/postproperty" className="text-orange-500 hover:underline block mt-2">
             Click here to add your first property.
           </Link>
         </div>
