@@ -55,18 +55,24 @@ const PropertyAction: React.FC = () => {
   };
 
   return (
-    <section className="property-action-section">
-      <div className="property-action">
-        <h3>Find Property</h3>
-        <p>Select from thousands of options, without brokerage.</p>
-        <button className="action-btn dark" onClick={onFindNow}>
+    <section className="mt-8 flex flex-col md:flex-row justify-around bg-gray-100 divide-y divide-gray-300 md:divide-y-0 md:divide-x">
+      <div className="flex-1 text-center p-8">
+        <h3 className="text-xl font-bold text-gray-800">Find Property</h3>
+        <p className="mt-2 text-gray-600">Select from thousands of options, without brokerage.</p>
+        <button 
+          className="mt-4 px-5 py-2.5 rounded-lg bg-gray-800 text-white font-semibold transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" 
+          onClick={onFindNow}
+        >
           Find Now
         </button>
       </div>
-      <div className="property-action">
-        <h3>List Your Property</h3>
-        <p>For Free. Without any brokerage.</p>
-        <button className="action-btn dark" onClick={onPostProperty}>
+      <div className="flex-1 text-center p-8">
+        <h3 className="text-xl font-bold text-gray-800">List Your Property</h3>
+        <p className="mt-2 text-gray-600">For Free. Without any brokerage.</p>
+        <button 
+          className="mt-4 px-5 py-2.5 rounded-lg bg-gray-800 text-white font-semibold transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" 
+          onClick={onPostProperty}
+        >
           Free Posting
         </button>
       </div>

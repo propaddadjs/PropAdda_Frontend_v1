@@ -143,7 +143,9 @@ export default function Signup() {
       {/* Top nav */}
       <header className="border-b bg-white">
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-          <img src={logo} alt="PropAdda" title="PropAdda" className="h-14 w-auto" />
+          <Link to="/">
+            <img src={logo} alt="PropAdda" title="PropAdda" className="h-14 w-auto" />
+          </Link>
           <nav className="text-sm flex items-center gap-5 text-gray-600">
             <Link to="/" className="hover:text-themeOrange transition">HOME</Link>
             <Link to="/testimonials" className="hover:text-themeOrange transition">TESTIMONIALS</Link>

@@ -661,11 +661,11 @@ button {
       flex-direction: row-reverse;
     }
 
-    .service-text {
+    /* .service-text {
       flex: 1;
       text-align: center;
       min-width: 300px;
-    }
+    } */
 
     .service-text h4 {
       font-size: 13px;
@@ -863,13 +863,13 @@ button {
 
     .promo-card {
       flex: 1 1 30%;
-      padding: 30px 20px;
+      /* padding: 30px 20px; */
       max-height: 200px;
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
-      text-align: left;
+      text-align: center;
       background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.7), rgba(255,255,255,0));
       position: relative;
       z-index: 1;
@@ -1715,6 +1715,7 @@ button {
 
   .hero-section .tabs {
     flex-direction: column;
+    columns: 2;
     gap: 10px;
   }
 

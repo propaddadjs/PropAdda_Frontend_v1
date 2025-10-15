@@ -212,7 +212,7 @@ const UserProfile: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header title="MANANGE PROFILE" />
+        <Header title="MANAGE PROFILE" />
         <div className="mx-auto max-w-5xl px-4 py-10">
           <div className="animate-pulse space-y-4">
             <div className="h-8 w-64 bg-gray-200 rounded" />

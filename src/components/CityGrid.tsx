@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import FilterExplorerModal, { type Filters } from "./FilterExplorerModal";
@@ -22,7 +22,7 @@ type CountMap = Record<string, number>;
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
-/** 
+/**
  * Display name + server key (must match backend keys exactly).
  * Note: Backend uses "Bengaluru" (not "Bangalore").
  */
@@ -42,6 +42,71 @@ const CITIES: Array<{ label: string; apiKey: string }> = [
 ];
 
 const IMAGES = [city1, city2, city3, city4, city5, city6, city7, city8, city9, city10, city11, city12];
+
+/**
+ * A reusable city card component that animates in when it becomes visible.
+ */
+const AnimatedCityCard: React.FC<{
+  city: { label: string; apiKey: string };
+  img: string;
+  countLabel: string;
+  onClick: () => void;
+  index: number;
+}> = ({ city, img, countLabel, onClick, index }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, []);
+
+  return (
+    <button
+      ref={ref}
+      onClick={onClick}
+      title={`Explore properties in ${city.label}`}
+      className={`group flex flex-col items-center text-center focus:outline-none focus:ring-2 focus:ring-orange-300 rounded-lg transition-all duration-700 ease-out
+        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`
+      }
+      style={{ transitionDelay: `${index * 100}ms` }} // Staggered animation delay
+      aria-label={`Explore ${city.label}`}
+    >
+      {/* Circular image */}
+      <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden mb-2 ring-1 ring-orange-100 transition-all duration-300 group-hover:ring-2 group-hover:ring-orange-300">
+        <img
+          src={img}
+          alt={city.label}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+
+      {/* Text */}
+      <h4 className="text-sm font-semibold text-gray-900">{city.label}</h4>
+      <p className="mt-0.5 text-xs text-gray-600">{countLabel}</p>
+    </button>
+  );
+};
+
 
 const CityGrid: React.FC = () => {
   const [counts, setCounts] = useState<CountMap>({});
@@ -100,56 +165,45 @@ const cityCards = useMemo(
       const countLabel = `${count.toLocaleString("en-IN")} Properties`;
 
       return (
-        <button
+        <AnimatedCityCard
           key={c.apiKey}
+          city={c}
+          img={img}
+          countLabel={countLabel}
           onClick={() => onCityClick(c.apiKey)}
-          title={`Explore properties in ${c.label}`}
-          className="group flex flex-col items-center text-center focus:outline-none focus:ring-2 focus:ring-orange-300 rounded-lg"
-          aria-label={`Explore ${c.label}`}
-        >
-          {/* Circular image */}
-          <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden mb-2 ring-1 ring-orange-100 transition-all duration-300 group-hover:ring-2 group-hover:ring-orange-300">
-            <img
-              src={img}
-              alt={c.label}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-
-          {/* Text */}
-          <h4 className="text-sm font-semibold text-gray-900">{c.label}</h4>
-          <p className="mt-0.5 text-xs text-gray-600">{countLabel}</p>
-        </button>
+          index={idx}
+        />
       );
     }),
   [counts]
 );
 
   return (
-    <section className="explore-cities">
-      <h5>EXPLORE CITIES</h5>
-      <h2>
-        FIND THE <span className="highlight">PROPERTY OF YOUR DREAM</span> IN
-        YOUR PREFERRED CITY
-      </h2>
+    <section className="explore-cities py-12 px-4 sm:px-6 lg:px-8">
+      <div className="text-center">
+        <h5 className="text-sm font-bold uppercase tracking-wider text-gray-500">EXPLORE CITIES</h5>
+        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+          FIND THE <span className="highlight text-orange-600">PROPERTY OF YOUR DREAM</span> IN
+          YOUR PREFERRED CITY
+        </h2>
+      </div>
+
 
       {err && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-red-800 mb-3">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-red-800 mb-3 max-w-xl mx-auto">
           {err}
         </div>
       )}
 
-      <div className="mx-auto max-w-fit">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+      <div className="mt-12 mx-auto max-w-fit">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
           {cityCards}
         </div>
       </div>
 
-      <div className="view-more-container">
+      <div className="view-more-container mt-8 text-center">
         <button
-          className="view-all-btn mt-4 inline-flex items-center gap-2 text-orange-600 font-semibold"
+          className="view-all-btn inline-flex items-center gap-2 text-orange-600 font-semibold"
           onClick={() => setOpenExplorer(true)}
           type="button"
         >

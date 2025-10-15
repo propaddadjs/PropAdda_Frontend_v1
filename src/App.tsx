@@ -61,11 +61,13 @@ import AssignedLeads from "./pages/Admin/AssignedLeads";
 import ShootRequests from "./pages/Admin/ShootRequests";
 import EMICalculator from "./pages/EMICalculator";
 import SoldListings from "./pages/Admin/SoldListings";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <Routes>
           {/* Public */}
           <Route path="/" element={<Home />} />

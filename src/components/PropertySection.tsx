@@ -20,6 +20,7 @@ import {
   Projector,
   Maximize2,
   SoapDispenserDroplet,
+  Eye,
 } from "lucide-react";
 import { api } from "../lib/api";
 
@@ -117,7 +118,7 @@ type PillProps = { tone?: "res" | "com" | "neutral"; children: React.ReactNode }
 const PILL: React.FC<PillProps> = ({ children, tone = "neutral" }) => (
   <span
     className={[
-      "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm transition",
+      "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] sm:px-2.5 sm:py-1 sm:text-xs font-semibold shadow-sm transition",
       tone === "res"
         ? "bg-green-100 text-green-700"
         : tone === "com"
@@ -152,14 +153,14 @@ const PropertyCard: React.FC<{ p: AnyProp; onView: (p: AnyProp) => void }> = ({ 
   }, [images]);
 
   const img = images[idx] || "https://via.placeholder.com/800x450?text=No+Image";
-  const priceLabel = p.price != null ? `₹ ${currency(p.price)}` : "Price on request";
+  const priceLabel = p.price != null ? `₹${currency(p.price)}` : "Price on request";
   const loc = [p.state, p.city].filter(Boolean).join(" • ");
   const uiPref = toUiPreference(p.preference);
 
   return (
     <div
       className="property-card group rounded-xl border-2 border-gray-200 bg-white overflow-hidden shadow-sm
-                 transition hover:shadow-lg hover:-translate-y-0.5 min-w-[250px] sm:min-w-[350px]"
+               transition hover:shadow-lg hover:-translate-y-0.5 w-full max-w-sm sm:max-w-none sm:min-w-[350px]"
     >
       <div className="relative">
         <img
@@ -168,22 +169,22 @@ const PropertyCard: React.FC<{ p: AnyProp; onView: (p: AnyProp) => void }> = ({ 
           className="h-56 w-full object-cover transition duration-500 group-hover:scale-[1.02]"
           loading="lazy"
         />
-        <span className="absolute left-3 top-3">
-          <PILL tone={isRes ? "res" : "com"}>
-            <span className="inline-flex items-center gap-1">
-              {isRes ? <Building2 className="h-3.5 w-3.5" /> : <Briefcase className="h-3.5 w-3.5" />}
-              {isRes ? "Residential" : "Commercial"}
-            </span>
-          </PILL>
-        </span>
+        <div className="absolute left-3 top-3 flex items-center gap-2">
+            <PILL tone={isRes ? "res" : "com"}>
+              <span className="inline-flex items-center gap-1">
+                {isRes ? <Building2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : <Briefcase className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
+                {isRes ? "Residential" : "Commercial"}
+              </span>
+            </PILL>
+        </div>
         {p.reraVerified && (
-          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-700 px-2 py-1 text-xs font-semibold shadow-sm">
-            <ShieldCheck className="h-3.5 w-3.5" /> RERA Verified
+          <span className="absolute left-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-red-100 text-red-700 px-1.5 py-0.5 text-[11px] sm:px-2 sm:py-1 sm:text-xs font-semibold shadow-sm">
+            <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> RERA Verified
           </span>
         )}
       </div>
 
-      <div className="property-info p-4">
+      <div className="property-info p-4 flex flex-col">
         <h4 className="font-semibold text-base line-clamp-1">{p.title?.trim() || "Untitled"}</h4>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -192,7 +193,7 @@ const PropertyCard: React.FC<{ p: AnyProp; onView: (p: AnyProp) => void }> = ({ 
         </div>
 
         {/* Features */}
-        <div className="mt-2 text-xs text-gray-700 flex flex-wrap gap-4">
+        <div className="mt-2 text-xs text-gray-700 flex flex-wrap gap-x-4 gap-y-2">
           {isRes ? (
             <>
               {typeof (p as any).bedrooms === "number" && (p as any).bedrooms > 0 && (
@@ -240,14 +241,14 @@ const PropertyCard: React.FC<{ p: AnyProp; onView: (p: AnyProp) => void }> = ({ 
           {loc || "—"}
         </div>
 
-        <div className="mt-3 flex items-center justify-between">
+        <div className="mt-auto pt-3 flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
           <span className="text-orange-600 text-xl font-bold">{priceLabel}</span>
           <button
-            className="rounded-lg bg-orange-500 px-3 py-1.5 text-white text-sm font-semibold
+            className="flex w-full sm:w-auto justify-center rounded-lg bg-orange-500 px-3 py-1.5 text-white text-sm font-semibold
                        transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-300 active:scale-[0.99]"
             onClick={() => onView(p)}
           >
-            More Details
+            <Eye className="h-5 w-5 mr-1" /> View
           </button>
         </div>
       </div>
@@ -255,11 +256,12 @@ const PropertyCard: React.FC<{ p: AnyProp; onView: (p: AnyProp) => void }> = ({ 
   );
 };
 
+
 /* ----------------------- Section ----------------------- */
 const DISPLAY_LABEL_BY_TAB: Record<"villa" | "flat" | "plot" | "pg", string> = {
   villa: "Bungalow / Villa",
   flat: "Flat / Apartment",
-  plot: "Plot",
+  plot: "Plot / Land",
   pg: "PG / Co-Living",
 };
 
@@ -293,7 +295,7 @@ const PropertySection: React.FC = () => {
           setCommercial(data.commercial ?? []);
         } else {
           const url = `/user/getVipFilterByPropertyType/${active}`;
-          const { data } = await api.get<ApiResponse>(url, 
+          const { data } = await api.get<ApiResponse>(url,
             // { withCredentials: true }
           );
           if (!on) return;
@@ -339,16 +341,16 @@ const PropertySection: React.FC = () => {
   };
 
   return (
-    <section className="featured-properties">
+    <section className="featured-properties px-4 sm:px-0">
       <h3 className="flex items-center justify-center mt-5 gap-2 text-lg font-bold tracking-wide text-gray-600">
         <Star className="h-4 w-4 text-orange-500" />
         FEATURED PROPERTIES <Star className="h-4 w-4 text-orange-500" />
       </h3>
-      <h2 className="mt-1 text-2xl font-bold">
+      <h2 className="mt-1 text-2xl font-bold text-center">
         <span className="highlight text-orange-600">RECOMMENDED</span> FOR YOU
       </h2>
 
-      <div className="mt-3 justify-center mb-8 flex flex-wrap gap-6">
+      <div className="mt-3 mb-8 mx-auto grid max-w-xs grid-cols-2 gap-4 md:mx-0 md:max-w-none md:flex md:flex-wrap md:justify-center md:gap-6">
         {(["villa", "flat", "plot", "pg"] as const).map((type) => {
           const isActive = active === type; // the results currently shown
           return (
@@ -357,7 +359,7 @@ const PropertySection: React.FC = () => {
               type="button"
               role="tab"
               aria-selected={isActive}
-              className={`filter rounded-xl px-3 py-1.5 transition
+              className={`filter rounded-xl px-3 py-1.5 transition text-sm sm:text-base
                 ${isActive
                   ? "bg-orange-500 text-white shadow-sm"
                   : "bg-white text-gray-700 border-orange-200 border-t-2 border-b-2 hover:bg-orange-50 hover:text-orange-600"}`}
@@ -407,13 +409,16 @@ const PropertySection: React.FC = () => {
         </>
       )}
 
-      <a
-        href="/search-results"
-        onClick={openExplorer}
-        className="view-all-btn mt-6 inline-flex items-center gap-2 text-orange-600 font-semibold"
-      >
-        View all Properties <ChevronRight className="h-4 w-4" />
-      </a>
+      <div className="text-center">
+        <a
+            href="/search-results"
+            onClick={openExplorer}
+            className="view-all-btn mt-6 inline-flex items-center gap-2 text-orange-600 font-semibold"
+        >
+            View all Properties <ChevronRight className="h-4 w-4" />
+        </a>
+      </div>
+
 
       {/* Filter Explorer Modal */}
       <FilterExplorerModal

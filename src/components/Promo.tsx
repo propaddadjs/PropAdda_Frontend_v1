@@ -58,9 +58,9 @@ const Promo: React.FC = () => {
   };
 
   return (
-    <section className="promo-section grid md:grid-cols-3 gap-6 my-12 px-4">
+    <section className="promo-section grid md:grid-cols-3 gap-6 my-2 px-4">
       {/* List your Property */}
-      <div className="promo-card rounded-xl p-6 shadow-sm text-center transition hover:shadow-md">
+      <div className="promo-card rounded-xl p-6 text-center transition mb-10 lg:mb-1">
         <h3 className="text-lg font-semibold mb-3">
           Post your property ads <br /> for free!
         </h3>
@@ -74,7 +74,7 @@ const Promo: React.FC = () => {
       </div>
 
       {/* Explore Now */}
-      <div className="promo-card rounded-xl p-6 shadow-sm text-center transition hover:shadow-md">
+      <div className="promo-card rounded-xl p-6 text-center transition mb-10 lg:mb-1">
         <h3 className="text-lg font-semibold mb-3">
           Explore India’s Top <br /> Residential Cities List
         </h3>
@@ -88,7 +88,7 @@ const Promo: React.FC = () => {
       </div>
 
       {/* Post your Requirement */}
-      <div className="promo-card rounded-xl p-6 shadow-sm text-center transition hover:shadow-md">
+      <div className="promo-card rounded-xl p-6 text-center transition mb-10 lg:mb-2">
         <h3 className="text-lg font-semibold mb-3">
           Helping you to Find your <br /> Dream Property
         </h3>
