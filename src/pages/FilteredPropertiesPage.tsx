@@ -5,7 +5,7 @@ import FilterSidebarBuyer, { type Filters as BuyerFilters } from "../components/
 // Header + Footer (add these)
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import NoPropertyFound from "../images/NoPropertyFound.png";
+import NoPropertyFound from "../images/NoPropertyfound.png";
 
 // Lucide icons
 import {
@@ -157,7 +157,7 @@ const PropertyCard: React.FC<{ p: AnyProp; onView: (p: AnyProp) => void }> = ({
 
   const onImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const el = e.currentTarget;
-    if (!el.src.includes("No+Image")) el.src = NoPropertyFound;
+    if (el.src !== NoPropertyFound) el.src = NoPropertyFound;
   };
 
   const hasNum = (n: unknown) => typeof n === "number" && n > 0;
