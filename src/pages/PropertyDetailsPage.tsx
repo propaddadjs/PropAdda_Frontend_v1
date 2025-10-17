@@ -8,7 +8,7 @@ import { api } from "../lib/api";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import avatarImg from "../images/avatar.jpg";
-import NoPropertyFound from "../images/NoPropertyFound.png";
+import NoPropertyFound from "../images/NoPropertyfound.png";
 import {
   X,
   CheckCircle2,
