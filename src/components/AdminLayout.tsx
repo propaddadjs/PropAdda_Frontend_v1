@@ -1,20 +1,15 @@
 // src/components/AdminLayout.tsx
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
-import { Menu, Bell, ChevronDown, ChevronsRight } from "lucide-react"; // <-- [NEW] Added ChevronsRight
-import axios from "axios";
+import { Menu, Bell, ChevronDown, ChevronsRight } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuth } from "../auth/AuthContext";
 
-// --- [NEW] Breadcrumbs Component ---
-// This component reads the URL and generates the navigation trail
 const Breadcrumbs: React.FC = () => {
   const location = useLocation();
-  // Create an array of path segments from the URL (e.g., ['admin', 'listings', 'all'])
-  const pathnames = location.pathname.split('/').filter((x) => x);
+  const pathnames = location.pathname.split("/").filter((x) => x);
 
-  // If we are on the main dashboard page, show the original title
   if (pathnames.length <= 1) {
     return <div className="text-lg font-semibold tracking-tight">Admin Dashboard</div>;
   }
@@ -22,23 +17,17 @@ const Breadcrumbs: React.FC = () => {
   return (
     <div className="flex items-center text-sm">
       <Link to="/admin" className="text-gray-500 hover:text-gray-800">Home</Link>
-      {/* We map over the segments, skipping the first one ('admin') */}
       {pathnames.slice(1).map((name, index) => {
-        const routeTo = `/${pathnames.slice(0, index + 2).join('/')}`;
+        const routeTo = `/${pathnames.slice(0, index + 2).join("/")}`;
         const isLast = index === pathnames.length - 2;
-        // Capitalize the first letter for a clean display
         const displayName = name.charAt(0).toUpperCase() + name.slice(1);
-
         return (
-          <React.Fragment key={name}>
+          <React.Fragment key={`${name}-${index}`}>
             <ChevronsRight className="w-4 h-4 text-gray-400 mx-1" />
             {isLast ? (
-              // The last item in the trail is not a link
               <span className="font-semibold text-gray-800">{displayName}</span>
             ) : (
-              <Link to={routeTo} className="text-gray-500 hover:text-gray-800">
-                {displayName}
-              </Link>
+              <Link to={routeTo} className="text-gray-500 hover:text-gray-800">{displayName}</Link>
             )}
           </React.Fragment>
         );
@@ -52,9 +41,9 @@ const MiniAvatar: React.FC<{
   firstName?: string | null;
   lastName?: string | null;
 }> = ({ src, firstName, lastName }) => {
-  const hasSrc = typeof src === 'string' && src.trim() !== '';
+  const hasSrc = typeof src === "string" && src.trim() !== "";
   const initials =
-    `${firstName?.[0]?.toUpperCase() ?? ''}${lastName?.[0]?.toUpperCase() ?? ''}` || 'U';
+    `${firstName?.[0]?.toUpperCase() ?? ""}${lastName?.[0]?.toUpperCase() ?? ""}` || "U";
 
   if (hasSrc) {
     return (
@@ -73,18 +62,14 @@ const MiniAvatar: React.FC<{
 };
 
 const AdminLayout: React.FC = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // desktop collapse
+  const [mobileOpen, setMobileOpen] = useState(false); // drawer for <md
   const [hasUnread, setHasUnread] = useState<boolean>(false);
-  const navigate = useNavigate();
-  //const location = useLocation();
-  const mainContentMargin = sidebarCollapsed ? 'ml-16' : 'ml-56';
-    const { user } = useAuth();
-    const adminId = user?.userId ?? null;
-
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const adminId = user?.userId ?? null;
 
   const fetchUnreadCount = async () => {
     try {
@@ -99,7 +84,7 @@ const AdminLayout: React.FC = () => {
     fetchUnreadCount();
     const id = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(id);
-  }, []);
+  }, [adminId]);
 
   useEffect(() => {
     const handler = () => setHasUnread(false);
@@ -114,77 +99,100 @@ const AdminLayout: React.FC = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // close mobile drawer on route change
+  const location = useLocation();
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  // Only add left margin on md+ so small screen has no gutter
+  const mainContentClass = sidebarCollapsed ? "md:ml-16" : "md:ml-56";
 
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden">
-      {/* Sidebar */}
-      <AdminSidebar collapsed={sidebarCollapsed} className="fixed top-0 left-0 h-full z-40" />
+      {/* Sidebar: permanent on md+, drawer on <md */}
+      <AdminSidebar
+        collapsed={sidebarCollapsed}
+        className="fixed top-0 left-0 h-full z-40"
+        mobileOpen={mobileOpen}
+        onRequestClose={() => setMobileOpen(false)}
+        onNavLinkClick={() => setMobileOpen(false)}
+      />
 
       {/* Main */}
-      <div className={`flex-1 flex flex-col ${mainContentMargin}`}>
+      <div className={`flex-1 flex flex-col ${mainContentClass}`}>
         {/* Top bar */}
-        <header className="bg-white border-b px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="bg-white border-b px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-50 w-full">
           <div className="flex items-center gap-3">
+            {/* Mobile Menu for drawer (small screens) */}
             <button
-              className="p-2 rounded-lg bg-orange-500 transition hover:scale-[1.08]"
+              className="p-2 rounded-lg bg-orange-500 transition hover:scale-[1.08] md:hidden"
               title="Menu"
-              onClick={() => setSidebarCollapsed((prev) => !prev)}
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5 text-white" />
             </button>
 
-            {/* --- [NEW] The static title is replaced with the dynamic Breadcrumbs component --- */}
-            <Breadcrumbs />
+            {/* Desktop collapse toggle */}
+            <button
+              className="p-2 rounded-lg bg-orange-500 transition hover:scale-[1.08] hidden md:inline-flex"
+              title="Toggle sidebar"
+              onClick={() => setSidebarCollapsed((prev) => !prev)}
+              aria-pressed={sidebarCollapsed}
+            >
+              <Menu className="w-5 h-5 text-white" />
+            </button>
 
+            {/* Breadcrumbs (hidden on very small screens automatically by layout if you prefer) */}
+            <div className="hidden md:flex">
+              <Breadcrumbs />
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
             {/* Notifications */}
             <button
               title="Notifications"
-              className="relative p-2 rounded-lg bg-orange-100 transition hover:scale-[1.08] hover:border-orange-500 border-2"
+              className="relative p-2 rounded-lg bg-orange-100 transition hover:scale-[1.08] hover:border-orange-500 border-2 z-50"
               onClick={() => navigate("/admin/notifications")}
             >
               <Bell className="w-5 h-5 text-black" />
-              {hasUnread && (
-                <span
-                  className="
-                    pointer-events-none select-none
-                    absolute bottom-1 right-1
-                    w-2 h-2 rounded-full bg-themeOrange"
-                />
-              )}
+              {hasUnread && <span className="pointer-events-none select-none absolute bottom-1 right-1 w-2 h-2 rounded-full bg-themeOrange" />}
             </button>
 
-            {/* Profile section with dropdown */}
-            <div ref={profileRef} className="relative">
+            {/* Profile with dropdown */}
+            <div ref={profileRef} className="relative z-50">
               <button
                 className="flex items-center gap-2 cursor-pointer"
-                onClick={() => setProfileOpen(prev => !prev)}
+                onClick={() => setProfileOpen((p) => !p)}
               >
                 <div className="text-right hidden sm:block">
                   <div className="text-sm font-medium leading-4">{user?.firstName} {user?.lastName}</div>
                   <div className="text-xs text-gray-500 leading-4">{user?.email}</div>
                 </div>
                 <MiniAvatar
-                  src={(user as any)?.profileImageUrl} // if your auth user includes it
+                  src={(user as any)?.profileImageUrl}
                   firstName={user?.firstName}
                   lastName={user?.lastName}
                 />
-                <ChevronDown className={`w-4 h-4 text-gray-500 hidden sm:block transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-gray-500 hidden sm:block transition-transform ${profileOpen ? "rotate-180" : ""}`} />
               </button>
 
               {profileOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-xl z-40 animate-in fade-in-0 zoom-in-95">
+                <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-xl z-50 animate-in fade-in-0 zoom-in-95">
                   <div className="p-1">
                     <Link onClick={() => setProfileOpen(false)} to="/" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Home</Link>
+
+                    {/* --- RESTORED: Agent Dashboard link --- */}
                     <Link onClick={() => setProfileOpen(false)} to="/agent" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Agent Dashboard</Link>
+
                     <Link onClick={() => setProfileOpen(false)} to="/admin" className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Admin Dashboard</Link>
-                    <div className="h-px bg-gray-200 my-1"></div>
+
+                    <div className="h-px bg-gray-200 my-1" />
                     <Link onClick={() => setProfileOpen(false)} to="/logout" className="block w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded">Logout</Link>
                   </div>
                 </div>

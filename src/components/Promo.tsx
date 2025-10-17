@@ -88,7 +88,7 @@ const Promo: React.FC = () => {
       </div>
 
       {/* Post your Requirement */}
-      <div className="promo-card rounded-xl p-6 text-center transition mb-10 lg:mb-2">
+      <div className="promo-card rounded-xl p-6 text-center transition mb-10 lg:mb-1">
         <h3 className="text-lg font-semibold mb-3">
           Helping you to Find your <br /> Dream Property
         </h3>

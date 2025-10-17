@@ -1,17 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import AgentSidebar from "./AgentSidebar";
-import { Menu, Bell, ChevronDown, ChevronsRight } from "lucide-react";
-import axios from "axios";
+import { Menu, Bell, ChevronDown } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";
 
-// ---- Breadcrumbs (agent-aware) ----
 const Breadcrumbs: React.FC = () => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter(Boolean);
 
-  // On main agent dashboard, show title
   if (pathnames.length <= 1) {
     return <div className="text-lg font-semibold tracking-tight">Agent Dashboard</div>;
   }
@@ -25,13 +22,11 @@ const Breadcrumbs: React.FC = () => {
         const displayName = name.charAt(0).toUpperCase() + name.slice(1);
         return (
           <React.Fragment key={`${name}-${index}`}>
-            <ChevronsRight className="w-4 h-4 text-gray-400 mx-1" />
+            <span className="mx-1 text-gray-400">/</span>
             {isLast ? (
               <span className="font-semibold text-gray-800">{displayName}</span>
             ) : (
-              <Link to={routeTo} className="text-gray-500 hover:text-gray-800">
-                {displayName}
-              </Link>
+              <Link to={routeTo} className="text-gray-500 hover:text-gray-800">{displayName}</Link>
             )}
           </React.Fragment>
         );
@@ -45,9 +40,9 @@ const MiniAvatar: React.FC<{
   firstName?: string | null;
   lastName?: string | null;
 }> = ({ src, firstName, lastName }) => {
-  const hasSrc = typeof src === 'string' && src.trim() !== '';
+  const hasSrc = typeof src === "string" && src.trim() !== "";
   const initials =
-    `${firstName?.[0]?.toUpperCase() ?? ''}${lastName?.[0]?.toUpperCase() ?? ''}` || 'U';
+    `${firstName?.[0]?.toUpperCase() ?? ""}${lastName?.[0]?.toUpperCase() ?? ""}` || "U";
 
   if (hasSrc) {
     return (
@@ -66,26 +61,20 @@ const MiniAvatar: React.FC<{
 };
 
 const AgentLayout: React.FC = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // affects md+ layout
+  const [mobileOpen, setMobileOpen] = useState(false); // drawer for <md
   const [hasUnread, setHasUnread] = useState<boolean>(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const mainContentMargin = sidebarCollapsed ? 'ml-16' : 'ml-56';
 
-  // Replace with your actual auth-sourced agent id
-  // const agentId = Number(localStorage.getItem("agentId") || 2);
   const { user } = useAuth();
   const agentId = user?.userId ?? null;
-  //const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://propadda-backend-v1-506455747754.asia-south2.run.app";
   const isAdmin = String((user as any)?.role ?? "").toUpperCase() === "ADMIN";
-  
+
   const fetchUnreadCount = async () => {
     try {
-      // const { data } = await axios.get<number>(`${API_BASE}/agent/getUnreadNotificationCountForAgent/${agentId}`, {
-      //   withCredentials: true,
-      // });
-       const { data } = await api.get<number>("/agent/getUnreadNotificationCountForAgent");
+      const { data } = await api.get<number>("/agent/getUnreadNotificationCountForAgent");
       setHasUnread((data ?? 0) > 0);
     } catch (e) {
       console.error("Failed to fetch agent unread count", e);
@@ -115,32 +104,63 @@ const AgentLayout: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // close mobile drawer on route change
+  const location = useLocation();
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  // Only apply left margin on md+ (desktop). Use responsive class.
+  const mainContentClass = sidebarCollapsed ? "md:ml-16" : "md:ml-56";
+
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden">
       {/* Sidebar */}
-      <AgentSidebar collapsed={sidebarCollapsed} className="fixed top-0 left-0 h-full z-40" />
+      <AgentSidebar
+        collapsed={sidebarCollapsed}
+        className="fixed top-0 left-0 h-full z-40"
+        mobileOpen={mobileOpen}
+        onRequestClose={() => setMobileOpen(false)}
+        onNavLinkClick={() => setMobileOpen(false)}
+      />
 
       {/* Main */}
-      <div className={`flex-1 flex flex-col ${mainContentMargin}`}>
+      <div className={`flex-1 flex flex-col ${mainContentClass}`}>
         {/* Top bar */}
-        <header className="bg-white border-b px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-30 w-full">
+        <header className="bg-white border-b px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-50 w-full">
           <div className="flex items-center gap-3">
+            {/* Mobile Menu */}
             <button
-              className="p-2 rounded-lg bg-orange-500 transition hover:scale-[1.08]"
+              className="p-2 rounded-lg bg-orange-500 transition hover:scale-[1.08] md:hidden"
               title="Menu"
-              onClick={() => setSidebarCollapsed((prev) => !prev)}
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5 text-white" />
             </button>
 
-            <Breadcrumbs />
+            {/* Desktop collapse toggle (md+) */}
+            <button
+              className="p-2 rounded-lg bg-orange-500 transition hover:scale-[1.08] hidden md:inline-flex"
+              title="Toggle sidebar"
+              onClick={() => setSidebarCollapsed((prev) => !prev)}
+              aria-pressed={sidebarCollapsed}
+            >
+              <Menu className="w-5 h-5 text-white" />
+            </button>
+
+            {/* Breadcrumbs (hidden on mobile) */}
+            <div className="hidden md:flex">
+              <Breadcrumbs />
+            </div>
           </div>
 
+          {/* Right side */}
           <div className="flex items-center gap-4">
             {/* Notifications */}
             <button
               title="Notifications"
-              className="relative p-2 rounded-lg bg-orange-100 transition hover:scale-[1.08] hover:border-orange-500 border-2"
+              className="relative p-2 rounded-lg bg-orange-100 transition hover:scale-[1.08] hover:border-orange-500 border-2 z-50"
               onClick={() => navigate("/agent/notifications")}
             >
               <Bell className="w-5 h-5 text-black" />
@@ -149,8 +169,8 @@ const AgentLayout: React.FC = () => {
               )}
             </button>
 
-            {/* Profile with dropdown */}
-            <div ref={profileRef} className="relative">
+            {/* Profile */}
+            <div ref={profileRef} className="relative z-50">
               <button
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => setProfileOpen((prev) => !prev)}
@@ -160,74 +180,25 @@ const AgentLayout: React.FC = () => {
                   <div className="text-xs text-gray-500 leading-4">{user?.email}</div>
                 </div>
                 <MiniAvatar
-                  src={(user as any)?.profileImageUrl} // if your auth user includes it
+                  src={(user as any)?.profileImageUrl}
                   firstName={user?.firstName}
                   lastName={user?.lastName}
                 />
                 <ChevronDown
-                  className={`w-4 h-4 text-gray-500 hidden sm:block transition-transform ${
-                    profileOpen ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 text-gray-500 hidden sm:block transition-transform ${profileOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
               {profileOpen && (
-                <div className="absolute top-full right-0 mt-2 w-56 bg-white border rounded-lg shadow-xl z-40 animate-in fade-in-0 zoom-in-95">
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white border rounded-lg shadow-xl z-50 animate-in fade-in-0 zoom-in-95">
                   <div className="p-1">
-                    <Link
-                      onClick={() => setProfileOpen(false)}
-                      to="/"
-                      className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded"
-                    >
-                      Home
-                    </Link>
-                    <Link
-                      onClick={() => setProfileOpen(false)}
-                      to="/agent"
-                      className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded"
-                    >
-                      Agent Dashboard
-                    </Link>
-
-                     {/* NEW: Admin Panel (ADMIN only) */}
-                    {isAdmin && (
-                      <Link
-                        onClick={() => setProfileOpen(false)}
-                        to="/admin"
-                        className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded"
-                      >
-                        Admin Dashboard
-                      </Link>
-                    )}
-                    <Link
-                      onClick={() => setProfileOpen(false)}
-                      to="/agent/postproperty"
-                      className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded"
-                    >
-                      Post a Property
-                    </Link>
-                    {/* <Link
-                      onClick={() => setProfileOpen(false)}
-                      to="/agent/support/manageProfile?tab=password"
-                      className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded"
-                    >
-                      Change Password
-                    </Link> */}
-                    <Link
-                      onClick={() => setProfileOpen(false)}
-                      to="/agent/changePassword" 
-                      className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded"
-                    >
-                      Change Password
-                    </Link>
+                    <Link onClick={() => setProfileOpen(false)} to="/" className="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Home</Link>
+                    <Link onClick={() => setProfileOpen(false)} to="/agent" className="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Agent Dashboard</Link>
+                    {isAdmin && <Link onClick={() => setProfileOpen(false)} to="/admin" className="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Admin Dashboard</Link>}
+                    <Link onClick={() => setProfileOpen(false)} to="/agent/postproperty" className="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Post a Property</Link>
+                    <Link onClick={() => setProfileOpen(false)} to="/agent/changePassword" className="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Change Password</Link>
                     <div className="h-px bg-gray-200 my-1" />
-                    <Link
-                      onClick={() => setProfileOpen(false)}
-                      to="/logout"
-                      className="block w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded"
-                    >
-                      Logout
-                    </Link>
+                    <Link onClick={() => setProfileOpen(false)} to="/logout" className="block px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded">Logout</Link>
                   </div>
                 </div>
               )}

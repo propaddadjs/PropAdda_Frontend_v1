@@ -16,8 +16,6 @@ import {
 } from "lucide-react";
 import React from "react";
 
-// type FormSetter = <K extends keyof any>(updater: (prev: any) => any) => void;
-
 // Fields you toggle in this panel (booleans only)
 type AmenityField =
   | "centerCooling" | "petFriendly" | "waterPurifier" | "fireAlarm" | "modularKitchen"
@@ -44,137 +42,72 @@ interface AmenitiesPanelProps {
 
 interface CheckboxItemProps {
   label: string;
-  field: AmenityField;        // ✅ now a string union of your own fields
-  icon?: LucideIcon;          // optional, so you can reuse without icon
+  field: AmenityField;
+  icon?: LucideIcon;
 }
 
 /**
  * AmenitiesPanel
- * - Renders UI groups according to ResidentialPropertyAmenities entity
- * - All fields are optional (no required validation)
- * - Controlled: reads values from formData and calls setFormData to update
- *
- * Usage:
- * <AmenitiesPanel formData={formData} setFormData={setFormData} />
+ * - Responsive and touch-friendly
+ * - Controlled via formData / setFormData
  */
 const AmenitiesPanel: React.FC<AmenitiesPanelProps> = ({ formData, setFormData }) => {
-  // helper to toggle boolean fields
-  // const toggle = (key: string) => {
-  //   setFormData((prev: any) => ({ ...prev, [key]: !Boolean(prev[key]) }));
-  // };
 
-  // helper to set explicit boolean
-  // const setBool = (key: string, value: boolean) => {
-  //   setFormData((prev: any) => ({ ...prev, [key]: value }));
-  // };
-
-  // pill toggle (visual tag) used for groups that look like chips in screenshot
-  // const Pill: React.FC<{ label: string; field: string }> = ({ label, field }) => {
-  //   const active = Boolean(formData[field]);
-  //   return (
-  //     <button
-  //       type="button"
-  //       onClick={() => toggle(field)}
-  //       aria-pressed={active}
-  //       className={`text-sm px-3 py-1 rounded-full border transition-colors duration-150 focus:outline-none ${
-  //         active
-  //           ? "bg-themeOrange text-white border-themeOrange"
-  //           : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-  //       }`}
-  //     >
-  //       {label}
-  //     </button>
-  //   );
-  // };
-
-  // standard checkbox row component
-  // const CheckboxItem: React.FC<{ label: string; field: string }> = ({ label, field }) => {
-  //   return (
-  //     <label className="inline-flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
-  //       <input
-  //         type="checkbox"
-  //         checked={Boolean(formData[field])}
-  //         onChange={() => toggle(field)}
-  //         className="form-checkbox h-4 w-4 border-gray-300 rounded accent-orange-600"
-  //       />
-  //       <span>{label}</span>
-  //     </label>
-  //   );
-  // };
-
+  // Pill (chip) toggle used across the panel
   const Pill: React.FC<{ label: string; field: AmenityField }> = ({ label, field }) => {
-  const active = Boolean((formData as any)[field]);
-  return (
-    <button
-      type="button"
-      onClick={() => setFormData((prev: any) => ({ ...prev, [field]: !active }))}
-      aria-pressed={active}
-      className={`text-sm px-3 py-1 rounded-full border transition-colors duration-150 focus:outline-none ${
-        active
-          ? "bg-orange-500 text-white border-orange-500"
-          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-      }`}
-    >
-      {label}
-    </button>
-  );
-};
+    const active = Boolean((formData as any)[field]);
 
+    const toggle = () => setFormData((prev: any) => ({ ...prev, [field]: !active }));
+
+    return (
+      <button
+        type="button"
+        role="button"
+        tabIndex={0}
+        aria-pressed={active}
+        onClick={toggle}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } }}
+        className={`text-sm px-3 py-1 rounded-full border transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-orange-200 ${
+          active ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+        }`}
+      >
+        {label}
+      </button>
+    );
+  };
+
+  // Checkbox row item (touch-friendly)
   const CheckboxItem: React.FC<CheckboxItemProps> = ({ label, field, icon: Icon }) => {
-  const checked = Boolean((formData as any)[field]);
+    const checked = Boolean((formData as any)[field]);
 
-  return (
-    <label className="flex items-center gap-2 p-2 border rounded-md cursor-pointer hover:bg-gray-50 transition">
-      <input
-        type="checkbox"
-        name={field as string}
-        checked={checked}
-        onChange={(e) =>
-          setFormData((prev: any) => ({
-            ...prev,
-            [field]: e.target.checked,
-          }))
-        }
-        className="h-4 w-4 rounded border-gray-300 accent-orange-600"
-      />
-      <span className="text-sm text-slate-700">{label}</span>
-      {Icon ? <Icon className="w-4 h-4 text-orange-500" /> : null}
-    </label>
-  );
-};
-
+    return (
+      <label
+        className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-gray-50 transition bg-white border border-gray-100"
+        title={label}
+      >
+        <input
+          type="checkbox"
+          name={field as string}
+          checked={checked}
+          onChange={(e) =>
+            setFormData((prev: any) => ({ ...prev, [field]: e.target.checked }))
+          }
+          className="h-4 w-4 rounded border-gray-300 accent-orange-600"
+        />
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-sm text-slate-700 truncate">{label}</span>
+        </div>
+        {Icon ? <Icon className="w-4 h-4 text-orange-500 ml-auto" aria-hidden /> : null}
+      </label>
+    );
+  };
 
   return (
     <div className="mt-6 space-y-6">
-      {/* Section: Property Features (checkbox grid) */}
-      {/* <section>
-        <h4 className="text-base font-semibold text-slate-800 mb-3">Property Features</h4>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 text-themeOrange">
-          <CheckboxItem label="Center Cooling" field="centerCooling" />
-          <CheckboxItem label="Pet Friendly" field="petFriendly" />
-          <CheckboxItem label="Water Purifier" field="waterPurifier" />
-          <CheckboxItem label="Fire Alarm" field="fireAlarm" />
-          <CheckboxItem label="Modern Kitchen" field="modularKitchen" />
-          <CheckboxItem label="Storage" field="storage" />
-          <CheckboxItem label="Dryer" field="dryer" />
-          <CheckboxItem label="Piped-gas" field="gasPipeline" />
-          <CheckboxItem label="Maintenance Staff" field="maintenanceStaff" />
-          <CheckboxItem label="Heating" field="heating" />
-          <CheckboxItem label="Pool" field="pool" />
-          <CheckboxItem label="Laundry" field="laundry" />
-          <CheckboxItem label="Sauna" field="sauna" />
-          <CheckboxItem label="Park" field="park" />
-          <CheckboxItem label="Rain Water Harvesting" field="rainWaterHarvesting" />
-          <CheckboxItem label="Gym" field="gym" />
-          <CheckboxItem label="Elevator" field="elevator" />
-          <CheckboxItem label="Dish Washer" field="dishwasher" />
-          <CheckboxItem label="Emergency Exit" field="emergencyExit" />
-          <CheckboxItem label="Vastu Compliant" field="vastuCompliant" />
-        </div>
-      </section> */}
+      {/* Property Features (checkbox grid) */}
       <section>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Property Features</h4>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           <CheckboxItem label="Center Cooling" field="centerCooling" icon={Snowflake} />
           <CheckboxItem label="Pet Friendly" field="petFriendly" icon={PawPrint} />
           <CheckboxItem label="Water Purifier" field="waterPurifier" icon={Droplets} />
@@ -187,7 +120,7 @@ const AmenitiesPanel: React.FC<AmenitiesPanelProps> = ({ formData, setFormData }
           <CheckboxItem label="Heating" field="heating" icon={Heater} />
           <CheckboxItem label="Pool" field="pool" icon={Waves} />
           <CheckboxItem label="Laundry" field="laundry" icon={Shirt} />
-          <CheckboxItem label="Sauna" field="sauna" icon={CloudFog} /> 
+          <CheckboxItem label="Sauna" field="sauna" icon={CloudFog} />
           <CheckboxItem label="Park" field="park" icon={Trees} />
           <CheckboxItem label="Rain Water Harvesting" field="rainWaterHarvesting" icon={CloudRain} />
           <CheckboxItem label="Gym" field="gym" icon={Dumbbell} />
@@ -198,7 +131,7 @@ const AmenitiesPanel: React.FC<AmenitiesPanelProps> = ({ formData, setFormData }
         </div>
       </section>
 
-      {/* Section: Other rooms (pill style) */}
+      {/* Other rooms (pill style) */}
       <section>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Other rooms <span className="text-sm text-gray-500">(Optional)</span></h4>
         <div className="flex flex-wrap gap-2">
@@ -209,7 +142,7 @@ const AmenitiesPanel: React.FC<AmenitiesPanelProps> = ({ formData, setFormData }
         </div>
       </section>
 
-      {/* Section: Property features (chips) */}
+      {/* Property features (extra chips) */}
       <section>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Property Features (extra)</h4>
         <div className="flex flex-wrap gap-2">
@@ -227,7 +160,7 @@ const AmenitiesPanel: React.FC<AmenitiesPanelProps> = ({ formData, setFormData }
         </div>
       </section>
 
-      {/* Section: Society/Building feature */}
+      {/* Society / Building */}
       <section>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Society / Building feature</h4>
         <div className="flex flex-wrap gap-2">
@@ -239,7 +172,7 @@ const AmenitiesPanel: React.FC<AmenitiesPanelProps> = ({ formData, setFormData }
         </div>
       </section>
 
-      {/* Section: Additional features */}
+      {/* Additional features */}
       <section>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Additional Features</h4>
         <div className="flex flex-wrap gap-2">
@@ -250,7 +183,7 @@ const AmenitiesPanel: React.FC<AmenitiesPanelProps> = ({ formData, setFormData }
         </div>
       </section>
 
-      {/* Section: Water Source */}
+      {/* Water Source */}
       <section>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Water Source</h4>
         <div className="flex flex-wrap gap-2">
@@ -260,7 +193,7 @@ const AmenitiesPanel: React.FC<AmenitiesPanelProps> = ({ formData, setFormData }
         </div>
       </section>
 
-      {/* Section: Overlooking */}
+      {/* Overlooking */}
       <section>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Overlooking</h4>
         <div className="flex flex-wrap gap-2">
@@ -271,27 +204,18 @@ const AmenitiesPanel: React.FC<AmenitiesPanelProps> = ({ formData, setFormData }
         </div>
       </section>
 
-      {/* Section: Other Features (checkboxes) */}
-      {/* <section>
-        <h4 className="text-base font-semibold text-slate-800 mb-3">Other Features</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <CheckboxItem label="In a gated society" field="inGatedSociety" />
-          <CheckboxItem label="Corner Property" field="cornerProperty" />
-          <CheckboxItem label="Pet Friendly (Society)" field="petFriendlySociety" />
-          <CheckboxItem label="Wheelchair friendly" field="wheelchairFriendly" />
-        </div>
-      </section> */}
+      {/* Other Features */}
       <section>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Other Features</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <CheckboxItem label="In a gated society" field="inGatedSociety" icon={DoorClosedLocked} />
-          <CheckboxItem label="Corner Property" field="cornerProperty" icon={PanelRightClose} />
-          <CheckboxItem label="Pet Friendly (Society)" field="petFriendlySociety" icon={PawPrint} />
-          <CheckboxItem label="Wheelchair friendly" field="wheelchairFriendly" icon={Accessibility} />
+          <div><CheckboxItem label="In a gated society" field="inGatedSociety" icon={DoorClosedLocked} /></div>
+          <div><CheckboxItem label="Corner Property" field="cornerProperty" icon={PanelRightClose} /></div>
+          <div><CheckboxItem label="Pet Friendly (Society)" field="petFriendlySociety" icon={PawPrint} /></div>
+          <div><CheckboxItem label="Wheelchair friendly" field="wheelchairFriendly" icon={Accessibility} /></div>
         </div>
       </section>
 
-      {/* Section: Location Advantages */}
+      {/* Location Advantages */}
       <section>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Location Advantages</h4>
         <div className="flex flex-wrap gap-2">

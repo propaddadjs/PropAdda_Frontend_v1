@@ -21,6 +21,7 @@ import {
   ChevronDown,
   Search,
   RotateCw,
+  X as XIcon,
 } from "lucide-react";
 
 /**
@@ -60,15 +61,6 @@ const DEFAULT_FILTERS: Filters = {
   ageRanges: [],
 };
 
-// const PROPERTY_TYPES = [
-//   "Flat",
-//   "House",
-//   "Villa",
-//   "Apartment",
-//   "Office",
-//   "Plot/Land",
-//   "Storage/Warehouse",
-// ];
 // define the sets
 const RESIDENTIAL_TYPES = ["Flat", "House", "Villa", "Apartment"];
 const COMMERCIAL_TYPES = ["Office", "Plot/Land", "Storage/Warehouse"];
@@ -135,8 +127,22 @@ const FilterSidebar: React.FC<Props> = ({ initial = {}, onApply, onReset }) => {
   const [cities, setCities] = useState<string[]>([]);
   const [amenitiesExpanded, setAmenitiesExpanded] = useState(false);
 
-  // NEW: collapse/expand state
+  // NEW: collapse/expand state (desktop narrow mode)
   const [collapsed, setCollapsed] = useState(true);
+
+  // NEW: mobile drawer open state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Detect small screens (<=1024px treated as tablet/phone to show drawer)
+  const [isCompactScreen, setIsCompactScreen] = useState<boolean>(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 1024 : false
+  );
+
+  useEffect(() => {
+    const onResize = () => setIsCompactScreen(window.innerWidth <= 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // CountryStateCity API key (if set in env)
   const CSC_API_KEY = (import.meta.env.VITE_CSC_API_KEY as string) || "ZXBOVkxVdmVaNjhiMHlqQm5PZXpxWmRSanlIUHB4a0hCSHBwNGRFRA==";
@@ -319,6 +325,8 @@ const FilterSidebar: React.FC<Props> = ({ initial = {}, onApply, onReset }) => {
       areaMax: finalAreaMax,
     };
     onApply(normalized);
+    // close drawer on mobile after apply
+    if (isCompactScreen) setDrawerOpen(false);
   };
 
   const reset = () => {
@@ -332,7 +340,326 @@ const FilterSidebar: React.FC<Props> = ({ initial = {}, onApply, onReset }) => {
     ? ALL_AMENITIES
     : ALL_AMENITIES.slice(0, 6);
 
-  return (
+  // The inner filter content so we can reuse for drawer and desktop aside
+  const FilterContent = (
+    <>
+      {/* Category */}
+      <label className="block text-sm mb-1 font-semibold flex items-center gap-2"><Shapes className="w-4 h-4"/>Category</label>
+      <select
+        value={filters.category}
+        onChange={(e) =>
+          setFilters((f) => ({ ...f, category: e.target.value as any }))
+        }
+        className="w-full text-sm border rounded p-2 mb-3"
+      >
+        <option value="All">All</option>
+        <option value="Residential">Residential</option>
+        <option value="Commercial">Commercial</option>
+      </select>
+
+      {/* Property types */}
+      <div className="mb-3">
+        <div className="text-sm mb-1 font-semibold flex items-center gap-2"><Building className="w-4 h-4"/>Property Type</div>
+        <div className="grid grid-cols-2 gap-1">
+          {propertyTypesToShow.map((pt) => (
+            <label key={pt} className="text-xs">
+              <input
+                type="checkbox"
+                checked={filters.propertyTypes.includes(pt)}
+                onChange={() => togglePropType(pt)}
+                className="mr-2"
+              />
+              {pt}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Preference */}
+      <label className="block text-sm mb-1 font-semibold flex items-center gap-2"><Tag className="w-4 h-4"/>Preference</label>
+      <select
+        value={
+          isCommercial && filters.preference === "PG"
+            ? "All"
+            : filters.preference
+        }
+        onChange={(e) =>
+          setFilters((f) => ({ ...f, preference: e.target.value as any }))
+        }
+        className="w-full text-sm border rounded p-2 mb-3"
+      >
+        <option value="All">All</option>
+        {preferenceOptions.map((p) => (
+          <option key={p} value={p}>
+            {p}
+          </option>
+        ))}
+      </select>
+
+      {/* Budget */}
+      <label className="block text-sm mb-1 font-semibold flex items-center gap-2">
+        <IndianRupee className="w-4 h-4" /> Budget (₹)
+      </label>
+      <div className="mb-4">
+        <Slider
+          range
+          min={0}
+          max={MAX_PRICE}
+          step={10000}
+          value={[filters.priceMin ?? 0, filters.priceMax ?? MAX_PRICE]}
+          onChange={(v) =>
+            handlePriceSliderChange(Array.isArray(v) ? v : [v, v])
+          }
+          trackStyle={[{ backgroundColor: SLIDER_COLOR }]}
+          handleStyle={[
+            { borderColor: SLIDER_COLOR },
+            { borderColor: SLIDER_COLOR },
+          ]}
+          railStyle={{ backgroundColor: "#e5e7eb" }}
+        />
+        <div className="flex justify-between mt-2">
+          <input
+            type="number"
+            min={0}
+            max={MAX_PRICE}
+            value={filters.priceMin ?? ""}
+            onChange={(e) => {
+              const val =
+                e.target.value === "" ? null : Number(e.target.value);
+              updatePriceMin(val);
+            }}
+            className="w-1/2 border rounded p-2 mr-2"
+            placeholder="Min"
+          />
+          <input
+            type="number"
+            min={0}
+            max={MAX_PRICE}
+            value={filters.priceMax ?? ""}
+            onChange={(e) => {
+              const val =
+                e.target.value === "" ? null : Number(e.target.value);
+              updatePriceMax(val);
+            }}
+            className="w-1/2 border rounded p-2"
+            placeholder="Max"
+          />
+        </div>
+      </div>
+
+      {/* Furnishing */}
+      {!isCommercial && (
+        <>
+          <label className="block text-sm mb-1 font-semibold flex items-center gap-2">
+            <Armchair className="w-4 h-4"/> Furnishing
+          </label>
+          <select
+            value={filters.furnishing}
+            onChange={(e) =>
+              setFilters((f) => ({
+                ...f,
+                furnishing: e.target.value as any,
+              }))
+            }
+            className="w-full text-sm border rounded p-2 mb-3"
+          >
+            <option value="">Any</option>
+            {FURNISHING.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
+
+      {/* State & City */}
+      <div className="flex gap-2 mb-3">
+        <div className="flex-1">
+          <label className="block text-sm mb-1 font-semibold flex items-center gap-2"><MapPin className="w-4 h-4"/>State</label>
+          <select
+            value={filters.stateIso}
+            onChange={(e) => {
+              const iso = e.target.value;
+              const name =
+                states.find((s) => s.iso2 === iso)?.name ?? "";
+              setFilters((f) => ({
+                ...f,
+                stateIso: iso,
+                stateName: name,
+                city: "",
+              }));
+            }}
+            className="w-full text-sm border rounded p-2"
+          >
+            <option value="">Select state</option>
+            {states.map((s) => (
+              <option key={s.iso2} value={s.iso2}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm mb-1 font-semibold">City</label>
+          <select
+            value={filters.city}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, city: e.target.value }))
+            }
+            className="w-full text-sm border rounded p-2"
+          >
+            <option value="">Any</option>
+            {cities.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Amenities */}
+      {!isCommercial && (
+        <div className="mb-3">
+          <div className="text-sm mb-1 font-semibold flex items-center gap-2"><Sparkles className="w-4 h-4"/>Amenities</div>
+          <div className="grid grid-cols-2 gap-1 max-h-40 overflow-y-auto">
+            {visibleAmenities.map((am) => (
+              <label key={am} className="text-xs">
+                <input
+                  type="checkbox"
+                  checked={filters.amenities.includes(am)}
+                  onChange={() => toggleAmenity(am)}
+                  className="mr-2"
+                />
+                {am}
+              </label>
+            ))}
+          </div>
+          <button
+            className="mt-2 font-semibold text-xs text-themeOrange hover:underline flex items-center gap-1"
+            onClick={() => setAmenitiesExpanded((v) => !v)}
+          >
+            {amenitiesExpanded ? <ChevronUp className="w-3 h-3"/> : <ChevronDown className="w-3 h-3"/>}
+            {amenitiesExpanded
+              ? "Show less"
+              : `Show more (${ALL_AMENITIES.length - 6})`}
+          </button>
+        </div>
+      )}
+
+      {/* Availability */}
+      <label className="block text-sm mb-1 font-semibold flex items-center gap-2"><CalendarCheck className="w-4 h-4"/>Availability</label>
+      <select
+        value={filters.availability}
+        onChange={(e) =>
+          setFilters((f) => ({ ...f, availability: e.target.value as any }))
+        }
+        className={`w-full text-sm border rounded p-2 mb-3 ${
+          onlyPlotSelected ? "bg-gray-100 cursor-not-allowed" : ""
+        }`}
+        disabled={onlyPlotSelected}
+        title={
+          onlyPlotSelected
+            ? "Availability not applicable for Plot/Land"
+            : undefined
+        }
+      >
+        <option value="All">All</option>
+        {AVAILABILITY.map((a) => (
+          <option key={a} value={a}>
+            {a}
+          </option>
+        ))}
+      </select>
+
+      {/* Area */}
+      <div className="mb-3">
+        <div className="text-sm mb-1 font-semibold flex items-center gap-2"><Maximize2 className="w-4 h-4"/>Area (sq.ft)</div>
+        <Slider
+          range
+          min={0}
+          max={MAX_AREA}
+          step={100}
+          value={[filters.areaMin ?? 0, filters.areaMax ?? MAX_AREA]}
+          onChange={(v) =>
+            handleAreaSliderChange(Array.isArray(v) ? v : [v, v])
+          }
+          trackStyle={[{ backgroundColor: SLIDER_COLOR }]}
+          handleStyle={[
+            { borderColor: SLIDER_COLOR },
+            { borderColor: SLIDER_COLOR },
+          ]}
+          railStyle={{ backgroundColor: "#e5e7eb" }}
+        />
+        <div className="flex gap-2 mt-2">
+          <input
+            type="number"
+            min={0}
+            max={MAX_AREA}
+            value={filters.areaMin ?? ""}
+            onChange={(e) => {
+              const val =
+                e.target.value === "" ? null : Number(e.target.value);
+              updateAreaMin(val);
+            }}
+            className="w-1/2 border rounded p-2 mr-2"
+            placeholder="Min"
+          />
+          <input
+            type="number"
+            min={0}
+            max={MAX_AREA}
+            value={filters.areaMax ?? ""}
+            onChange={(e) => {
+              const val =
+                e.target.value === "" ? null : Number(e.target.value);
+              updateAreaMax(val);
+            }}
+            className="w-1/2 border rounded p-2"
+            placeholder="Max"
+          />
+        </div>
+      </div>
+
+      {/* Age */}
+      <div className="mb-3">
+        <div className="text-sm mb-1 font-semibold flex items-center gap-2"><History className="w-4 h-4"/>Age of property</div>
+        <div className="grid grid-cols-2 gap-1">
+          {AGE_OPTIONS.map((a) => (
+            <label key={a} className="text-xs">
+              <input
+                type="checkbox"
+                checked={filters.ageRanges.includes(a)}
+                onChange={() => toggleAge(a)}
+                className="mr-2"
+              />
+              {a}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Buttons */}
+      <div className="mt-4">
+        <button
+          onClick={apply}
+          className="w-full bg-themeOrange text-white py-2 rounded flex items-center justify-center gap-2 transition transform hover:scale-[1.02]"
+        >
+          <Search className="w-4 h-4"/> Apply
+        </button>
+        <button
+          onClick={reset}
+          className="w-full bg-gray-300 text-gray-800 py-2 rounded mt-2 flex items-center justify-center gap-2 transition transform hover:scale-[1.02]"
+        >
+          <RotateCw className="w-4 h-4"/> Reset Filters
+        </button>
+      </div>
+    </>
+  );
+
+  // Desktop / large-screen aside (preserve previous collapsed behavior)
+  const DesktopAside = (
     <aside
       className={`${
         collapsed ? "w-14" : "w-72"
@@ -376,323 +703,78 @@ const FilterSidebar: React.FC<Props> = ({ initial = {}, onApply, onReset }) => {
       )}
 
       {/* Content (hidden when collapsed) */}
-      {!collapsed && (
-        <>
-          {/* Category */}
-          <label className="block text-sm mb-1 font-semibold flex items-center gap-2"><Shapes className="w-4 h-4"/>Category</label>
-          <select
-            value={filters.category}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, category: e.target.value as any }))
-            }
-            className="w-full text-sm border rounded p-2 mb-3"
-          >
-            <option value="All">All</option>
-            <option value="Residential">Residential</option>
-            <option value="Commercial">Commercial</option>
-          </select>
-
-          {/* Property types */}
-          <div className="mb-3">
-            <div className="text-sm mb-1 font-semibold flex items-center gap-2"><Building className="w-4 h-4"/>Property Type</div>
-            <div className="grid grid-cols-2 gap-1">
-              {propertyTypesToShow.map((pt) => (
-                <label key={pt} className="text-xs">
-                  <input
-                    type="checkbox"
-                    checked={filters.propertyTypes.includes(pt)}
-                    onChange={() => togglePropType(pt)}
-                    className="mr-2"
-                  />
-                  {pt}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Preference */}
-          <label className="block text-sm mb-1 font-semibold flex items-center gap-2"><Tag className="w-4 h-4"/>Preference</label>
-          <select
-            value={
-              isCommercial && filters.preference === "PG"
-                ? "All"
-                : filters.preference
-            }
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, preference: e.target.value as any }))
-            }
-            className="w-full text-sm border rounded p-2 mb-3"
-          >
-            <option value="All">All</option>
-            {preferenceOptions.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-
-          {/* Budget */}
-          <label className="block text-sm mb-1 font-semibold flex items-center gap-2">
-            <IndianRupee className="w-4 h-4" /> Budget (₹)
-          </label>
-          <div className="mb-4">
-            <Slider
-              range
-              min={0}
-              max={MAX_PRICE}
-              step={10000}
-              value={[filters.priceMin ?? 0, filters.priceMax ?? MAX_PRICE]}
-              onChange={(v) =>
-                handlePriceSliderChange(Array.isArray(v) ? v : [v, v])
-              }
-              trackStyle={[{ backgroundColor: SLIDER_COLOR }]}
-              handleStyle={[
-                { borderColor: SLIDER_COLOR },
-                { borderColor: SLIDER_COLOR },
-              ]}
-              railStyle={{ backgroundColor: "#e5e7eb" }}
-            />
-            <div className="flex justify-between mt-2">
-              <input
-                type="number"
-                min={0}
-                max={MAX_PRICE}
-                value={filters.priceMin ?? ""}
-                onChange={(e) => {
-                  const val =
-                    e.target.value === "" ? null : Number(e.target.value);
-                  updatePriceMin(val);
-                }}
-                className="w-1/2 border rounded p-2 mr-2"
-                placeholder="Min"
-              />
-              <input
-                type="number"
-                min={0}
-                max={MAX_PRICE}
-                value={filters.priceMax ?? ""}
-                onChange={(e) => {
-                  const val =
-                    e.target.value === "" ? null : Number(e.target.value);
-                  updatePriceMax(val);
-                }}
-                className="w-1/2 border rounded p-2"
-                placeholder="Max"
-              />
-            </div>
-          </div>
-
-          {/* Furnishing */}
-          {!isCommercial && (
-            <>
-              <label className="block text-sm mb-1 font-semibold flex items-center gap-2">
-                <Armchair className="w-4 h-4"/> Furnishing
-              </label>
-              <select
-                value={filters.furnishing}
-                onChange={(e) =>
-                  setFilters((f) => ({
-                    ...f,
-                    furnishing: e.target.value as any,
-                  }))
-                }
-                className="w-full text-sm border rounded p-2 mb-3"
-              >
-                <option value="">Any</option>
-                {FURNISHING.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
-
-          {/* State & City */}
-          <div className="flex gap-2 mb-3">
-            <div className="flex-1">
-              <label className="block text-sm mb-1 font-semibold flex items-center gap-2"><MapPin className="w-4 h-4"/>State</label>
-              <select
-                value={filters.stateIso}
-                onChange={(e) => {
-                  const iso = e.target.value;
-                  const name =
-                    states.find((s) => s.iso2 === iso)?.name ?? "";
-                  setFilters((f) => ({
-                    ...f,
-                    stateIso: iso,
-                    stateName: name,
-                    city: "",
-                  }));
-                }}
-                className="w-full text-sm border rounded p-2"
-              >
-                <option value="">Select state</option>
-                {states.map((s) => (
-                  <option key={s.iso2} value={s.iso2}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm mb-1 font-semibold">City</label>
-              <select
-                value={filters.city}
-                onChange={(e) =>
-                  setFilters((f) => ({ ...f, city: e.target.value }))
-                }
-                className="w-full text-sm border rounded p-2"
-              >
-                <option value="">Any</option>
-                {cities.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Amenities */}
-          {!isCommercial && (
-            <div className="mb-3">
-              <div className="text-sm mb-1 font-semibold flex items-center gap-2"><Sparkles className="w-4 h-4"/>Amenities</div>
-              <div className="grid grid-cols-2 gap-1 max-h-40 overflow-y-auto">
-                {visibleAmenities.map((am) => (
-                  <label key={am} className="text-xs">
-                    <input
-                      type="checkbox"
-                      checked={filters.amenities.includes(am)}
-                      onChange={() => toggleAmenity(am)}
-                      className="mr-2"
-                    />
-                    {am}
-                  </label>
-                ))}
-              </div>
-              <button
-                className="mt-2 font-semibold text-xs text-themeOrange hover:underline flex items-center gap-1"
-                onClick={() => setAmenitiesExpanded((v) => !v)}
-              >
-                {amenitiesExpanded ? <ChevronUp className="w-3 h-3"/> : <ChevronDown className="w-3 h-3"/>}
-                {amenitiesExpanded
-                  ? "Show less"
-                  : `Show more (${ALL_AMENITIES.length - 6})`}
-              </button>
-            </div>
-          )}
-
-          {/* Availability */}
-          <label className="block text-sm mb-1 font-semibold flex items-center gap-2"><CalendarCheck className="w-4 h-4"/>Availability</label>
-          <select
-            value={filters.availability}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, availability: e.target.value as any }))
-            }
-            className={`w-full text-sm border rounded p-2 mb-3 ${
-              onlyPlotSelected ? "bg-gray-100 cursor-not-allowed" : ""
-            }`}
-            disabled={onlyPlotSelected}
-            title={
-              onlyPlotSelected
-                ? "Availability not applicable for Plot/Land"
-                : undefined
-            }
-          >
-            <option value="All">All</option>
-            {AVAILABILITY.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
-
-          {/* Area */}
-          <div className="mb-3">
-            <div className="text-sm mb-1 font-semibold flex items-center gap-2"><Maximize2 className="w-4 h-4"/>Area (sq.ft)</div>
-            <Slider
-              range
-              min={0}
-              max={MAX_AREA}
-              step={100}
-              value={[filters.areaMin ?? 0, filters.areaMax ?? MAX_AREA]}
-              onChange={(v) =>
-                handleAreaSliderChange(Array.isArray(v) ? v : [v, v])
-              }
-              trackStyle={[{ backgroundColor: SLIDER_COLOR }]}
-              handleStyle={[
-                { borderColor: SLIDER_COLOR },
-                { borderColor: SLIDER_COLOR },
-              ]}
-              railStyle={{ backgroundColor: "#e5e7eb" }}
-            />
-            <div className="flex gap-2 mt-2">
-              <input
-                type="number"
-                min={0}
-                max={MAX_AREA}
-                value={filters.areaMin ?? ""}
-                onChange={(e) => {
-                  const val =
-                    e.target.value === "" ? null : Number(e.target.value);
-                  updateAreaMin(val);
-                }}
-                className="w-1/2 border rounded p-2 mr-2"
-                placeholder="Min"
-              />
-              <input
-                type="number"
-                min={0}
-                max={MAX_AREA}
-                value={filters.areaMax ?? ""}
-                onChange={(e) => {
-                  const val =
-                    e.target.value === "" ? null : Number(e.target.value);
-                  updateAreaMax(val);
-                }}
-                className="w-1/2 border rounded p-2"
-                placeholder="Max"
-              />
-            </div>
-          </div>
-
-          {/* Age */}
-          <div className="mb-3">
-            <div className="text-sm mb-1 font-semibold flex items-center gap-2"><History className="w-4 h-4"/>Age of property</div>
-            <div className="grid grid-cols-2 gap-1">
-              {AGE_OPTIONS.map((a) => (
-                <label key={a} className="text-xs">
-                  <input
-                    type="checkbox"
-                    checked={filters.ageRanges.includes(a)}
-                    onChange={() => toggleAge(a)}
-                    className="mr-2"
-                  />
-                  {a}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="mt-4">
-            <button
-              onClick={apply}
-              className="w-full bg-themeOrange text-white py-2 rounded flex items-center justify-center gap-2 transition delay-150 duration-300 ease-in-out hover: hover:scale-105"
-            >
-              <Search className="w-4 h-4"/> Apply
-            </button>
-            <button
-              onClick={reset}
-              className="w-full bg-gray-300 text-gray-800 py-2 rounded mt-2 flex items-center justify-center gap-2 transition delay-150 duration-300 ease-in-out hover: hover:scale-105"
-            >
-              <RotateCw className="w-4 h-4"/> Reset Filters
-            </button>
-          </div>
-        </>
-      )}
+      {!collapsed && <div>{FilterContent}</div>}
     </aside>
+  );
+
+  // Mobile/Tablet drawer UI
+  const DrawerTrigger = (
+    <div className="px-3 py-2">
+      <button
+        type="button"
+        onClick={() => setDrawerOpen(true)}
+        aria-expanded={drawerOpen}
+        aria-controls="filters-drawer"
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-500 text-white shadow hover:bg-orange-600"
+      >
+        <FilterIcon className="w-4 h-4" />
+        <span className="text-sm font-medium">Filters</span>
+      </button>
+    </div>
+  );
+
+  const Drawer = drawerOpen ? (
+    <div
+      className="fixed inset-0 z-[60] flex"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="filters-title"
+    >
+      {/* backdrop */}
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={() => setDrawerOpen(false)}
+      />
+      {/* panel */}
+      <div className="relative ml-auto bg-white w-full sm:w-[560px] max-w-full h-full overflow-auto p-4 shadow-xl">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded bg-buttonOrange flex items-center justify-center">
+              <FilterIcon className="w-4 h-4 text-themeOrange" />
+            </div>
+            <h3 id="filters-title" className="text-lg font-semibold">Filters</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => { setDrawerOpen(false); }}
+              className="p-2 rounded-md hover:bg-gray-100"
+              aria-label="Close filters"
+            >
+              <XIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div>{FilterContent}</div>
+      </div>
+    </div>
+  ) : null;
+
+  // Render: use Drawer trigger for compact screens, otherwise show desktop aside
+  return (
+    <>
+      {isCompactScreen ? (
+        // On phones/tablets show only the trigger (button) and drawer when open.
+        <div className="flex items-start">
+          {DrawerTrigger}
+          {Drawer}
+        </div>
+      ) : (
+        // On desktop/laptop show the original sidebar (collapsed/expanded)
+        DesktopAside
+      )}
+    </>
   );
 };
 

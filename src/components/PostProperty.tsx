@@ -4,7 +4,43 @@ import axios from "axios";
 import AddressSelector from "./AddressSelector";
 import MediaUploader, { type SavedMeta } from "./MediaUploader";
 import AmenitiesPanel from "./AmenitiesPanel";
-import { Loader2, CheckCircle2, XCircle, BadgeCheck, Bath, BatteryCharging, BedDouble, BookMarked, Briefcase, Building, CalendarCheck, CalendarRange, Car, CarFront, ChevronsUpDown, Compass, ConciergeBell, DoorClosed, FileText, History, HousePlus, IndianRupee, Layers, LockIcon, MapPin, Maximize2, PanelsTopLeft, Projector, Shield, SoapDispenserDroplet, Sofa, TagIcon, TrendingUp, Users, Wrench } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  BadgeCheck,
+  Bath,
+  BatteryCharging,
+  BedDouble,
+  BookMarked,
+  Briefcase,
+  Building,
+  CalendarCheck,
+  CalendarRange,
+  Car,
+  CarFront,
+  ChevronsUpDown,
+  Compass,
+  ConciergeBell,
+  DoorClosed,
+  FileText,
+  History,
+  HousePlus,
+  IndianRupee,
+  Layers,
+  LockIcon,
+  MapPin,
+  Maximize2,
+  PanelsTopLeft,
+  Projector,
+  Shield,
+  SoapDispenserDroplet,
+  Sofa,
+  TagIcon,
+  TrendingUp,
+  Users,
+  Wrench,
+} from "lucide-react";
 import { api } from "../lib/api";
 import { useAuth } from "../auth/AuthContext";
 
@@ -51,78 +87,8 @@ interface FormData {
   yearlyIncrease?: number;
   commercialOwnerId?: number;
   residentialOwnerId?: number;
-  // Amenities (residential)
-  centerCooling?: boolean;
-  fireAlarm?: boolean;
-  heating?: boolean;
-  gym?: boolean;
-  modularKitchen?: boolean;
-  pool?: boolean;
-  elevator?: boolean;
-  petFriendly?: boolean;
-  storage?: boolean;
-  laundry?: boolean;
-  dishwasher?: boolean;
-  dryer?: boolean;
-  sauna?: boolean;
-  emergencyExit?: boolean;
-  waterPurifier?: boolean;
-  gasPipeline?: boolean;
-  park?: boolean;
-  vastuCompliant?: boolean;
-  rainWaterHarvesting?: boolean;
-  maintenanceStaff?: boolean;
-  // Other rooms
-  poojaRoom?: boolean;
-  studyRoom?: boolean;
-  servantRoom?: boolean;
-  storeRoom?: boolean;
-  // Extra property features
-  highCeilingHeight?: boolean;
-  falseCeilingLighting?: boolean;
-  internetConnectivity?: boolean;
-  centrallyAirConditioned?: boolean;
-  securityFireAlarm?: boolean;
-  recentlyRenovated?: boolean;
-  privateGardenTerrace?: boolean;
-  naturalLight?: boolean;
-  airyRooms?: boolean;
-  intercomFacility?: boolean;
-  spaciousInteriors?: boolean;
-  // Society/building features
-  fitnessCenter?: boolean;
-  swimmingPool?: boolean;
-  clubhouseCommunityCenter?: boolean;
-  securityPersonnel?: boolean;
-  lifts?: boolean;
-  // Additional features
-  separateEntryForServantRoom?: boolean;
-  noOpenDrainageAround?: boolean;
-  bankAttachedProperty?: boolean;
-  lowDensitySociety?: boolean;
-  // Water source
-  municipalCorporation?: boolean;
-  borewellTank?: boolean;
-  water24x7?: boolean;
-  // Overlooking
-  overlookingPool?: boolean;
-  overlookingParkGarden?: boolean;
-  overlookingClub?: boolean;
-  overlookingMainRoad?: boolean;
-  // Other features
-  inGatedSociety?: boolean;
-  cornerProperty?: boolean;
-  petFriendlySociety?: boolean;
-  wheelchairFriendly?: boolean;
-  // Location advantages
-  closeToMetroStation?: boolean;
-  closeToSchool?: boolean;
-  closeToHospital?: boolean;
-  closeToMarket?: boolean;
-  closeToRailwayStation?: boolean;
-  closeToAirport?: boolean;
-  closeToMall?: boolean;
-  closeToHighway?: boolean;
+  // Amenities (residential) and many boolean flags...
+  [key: string]: any;
 }
 
 // ---------------- Utilities ----------------
@@ -180,9 +146,9 @@ const RESIDENTIAL_SUBTYPES = ["Flat", "House", "Villa", "Apartment", "Plot/Land"
 const COMMERCIAL_SUBTYPES = ["Office", "Plot/Land", "Storage/Warehouse"] as const;
 
 type FilesPayload = {
-  images: File[];      // max 10
-  videos: File[];      // max 4
-  brochures: File[];   // max 4
+  images: File[]; // max 10
+  videos: File[]; // max 4
+  brochures: File[]; // max 4
 };
 // --- UI helpers (white fields + focus rings + soft shadow) ---
 const INPUT_CLASS =
@@ -190,9 +156,6 @@ const INPUT_CLASS =
 const SELECT_CLASS = INPUT_CLASS;
 const TEXTAREA_CLASS =
   "w-full bg-white border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-themeOrange/40 focus:border-themeOrange/60 transition-shadow duration-200 shadow-sm";
-
-// Optional soft motion on buttons
-// const SOFT_BTN_HOVER = "transition-transform duration-150 hover:-translate-y-0.5";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
@@ -208,12 +171,12 @@ const Section: React.FC<{ title: string; children: React.ReactNode; className?: 
 const Row: React.FC<{
   children: React.ReactNode;
   cols?: number;
-  className?: string;   // ✅ allow className
+  className?: string;
 }> = ({ children, cols = 2, className }) => (
   <div
     className={[
       "grid gap-4 md:gap-6",
-      cols === 2 ? "md:grid-cols-2" : cols === 3 ? "md:grid-cols-3" : "",
+      cols === 2 ? "md:grid-cols-2" : cols === 3 ? "md:grid-cols-3" : cols === 4 ? "md:grid-cols-4" : "",
       className || "",
     ].join(" ")}
   >
@@ -221,22 +184,15 @@ const Row: React.FC<{
   </div>
 );
 
-// const toNonNegativeInt = (s: string) => {
-//   const digits = s.replace(/\D/g, "");
-//   return digits ? Math.max(0, parseInt(digits, 10)) : 0;
-// };
-
-
 // ---------------- Component ----------------
 const PropertyForm: React.FC = () => {
   const [category, setCategory] = useState<PropertyCategory>("residential");
   const [mediaMeta, setMediaMeta] = useState<SavedMeta[]>([]);
   const [mediaFiles, setMediaFiles] = useState<FilesPayload>({
-  images: [],
-  videos: [],
-  brochures: [],
-});
-  // const [, setResetKey] = useState(0);
+    images: [],
+    videos: [],
+    brochures: [],
+  });
 
   const [formData, setFormData] = useState<FormData>({
     preference: "Sale",
@@ -333,19 +289,19 @@ const PropertyForm: React.FC = () => {
   });
 
   const INITIAL_FORM: FormData = {
-  preference: "Sale",
-  propertyType: "",
-  state: "",
-  city: "",
-  locality: "",
-  title: "",
-  description: "",
-  price: 0,
-  area: 0,
-  maintenance: 0,
-  bedrooms: 1,
-  bathrooms: 1,
-  furnishing: "Unfurnished",
+    preference: "Sale",
+    propertyType: "",
+    state: "",
+    city: "",
+    locality: "",
+    title: "",
+    description: "",
+    price: 0,
+    area: 0,
+    maintenance: 0,
+    bedrooms: 1,
+    bathrooms: 1,
+    furnishing: "Unfurnished",
     facing: "North",
     age: "0-1 Years",
     availability: "Ready to move",
@@ -424,71 +380,58 @@ const PropertyForm: React.FC = () => {
     closeToAirport: false,
     closeToMall: false,
     closeToHighway: false,
-};
+  };
 
-// Keep the UI intact; just centralize the switch+reset logic
-const handleSwitchCategory = (next: PropertyCategory) => {
-  if (category === next) return; // no-op if already on the same tab
-  setCategory(next);
-  setFormData({ ...INITIAL_FORM, propertyType: "" });
-  setTotalFloorsInput("0");
-  setPriceInput("");
-  // (Optional) if you want a complete reset of media too, uncomment:
-  setMediaFiles({ images: [], videos: [], brochures: [] });
-  setMediaMeta([]);
-  setMediaKey((k) => k + 1);   // ← force remount
-  setAddressKey((k) => k + 1); 
-};
+  // Keep the UI intact; just centralize the switch+reset logic
+  const handleSwitchCategory = (next: PropertyCategory) => {
+    if (category === next) return; // no-op if already on the same tab
+    setCategory(next);
+    setFormData({ ...INITIAL_FORM, propertyType: "" });
+    setTotalFloorsInput("0");
+    setPriceInput("");
+    // (Optional) if you want a complete reset of media too, uncomment:
+    setMediaFiles({ images: [], videos: [], brochures: [] });
+    setMediaMeta([]);
+    setMediaKey((k) => k + 1); // ← force remount
+    setAddressKey((k) => k + 1);
+  };
 
   const onMediaChanged = (meta: SavedMeta[], files?: FilesPayload) => {
-  // update meta only if different
-  setMediaMeta((prev) => {
-    const same =
-      prev.length === meta.length &&
-      prev.every((m, i) => m.name === meta[i].name && m.size === meta[i].size && m.mediaType === meta[i].mediaType);
-    return same ? prev : meta;
-  });
-
-  // if (files) {
-  //   setMediaFiles((prev) => {
-  //     const same =
-  //       prev?.videos?.length === files.videos.length &&
-  //       prev?.videos?.every((f, i) => f === files.videos[i]) &&
-  //       prev?.brochures?.length === files.brochures.length &&
-  //       prev?.brochures?.every((f, i) => f === files.brochures[i]) &&
-  //       prev?.images?.length === files.images.length &&
-  //       prev?.images?.every((f, i) => f === files.images[i]);
-  //     return same ? prev : files;
-  //   });
-  // }
-  if (files) {
-    setMediaFiles((prev) => {
-      const prevFiles = prev ?? { images: [], videos: [], brochures: [] };
-
-      const sameFileArray = (a: File[] = [], b: File[] = []) => {
-        if (a.length !== b.length) return false;
-        for (let i = 0; i < a.length; i++) {
-          const x = a[i], y = b[i];
-          if (!x || !y) return false;
-          if (x.name !== y.name || x.size !== y.size || x.type !== y.type || x.lastModified !== y.lastModified) return false;
-        }
-        return true;
-      };
-
+    setMediaMeta((prev) => {
       const same =
-        sameFileArray(prevFiles.videos, files.videos) &&
-        sameFileArray(prevFiles.brochures, files.brochures) &&
-        sameFileArray(prevFiles.images, files.images);
-
-      return same ? prevFiles : files;
+        prev.length === meta.length &&
+        prev.every((m, i) => m.name === meta[i].name && m.size === meta[i].size && m.mediaType === meta[i].mediaType);
+      return same ? prev : meta;
     });
-  }
-};
 
-const [savingOpen, setSavingOpen] = useState(false);
-const [saveStatus, setSaveStatus] = useState<'saving'|'success'|'error'>('saving');
-const [saveMsg, setSaveMsg] = useState('We are saving your property details. Please wait…');
+    if (files) {
+      setMediaFiles((prev) => {
+        const prevFiles = prev ?? { images: [], videos: [], brochures: [] };
 
+        const sameFileArray = (a: File[] = [], b: File[] = []) => {
+          if (a.length !== b.length) return false;
+          for (let i = 0; i < a.length; i++) {
+            const x = a[i],
+              y = b[i];
+            if (!x || !y) return false;
+            if (x.name !== y.name || x.size !== y.size || x.type !== y.type || x.lastModified !== y.lastModified) return false;
+          }
+          return true;
+        };
+
+        const same =
+          sameFileArray(prevFiles.videos, files.videos) &&
+          sameFileArray(prevFiles.brochures, files.brochures) &&
+          sameFileArray(prevFiles.images, files.images);
+
+        return same ? prevFiles : files;
+      });
+    }
+  };
+
+  const [savingOpen, setSavingOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"saving" | "success" | "error">("saving");
+  const [saveMsg, setSaveMsg] = useState("We are saving your property details. Please wait…");
 
   // -------------- Derived UI flags --------------
   const isCommercial = category === "commercial";
@@ -553,9 +496,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     setFormData((prev) => ({ ...prev, area: digitsOnly ? Number(digitsOnly) : 0 }));
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     let newValue: string | number | boolean = value;
     if (type === "checkbox") newValue = (e.target as HTMLInputElement).checked;
@@ -602,118 +543,116 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
   }) => setFormData((prev) => ({ ...prev, ...changes }));
 
   const resetForm = () => {
-  // 1) reset top-level toggles
-  setCategory("residential");
-  setFormData({
-    preference: "Sale",
-    propertyType: "",
-    state: "",
-    city: "",
-    locality: "",
-    title: "",
-    description: "",
-    price: 0,
-    area: 0,
-    maintenance: 0,
-    bedrooms: 1,
-    bathrooms: 1,
-    furnishing: "Unfurnished",
-    facing: "North",
-    age: "0-1 Years",
-    availability: "Ready to move",
-    possessionBy: null,
-    floor: 0,
-    reraNumber: "",
-    totalFloors: 0,
-    balconies: 0,
-    powerBackup: "None",
-    pincode: undefined,
-    address: "",
-    nearbyPlace: "",
-    securityDeposit: undefined,
-    coveredParking: 0,
-    openParking: 0,
+    // 1) reset top-level toggles
+    setCategory("residential");
+    setFormData({
+      preference: "Sale",
+      propertyType: "",
+      state: "",
+      city: "",
+      locality: "",
+      title: "",
+      description: "",
+      price: 0,
+      area: 0,
+      maintenance: 0,
+      bedrooms: 1,
+      bathrooms: 1,
+      furnishing: "Unfurnished",
+      facing: "North",
+      age: "0-1 Years",
+      availability: "Ready to move",
+      possessionBy: null,
+      floor: 0,
+      reraNumber: "",
+      totalFloors: 0,
+      balconies: 0,
+      powerBackup: "None",
+      pincode: undefined,
+      address: "",
+      nearbyPlace: "",
+      securityDeposit: undefined,
+      coveredParking: 0,
+      openParking: 0,
 
-    // amenities & flags reset
-    centerCooling: false,
-    fireAlarm: false,
-    heating: false,
-    gym: false,
-    modularKitchen: false,
-    pool: false,
-    elevator: false,
-    petFriendly: false,
-    storage: false,
-    laundry: false,
-    dishwasher: false,
-    dryer: false,
-    sauna: false,
-    emergencyExit: false,
-    waterPurifier: false,
-    gasPipeline: false,
-    park: false,
-    vastuCompliant: false,
-    rainWaterHarvesting: false,
-    maintenanceStaff: false,
-    poojaRoom: false,
-    studyRoom: false,
-    servantRoom: false,
-    storeRoom: false,
-    highCeilingHeight: false,
-    falseCeilingLighting: false,
-    internetConnectivity: false,
-    centrallyAirConditioned: false,
-    securityFireAlarm: false,
-    recentlyRenovated: false,
-    privateGardenTerrace: false,
-    naturalLight: false,
-    airyRooms: false,
-    intercomFacility: false,
-    spaciousInteriors: false,
-    fitnessCenter: false,
-    swimmingPool: false,
-    clubhouseCommunityCenter: false,
-    securityPersonnel: false,
-    lifts: false,
-    separateEntryForServantRoom: false,
-    noOpenDrainageAround: false,
-    bankAttachedProperty: false,
-    lowDensitySociety: false,
-    municipalCorporation: false,
-    borewellTank: false,
-    water24x7: false,
-    overlookingPool: false,
-    overlookingParkGarden: false,
-    overlookingClub: false,
-    overlookingMainRoad: false,
-    inGatedSociety: false,
-    cornerProperty: false,
-    petFriendlySociety: false,
-    wheelchairFriendly: false,
-    closeToMetroStation: false,
-    closeToSchool: false,
-    closeToHospital: false,
-    closeToMarket: false,
-    closeToRailwayStation: false,
-    closeToAirport: false,
-    closeToMall: false,
-    closeToHighway: false,
-  });
+      // amenities & flags reset
+      centerCooling: false,
+      fireAlarm: false,
+      heating: false,
+      gym: false,
+      modularKitchen: false,
+      pool: false,
+      elevator: false,
+      petFriendly: false,
+      storage: false,
+      laundry: false,
+      dishwasher: false,
+      dryer: false,
+      sauna: false,
+      emergencyExit: false,
+      waterPurifier: false,
+      gasPipeline: false,
+      park: false,
+      vastuCompliant: false,
+      rainWaterHarvesting: false,
+      maintenanceStaff: false,
+      poojaRoom: false,
+      studyRoom: false,
+      servantRoom: false,
+      storeRoom: false,
+      highCeilingHeight: false,
+      falseCeilingLighting: false,
+      internetConnectivity: false,
+      centrallyAirConditioned: false,
+      securityFireAlarm: false,
+      recentlyRenovated: false,
+      privateGardenTerrace: false,
+      naturalLight: false,
+      airyRooms: false,
+      intercomFacility: false,
+      spaciousInteriors: false,
+      fitnessCenter: false,
+      swimmingPool: false,
+      clubhouseCommunityCenter: false,
+      securityPersonnel: false,
+      lifts: false,
+      separateEntryForServantRoom: false,
+      noOpenDrainageAround: false,
+      bankAttachedProperty: false,
+      lowDensitySociety: false,
+      municipalCorporation: false,
+      borewellTank: false,
+      water24x7: false,
+      overlookingPool: false,
+      overlookingParkGarden: false,
+      overlookingClub: false,
+      overlookingMainRoad: false,
+      inGatedSociety: false,
+      cornerProperty: false,
+      petFriendlySociety: false,
+      wheelchairFriendly: false,
+      closeToMetroStation: false,
+      closeToSchool: false,
+      closeToHospital: false,
+      closeToMarket: false,
+      closeToRailwayStation: false,
+      closeToAirport: false,
+      closeToMall: false,
+      closeToHighway: false,
+    });
 
-  // 3) reset helpers & media mirrors
-  setPriceInput("");
-  setTotalFloorsInput("0");
-  setMediaMeta([]);
-  setMediaFiles({ images: [], videos: [], brochures: [] });
+    // 3) reset helpers & media mirrors
+    setPriceInput("");
+    setTotalFloorsInput("0");
+    setMediaMeta([]);
+    setMediaFiles({ images: [], videos: [], brochures: [] });
 
-  // 4) bump the key to remount child components
-  // setResetKey((k) => k + 1);
-  setMediaKey((k) => k + 1);   // ← force remount
-  setAddressKey((k) => k + 1); 
-};
+    // 4) bump the key to remount child components
+    setMediaKey((k) => k + 1); // ← force remount
+    setAddressKey((k) => k + 1);
+  };
 
   // -------------- Effects --------------
-  // keep formData.totalFloors in sync with input (unless hidden by Commercial Plot)
   useEffect(() => {
     const total = Number(totalFloorsInput || 0);
     if (showFloorsUI) {
@@ -724,14 +663,12 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     }
   }, [totalFloorsInput, showFloorsUI]);
 
-  // (2) When preference is Sell, disable & clear Lock-in and Yearly Increase
   useEffect(() => {
     if (isSell) {
       setFormData((prev) => ({ ...prev, lockIn: undefined, yearlyIncrease: undefined }));
     }
   }, [isSell]);
 
-  // (1) When switching to Commercial Plot/Land, clear floors, availability and cabins to avoid validation/post noise
   useEffect(() => {
     if (isPlot) {
       setFormData((prev) => ({
@@ -745,7 +682,6 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     }
   }, [isPlot]);
 
-  //when user selects "sale" only then "Plot/Land" should be visible
   useEffect(() => {
     if ((formData.preference || "").toLowerCase() !== "sale" && formData.propertyType === "Plot/Land") {
       setFormData((prev) => ({ ...prev, propertyType: "" }));
@@ -808,23 +744,9 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       return;
     }
 
-    // if (!mediaFiles || !mediaFiles.video || (mediaFiles.images?.length ?? 0) < 4) {
-    //   alert("Please attach 1 video and 4–8 images before submitting.");
-    //   return;
-    // }
-
-    // // --- Media validation: 4-8 images, exactly 1 video, exactly 1 brochure ---
-    // const imgCount = mediaFiles?.images?.length ?? 0;
-    // // const hasVideo = Boolean(mediaFiles?.video);
-    // // const hasBrochure = Boolean(mediaFiles?.brochure);
-    // if (imgCount < 4 || imgCount > 8) {
-    //   alert("Please add 4–8 images before submitting.");
-    //   return;
-    // }
-
     setSavingOpen(true);
-    setSaveStatus('saving');
-    setSaveMsg('We are saving your property details. Please wait…');
+    setSaveStatus("saving");
+    setSaveMsg("We are saving your property details. Please wait…");
 
     //const HARD_CODED_USER_ID = 2;
 
@@ -843,11 +765,9 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       const form = new FormData();
       const propertyBlob = new Blob([JSON.stringify(payload)], { type: "application/json" });
       form.append("property", propertyBlob);
-      // if (mediaFiles?.video) form.append("files", mediaFiles.video as Blob, mediaFiles.video?.name);
       for (const vid of mediaFiles?.videos ?? []) form.append("files", vid, vid.name);
       for (const img of mediaFiles?.images ?? []) form.append("files", img, img.name);
       for (const doc of mediaFiles?.brochures ?? []) form.append("files", doc, doc.name);
-      // if (mediaFiles?.brochure) form.append("files", mediaFiles.brochure as Blob, mediaFiles.brochure?.name);
 
       // debug entries
       // @ts-ignore
@@ -858,37 +778,18 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       });
 
       console.log("Server response:", resp.data);
-       setSaveStatus('success');
-        setSaveMsg('Your property was submitted to Admin for approval.');
-        // optional: brief pause, then go
-        setTimeout(() => {
-          navigate('/agent/listings/pending', { replace: true });
-        }, 2000);
+      setSaveStatus("success");
+      setSaveMsg("Your property was submitted to Admin for approval.");
+      // optional: brief pause, then go
+      setTimeout(() => {
+        navigate("/agent/listings/pending", { replace: true });
+      }, 2000);
     } catch (err) {
       console.error("Submit error:", err);
-      // alert("Failed to submit property. See console.");
-      setSaveStatus('error');
-    setSaveMsg('Failed to submit property. Please try again.');
+      setSaveStatus("error");
+      setSaveMsg("Failed to submit property. Please try again.");
     }
   };
-
-  // --- UI helpers ---
-// const Card = ({ children }: { children: React.ReactNode }) => (
-//   <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 md:p-6" >
-//     {children}
-//   </div>
-// );
-
-// const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-//   <Card>
-//     <div className="mb-4 flex items-center justify-between">
-//       <h2 className="text-base md:text-lg font-semibold text-gray-800">{title}</h2>
-//     </div>
-//     {children}
-//   </Card>
-// );
-
-  // const subtypeOptions = category === "residential" ? (RESIDENTIAL_SUBTYPES as readonly string[]) : (COMMERCIAL_SUBTYPES as readonly string[]);
 
   // Preference-aware subtype options: show "Plot/Land" only when preference === "Sale"
   const subtypeOptions = (() => {
@@ -903,41 +804,19 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
 
   // ---------------- Render ----------------
   return (
-    <div className="w-full mx-auto bg-white p-8 shadow-lg rounded-lg mt-2">
+    <div className="w-full mx-auto bg-white p-4 md:p-8 shadow-lg rounded-lg mt-2">
       <div className="flex justify-center">
-      <div className="mb-6 rounded-2xl bg-gradient-to-r from-orange-50 to-[#ffe9df] border border-orange-100 p-5">
-        
-        <h2 className="text-xl font-bold text-gray-800 flex gap-3">
-          <HousePlus className="w-8 h-8 text-orange-600" /> POST PROPERTY</h2>
+        <div className="mb-6 rounded-2xl bg-gradient-to-r from-orange-50 to-[#ffe9df] border border-orange-100 p-5">
+          <h2 className="text-xl font-bold text-gray-800 flex gap-3">
+            <HousePlus className="w-8 h-8 text-orange-600" /> POST PROPERTY
+          </h2>
         </div>
-        </div>
-      {/* Category */}
-      {/* <div className="mb-6 flex space-x-4">
-        <button
-          type="button"
-          className={`flex-1 p-3 rounded font-semibold ${SOFT_BTN_HOVER} ${category === "residential" ? "bg-themeOrange text-white focus:outline-none" : "bg-gray-200 text-gray-800 focus:outline-none"}`}
-          onClick={() => {
-            setCategory("residential");
-            setFormData((prev) => ({ ...prev, propertyType: "" }));
-          }}
-        >
-          Residential
-        </button>
-        <button
-          type="button"
-          className={`flex-1 p-3 rounded font-semibold ${SOFT_BTN_HOVER} ${category === "commercial" ? "bg-themeOrange text-white focus:outline-none" : "bg-gray-200 text-gray-800 focus:outline-none"}`}
-          onClick={() => {
-            setCategory("commercial");
-            setFormData((prev) => ({ ...prev, propertyType: "" }));
-          }}
-        >
-          Commercial
-        </button>
-      </div> */}
-      {/* Category (segmented) */}
+      </div>
+
+      {/* Category segmented control */}
       <div className="mb-6">
         <div className="relative w-full bg-gray-100 rounded-full p-1 flex">
-          {/* animated thumb */} 
+          {/* animated thumb */}
           <span
             className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-themeOrange transition-transform duration-300 ${
               category === "commercial" ? "translate-x-full" : "translate-x-0"
@@ -965,89 +844,21 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
         </div>
       </div>
 
-
-      {/* Preference */}
-      {/* <div className="mb-6">
-        <label className="block text-lg font-medium mb-2">I'm looking for</label>
-        <div className="flex space-x-4">
-          {(category === "residential" ? ["Rent", "Sell", "PG"] : ["Rent", "Sale"]).map((option) => (
-            <button
-              key={option}
-              type="button"
-              className={`px-4 py-2 rounded font-medium ${SOFT_BTN_HOVER} ${formData.preference === option ? "bg-buttonOrange text-black border-themeOrange focus:outline-none" : "bg-gray-200 text-gray-800"}`}
-              onClick={() => setFormData((prev) => ({ ...prev, preference: option }))}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </div> */}
-
-      {/* Property Type (subtype) */}
-      {/* <div className="mb-6">
-        <label className="block text-lg font-medium mb-2">
-          Property Type<span style={{ color: "red" }}>*</span>
-        </label>
-        <select
-          name="propertyType"
-          value={formData.propertyType}
-          onChange={handleChange}
-          className={SELECT_CLASS}
-        >
-          <option value="">{category === "residential" ? "-- Select Residential Type --" : "-- Select Commercial Type --"}</option>
-          {subtypeOptions.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
-      </div> */}
-
-      {/* Title */}
-      {/* <div className="mb-6">
-        <label className="block text-lg font-medium mb-2">
-          Property Name/Title<span style={{ color: "red" }}>*</span>
-        </label>
-        <input
-          type="text"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          className={INPUT_CLASS}
-          placeholder="Enter Title"
-        />
-      </div> */}
-
-      {/* Description */}
-      {/* <div className="mb-6">
-        <label className="block text-lg font-medium mb-2">
-          Description<span style={{ color: "red" }}>*</span>
-        </label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          className={TEXTAREA_CLASS}
-          rows={4}
-          placeholder="Enter Description"
-        />
-      </div> */}
-
       <Section title="Basics">
         {/* Preference */}
         <div className="mb-4">
           <label className="flex block text-sm font-medium mb-2 text-gray-700">
             <TagIcon className="w-4 h-4 text-orange-500 mr-1" />
-            Listing Property for</label>
+            Listing Property for
+          </label>
           <div className="flex flex-wrap gap-2">
             {(category === "residential" ? ["Rent", "Sale", "PG"] : ["Rent", "Sale"]).map((option) => (
               <button
                 key={option}
                 type="button"
-                className={`px-3.5 py-2 rounded-lg text-sm font-medium border transition ${formData.preference === option
-                    ? "bg-orange-100 border-orange-300 text-orange-900"
-                    : "bg-gray-100 border-gray-200 text-gray-800 hover:bg-gray-200"
-                  }`}
+                className={`px-3.5 py-2 rounded-lg text-sm font-medium border transition ${
+                  formData.preference === option ? "bg-orange-100 border-orange-300 text-orange-900" : "bg-gray-100 border-gray-200 text-gray-800 hover:bg-gray-200"
+                }`}
                 onClick={() => setFormData((prev) => ({ ...prev, preference: option }))}
               >
                 {option}
@@ -1056,23 +867,32 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
           </div>
         </div>
 
-        <div className="flex gap-4">
+        {/* Use responsive layout that keeps laptop identical:
+            - on lg and up preserve original two-column widths (w-1/4 + w-3/4)
+            - below lg: stack to single column for tablet/phone */}
+        <div className="flex flex-col lg:flex-row gap-4">
           {/* Property Type */}
-          <div className="w-1/4">
+          <div className="w-full lg:w-1/4">
             <label className="flex block text-sm font-medium mb-2 text-gray-700">
               <Building className="w-4 h-4 text-orange-500 mr-1" />
-              Property Type <span className="text-red-500">*</span></label>
+              Property Type <span className="text-red-500">*</span>
+            </label>
             <select name="propertyType" value={formData.propertyType} onChange={handleChange} className={SELECT_CLASS}>
               <option value="">{category === "residential" ? "-- Select Residential Type --" : "-- Select Commercial Type --"}</option>
-              {subtypeOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              {subtypeOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
             </select>
           </div>
 
           {/* Title */}
-          <div className="w-3/4">
+          <div className="w-full lg:w-3/4">
             <label className="flex block text-sm font-medium mb-2 text-gray-700">
               <BookMarked className="w-4 h-4 text-orange-500 mr-1" />
-              Property Name/Title <span className="text-red-500">*</span></label>
+              Property Name/Title <span className="text-red-500">*</span>
+            </label>
             <input type="text" name="title" value={formData.title} onChange={handleChange} className={INPUT_CLASS} placeholder="Enter Title" />
           </div>
         </div>
@@ -1081,51 +901,11 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
         <div className="mt-4">
           <label className="flex block text-sm font-medium mb-2 text-gray-700">
             <FileText className="w-4 h-4 text-orange-500 mr-1" />
-            Description <span className="text-red-500">*</span></label>
+            Description <span className="text-red-500">*</span>
+          </label>
           <textarea name="description" value={formData.description} onChange={handleChange} className={TEXTAREA_CLASS} rows={4} placeholder="Enter Description" />
         </div>
       </Section>
-
-
-      {/* Floors block (hidden for Commercial Plot/Land) */}
-      {/* {showFloorsUI && (
-        <div className="flex items-end space-x-4 mb-6">
-
-          <div className="flex-1">
-            <label className="block text-lg font-medium mb-2">
-              Total Floors<span style={{ color: "red" }}>*</span>
-            </label>
-            <input
-              type="number"
-              min={0}
-              max={500}
-              value={totalFloorsInput}
-              onChange={(e) => setTotalFloorsInput(e.target.value.replace(/\D/g, ""))}
-              className={INPUT_CLASS}
-              placeholder="Enter total floors"
-            />
-          </div>
-
-          <div className="flex-1">
-            <label className="block text-lg font-medium mb-2">Select Floor</label>
-            <select
-              name="floor"
-              value={String(formData.floor ?? "")}
-              onChange={(e) => {
-                const v = Number(e.target.value);
-                setFormData((prev) => ({ ...prev, floor: Number.isNaN(v) ? prev.floor : v }));
-              }}
-              className={SELECT_CLASS}
-            >
-              {getFloorOptions(totalFloorsInput).map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )} */}
 
       {showFloorsUI && (
         <Section title="Floors" className="mt-6">
@@ -1133,193 +913,34 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div>
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <Layers className="w-4 h-4 text-orange-500 mr-1" />
-                Total Floors <span className="text-red-500">*</span></label>
+                Total Floors <span className="text-red-500">*</span>
+              </label>
               <input type="number" min={0} max={500} value={totalFloorsInput} onChange={(e) => setTotalFloorsInput(e.target.value.replace(/\D/g, ""))} className={INPUT_CLASS} placeholder="Enter total floors" />
             </div>
             <div>
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <DoorClosed className="w-4 h-4 text-orange-500 mr-1" />
-                Select Floor</label>
-              <select name="floor" value={String(formData.floor ?? "")} onChange={(e) => {
-                const v = Number(e.target.value);
-                setFormData((prev) => ({ ...prev, floor: Number.isNaN(v) ? prev.floor : v }));
-              }} className={SELECT_CLASS}>
-                {getFloorOptions(totalFloorsInput).map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                Select Floor
+              </label>
+              <select
+                name="floor"
+                value={String(formData.floor ?? "")}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setFormData((prev) => ({ ...prev, floor: Number.isNaN(v) ? prev.floor : v }));
+                }}
+                className={SELECT_CLASS}
+              >
+                {getFloorOptions(totalFloorsInput).map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
           </Row>
         </Section>
       )}
-
-
-      {/* Residential-only fields */}
-      {/* {category === "residential" && (
-        <div className="space-y-6 mb-6">
-          <div>
-            <label className="block text-lg font-medium mb-2">Maintenance (₹)</label>
-            <input
-              type="text"
-              name="maintenance"
-              value={formData.maintenance ?? ""}
-              onChange={handleMaintenanceChange}
-              className={INPUT_CLASS}
-              placeholder="Enter maintenance in Rs"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-lg font-medium mb-2">
-                Bedrooms<span style={{ color: "red" }}>*</span>
-              </label>
-              <div className="flex items-center space-x-2">
-                <button type="button" onClick={() => decrement("bedrooms")} className="px-3 py-1 bg-gray-200 rounded">-</button>
-                <div className="px-4">{formData.bedrooms ?? 0}</div>
-                <button type="button" onClick={() => increment("bedrooms")} className="px-3 py-1 bg-gray-200 rounded">+</button>
-              </div>
-            </div>
-            <div>
-              <label className="block text-lg font-medium mb-2">
-                Bathrooms<span style={{ color: "red" }}>*</span>
-              </label>
-              <div className="flex items-center space-x-2">
-                <button type="button" onClick={() => decrement("bathrooms")} className="px-3 py-1 bg-gray-200 rounded">-</button>
-                <div className="px-4">{formData.bathrooms ?? 0}</div>
-                <button type="button" onClick={() => increment("bathrooms")} className="px-3 py-1 bg-gray-200 rounded">+</button>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-lg font-medium mb-2">
-              Furnishing<span style={{ color: "red" }}>*</span>
-            </label>
-            <select
-              name="furnishing"
-              value={formData.furnishing}
-              onChange={handleChange}
-              className={SELECT_CLASS}
-            >
-              {FURNISHING_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-lg font-medium mb-2">
-              Facing<span style={{ color: "red" }}>*</span>
-            </label>
-            <select
-              name="facing"
-              value={formData.facing}
-              onChange={handleChange}
-              className={SELECT_CLASS}
-            >
-              {FACING_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-lg font-medium mb-2">RERA Number</label>
-            <input
-              type="text"
-              name="reraNumber"
-              value={formData.reraNumber ?? ""}
-              onChange={handleChange}
-              className={INPUT_CLASS}
-              placeholder="Enter RERA Number (if any)"
-            />
-          </div>
-
-          <div>
-            <label className="block text-lg font-medium mb-2">Number of Balconies</label>
-            <input
-              type="number"
-              name="balconies"
-              value={formData.balconies ?? 0}
-              onChange={handleBalconiesChange}
-              className={INPUT_CLASS}
-              placeholder="Enter number of balconies"
-            />
-          </div>
-
-          
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-2">
-              Reserved Parking <span className="text-sm text-gray-400 italic">(Optional)</span>
-            </h3>
-            <div className="flex space-x-8">
-              
-              <div className="flex items-center justify-start space-x-4">
-                <label className="text-sm text-gray-700">Covered Parking</label>
-                <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    aria-label="Decrease covered parking"
-                    onClick={() => setFormData((prev) => ({ ...prev, coveredParking: Math.max(0, Number(prev.coveredParking ?? 0) - 1) }))}
-                    className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
-                  >
-                    −
-                  </button>
-                  <div className="w-8 text-center text-sm">{formData.coveredParking ?? 0}</div>
-                  <button
-                    type="button"
-                    aria-label="Increase covered parking"
-                    onClick={() => setFormData((prev) => ({ ...prev, coveredParking: Number(prev.coveredParking ?? 0) + 1 }))}
-                    className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-             
-              <div className="flex items-center justify-start space-x-4">
-                <label className="text-sm text-gray-700">Open Parking</label>
-                <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    aria-label="Decrease open parking"
-                    onClick={() => setFormData((prev) => ({ ...prev, openParking: Math.max(0, Number(prev.openParking ?? 0) - 1) }))}
-                    className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
-                  >
-                    −
-                  </button>
-                  <div className="w-8 text-center text-sm">{formData.openParking ?? 0}</div>
-                  <button
-                    type="button"
-                    aria-label="Increase open parking"
-                    onClick={() => setFormData((prev) => ({ ...prev, openParking: Number(prev.openParking ?? 0) + 1 }))}
-                    className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-lg font-medium mb-2">Power Backup</label>
-            <select
-              name="powerBackup"
-              value={formData.powerBackup}
-              onChange={handlePowerBackupChange}
-              className={SELECT_CLASS}
-            >
-              <option value="None">None</option>
-              <option value="Partial">Partial</option>
-              <option value="Full">Full</option>
-            </select>
-          </div>
-        </div>
-      )} */}
 
       {category === "residential" && (
         <Section title="Residential Details" className="mt-6">
@@ -1327,13 +948,15 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div className="mt-1">
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <Wrench className="w-4 h-4 text-orange-500 mr-1" />
-                Maintenance (₹)</label>
+                Maintenance (₹)
+              </label>
               <input type="text" name="maintenance" value={formData.maintenance ?? ""} onChange={handleMaintenanceChange} className={INPUT_CLASS} placeholder="Enter maintenance in Rs" />
             </div>
             <div className="mt-1">
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <BadgeCheck className="w-4 h-4 text-orange-500 mr-1" />
-                RERA Number</label>
+                RERA Number
+              </label>
               <input type="text" name="reraNumber" value={formData.reraNumber ?? ""} onChange={handleChange} className={INPUT_CLASS} placeholder="Enter RERA Number (if any)" />
             </div>
           </Row>
@@ -1342,17 +965,27 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div className="mt-3">
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <Sofa className="w-4 h-4 text-orange-500 mr-1" />
-                Furnishing <span className="text-red-500">*</span></label>
+                Furnishing <span className="text-red-500">*</span>
+              </label>
               <select name="furnishing" value={formData.furnishing} onChange={handleChange} className={SELECT_CLASS}>
-                {FURNISHING_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                {FURNISHING_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="mt-3">
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <Compass className="w-4 h-4 text-orange-500 mr-1" />
-                Facing <span className="text-red-500">*</span></label>
+                Facing <span className="text-red-500">*</span>
+              </label>
               <select name="facing" value={formData.facing} onChange={handleChange} className={SELECT_CLASS}>
-                {FACING_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                {FACING_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
               </select>
             </div>
           </Row>
@@ -1361,21 +994,31 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div className="mt-3 mb-1">
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <BedDouble className="w-4 h-4 text-orange-500 mr-1" />
-                Bedrooms <span className="text-red-500">*</span></label>
+                Bedrooms <span className="text-red-500">*</span>
+              </label>
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => decrement("bedrooms")} className="w-8 h-8 px-3 py-1 rounded text-white bg-orange-500 border border-orange-500">-</button>
-                <div className="px-3">{formData.bedrooms ?? 0}</div>
-                <button type="button" onClick={() => increment("bedrooms")} className="w-8 h-8 px-3 py-1 rounded text-white bg-orange-500 border border-orange-500">+</button>
+                <button type="button" onClick={() => decrement("bedrooms")} className="w-8 h-8 px-3 py-1 rounded text-white bg-orange-500 border border-orange-500">
+                  -
+                </button>
+                <div className="px-4">{formData.bedrooms ?? 0}</div>
+                <button type="button" onClick={() => increment("bedrooms")} className="w-8 h-8 px-3 py-1 rounded text-white bg-orange-500 border border-orange-500">
+                  +
+                </button>
               </div>
             </div>
             <div className="mt-3 mb-1">
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <Bath className="w-4 h-4 text-orange-500 mr-1" />
-                Bathrooms <span className="text-red-500">*</span></label>
+                Bathrooms <span className="text-red-500">*</span>
+              </label>
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => decrement("bathrooms")} className="w-8 h-8 px-3 py-1 rounded text-white bg-orange-500 border border-orange-500">-</button>
-                <div className="px-3">{formData.bathrooms ?? 0}</div>
-                <button type="button" onClick={() => increment("bathrooms")} className="w-8 h-8 px-3 py-1 rounded text-white bg-orange-500 border border-orange-500">+</button>
+                <button type="button" onClick={() => decrement("bathrooms")} className="w-8 h-8 px-3 py-1 rounded text-white bg-orange-500 border border-orange-500">
+                  -
+                </button>
+                <div className="px-4">{formData.bathrooms ?? 0}</div>
+                <button type="button" onClick={() => increment("bathrooms")} className="w-8 h-8 px-3 py-1 rounded text-white bg-orange-500 border border-orange-500">
+                  +
+                </button>
               </div>
             </div>
           </Row>
@@ -1384,13 +1027,15 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div className="mt-3 mb-1">
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <PanelsTopLeft className="w-4 h-4 text-orange-500 mr-1" />
-                Number of Balconies</label>
+                Number of Balconies
+              </label>
               <input type="text" name="balconies" value={formData.balconies ?? 0} onChange={handleBalconiesChange} className={INPUT_CLASS} placeholder="Enter number of balconies" />
             </div>
             <div className="mt-3 mb-1">
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
                 <BatteryCharging className="w-4 h-4 text-orange-500 mr-1" />
-                Power Backup</label>
+                Power Backup
+              </label>
               <select name="powerBackup" value={formData.powerBackup} onChange={handlePowerBackupChange} className={SELECT_CLASS}>
                 <option value="None">None</option>
                 <option value="Partial">Partial</option>
@@ -1398,13 +1043,13 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
               </select>
             </div>
           </Row>
-          
-            <div className="mt-3">
+
+          <div className="mt-3">
             <label className="flex block text-sm font-medium mb-2 text-gray-700">
-                <Car className="w-4 h-4 text-orange-500 mr-1" />
-                Reserved Parking <span className="text-sm text-gray-400 ml-1 italic">(Optional)</span></label>
-            <div className="flex space-x-8">
-            <Row>
+              <Car className="w-4 h-4 text-orange-500 mr-1" />
+              Reserved Parking <span className="text-sm text-gray-400 ml-1 italic">(Optional)</span>
+            </label>
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div className="flex items-center justify-start space-x-4">
                 <label className="text-sm text-gray-700">Covered Parking</label>
                 <div className="flex items-center space-x-3">
@@ -1427,6 +1072,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
                   </button>
                 </div>
               </div>
+
               <div className="flex items-center justify-start space-x-4">
                 <label className="text-sm text-gray-700">Open Parking</label>
                 <div className="flex items-center space-x-3">
@@ -1449,109 +1095,10 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
                   </button>
                 </div>
               </div>
-              </Row>
             </div>
           </div>
         </Section>
       )}
-
-
-      {/* Shared: Price & Area & Age & Availability */}
-      {/* <div className="grid grid-cols-2 gap-6 mb-6">
-        <div>
-          <label className="block text-lg font-medium mb-2">
-            Price in ₹<span style={{ color: "red" }}>*</span>
-          </label>
-          <input
-            type="text"
-            name="price"
-            value={priceInput}
-            onChange={handlePriceChange}
-            className={INPUT_CLASS}
-            placeholder="₹ Expected Price"
-          />
-          <p className="mt-2 text-gray-600 italic">
-            {formData.price > 0 ? `₹ ${formData.price.toLocaleString("en-IN")} (${numberToIndianWords(formData.price)} only)` : ""}
-          </p>
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium mb-2">
-            Area (sq.ft)<span style={{ color: "red" }}>*</span>
-          </label>
-          <input
-            type="number"
-            name="area"
-            value={formData.area}
-            onChange={handleChange}
-            className={INPUT_CLASS}
-            placeholder="Enter Area"
-          />
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium mb-2">
-            Age<span style={{ color: "red" }}>*</span>
-          </label>
-          <select name="age" value={formData.age} onChange={handleChange} className={SELECT_CLASS}>
-            {AGE_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          {showAvailability && (
-            <>
-              <label className="block text-lg font-medium mb-2">Availability</label>
-              <select
-                name="availability"
-                value={formData.availability}
-                onChange={handleChange}
-                className={SELECT_CLASS}
-              >
-                <option value="Ready to move">Ready to move</option>
-                <option value="Under Construction">Under Construction</option>
-              </select>
-              {formData.availability === "Under Construction" && (
-                <div className="mt-3">
-                  <label className="block text-sm font-medium mb-1">Possession By</label>
-                  <select
-                    name="possessionBy"
-                    value={formData.possessionBy ?? ""}
-                    onChange={handleChange}
-                    className={SELECT_CLASS}
-                  >
-                    <option value="">-- Select Possession --</option>
-                    {POSSESSION_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </>
-          )} */}
-
-          {/* If not Sell, show (optional) Security Deposit */}
-          {/* {!isSell && (
-            <div className="mt-3">
-              <label className="block text-lg font-medium mb-2">Security Deposit (optional)</label>
-              <input
-                type="text"
-                name="securityDeposit"
-                value={formData.securityDeposit ?? ""}
-                onChange={handleSecurityDepositChange}
-                className={INPUT_CLASS}
-                placeholder="Enter security deposit (optional)"
-              />
-            </div>
-          )}
-        </div>
-      </div> */}
 
       <Section title="Pricing & Availability" className="mt-6">
         <Row>
@@ -1559,7 +1106,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
           <div>
             <label className="flex block text-sm font-medium mb-2 text-gray-700">
               <IndianRupee className="w-4 h-4 text-orange-500 mr-1" />
-              Price in ₹ <span className="text-red-500">*</span></label>
+              Price in ₹ <span className="text-red-500">*</span>
+            </label>
             <input type="text" name="price" value={priceInput} onChange={handlePriceChange} className={INPUT_CLASS} placeholder="₹ Expected Price" />
             <p className="mt-1.5 text-xs italic text-gray-500">
               {formData.price > 0 ? `₹ ${formData.price.toLocaleString("en-IN")} (${numberToIndianWords(formData.price)} only)` : "\u00a0"}
@@ -1570,7 +1118,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
           <div>
             <label className="flex block text-sm font-medium mb-2 text-gray-700">
               <Maximize2 className="w-4 h-4 text-orange-500 mr-1" />
-              Area (sq.ft) <span className="text-red-500">*</span></label>
+              Area (sq.ft) <span className="text-red-500">*</span>
+            </label>
             <input type="text" name="area" value={formData.area} onChange={handleAreaChange} className={INPUT_CLASS} placeholder="Enter Area" />
           </div>
 
@@ -1578,9 +1127,14 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
           <div>
             <label className="flex block text-sm font-medium mb-2 text-gray-700">
               <History className="w-4 h-4 text-orange-500 mr-1" />
-              Age <span className="text-red-500">*</span></label>
+              Age <span className="text-red-500">*</span>
+            </label>
             <select name="age" value={formData.age} onChange={handleChange} className={SELECT_CLASS}>
-              {AGE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              {AGE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -1590,7 +1144,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
               <>
                 <label className="flex block text-sm font-medium mb-2 text-gray-700">
                   <CalendarCheck className="w-4 h-4 text-orange-500 mr-1" />
-                  Availability</label>
+                  Availability
+                </label>
                 <select name="availability" value={formData.availability} onChange={handleChange} className={SELECT_CLASS}>
                   <option value="Ready to move">Ready to move</option>
                   <option value="Under Construction">Under Construction</option>
@@ -1600,10 +1155,15 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
                   <div className="mt-3">
                     <label className="flex block text-sm font-medium mb-1 text-gray-600">
                       <CalendarRange className="w-4 h-4 text-orange-500 mr-1" />
-                      Possession By</label>
+                      Possession By
+                    </label>
                     <select name="possessionBy" value={formData.possessionBy ?? ""} onChange={handleChange} className={SELECT_CLASS}>
                       <option value="">-- Select Possession --</option>
-                      {POSSESSION_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                      {POSSESSION_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}
@@ -1613,7 +1173,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
               <div className="mt-2">
                 <label className="flex block text-sm font-medium mb-2 text-gray-700">
                   <Shield className="w-4 h-4 text-orange-500 mr-1" />
-                  Security Deposit (optional)</label>
+                  Security Deposit (optional)
+                </label>
                 <input type="text" name="securityDeposit" value={formData.securityDeposit ?? ""} onChange={handleSecurityDepositChange} className={INPUT_CLASS} placeholder="Enter security deposit (optional)" />
               </div>
             )}
@@ -1621,26 +1182,11 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
         </Row>
       </Section>
 
-
-      {/* Address & Media & Amenities */}
-      {/* <div className="mb-6">
-        <label className="block text-lg font-medium mb-2">
-          Address<span style={{ color: "red" }}>*</span>
-        </label>
-        <AddressSelector
-          stateValue={String(formData.state || "")}
-          cityValue={String(formData.city || "")}
-          localityValue={String(formData.locality || "")}
-          onChange={handleAddressChange}
-        />
-        <MediaUploader onChanged={onMediaChanged} />
-        {category !== "commercial" && <AmenitiesPanel formData={formData} setFormData={setFormData} />}
-      </div> */}
-
       <Section title="Address" className="mt-6">
-        <label className="flex block text-sm font-medium mb-2 text-gray-700"><MapPin className="w-4 h-4 text-orange-500 shrink-0 mr-1" />
-        Location 
-        <span className="text-red-500">*</span></label>
+        <label className="flex block text-sm font-medium mb-2 text-gray-700">
+          <MapPin className="w-4 h-4 text-orange-500 shrink-0 mr-1" />
+          Location <span className="text-red-500">*</span>
+        </label>
         <AddressSelector
           key={addressKey}
           stateValue={String(formData.state || "")}
@@ -1663,135 +1209,64 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
         </Section>
       )}
 
-
-      {/* Commercial-only fields */}
-      {/* {category === "commercial" && (
-        <div className="space-y-4">
-          {showCabins && (
-            <div>
-              <label className="block text-lg font-medium mb-2">Cabins</label>
-              <input
-                type="number"
-                name="cabins"
-                value={formData.cabins ?? 0}
-                onChange={handleChange}
-                className={INPUT_CLASS}
-              />
-            </div>
-          )}
-
-          <div className="flex gap-4">
-            <label>
-              <input type="checkbox" name="meetingRoom" checked={formData.meetingRoom || false} onChange={handleChange} /> Meeting Room
-            </label>
-            <label>
-              <input type="checkbox" name="conferenceRoom" checked={formData.conferenceRoom || false} onChange={handleChange} /> Conference Room
-            </label>
-            <label>
-              <input type="checkbox" name="receptionArea" checked={formData.receptionArea || false} onChange={handleChange} /> Reception Area
-            </label>
-            <label>
-              <input type="checkbox" name="washroom" checked={formData.washroom || false} onChange={handleChange} /> Washroom
-            </label>
-          </div>
-          <div className="flex gap-4">
-            <label>
-              <input type="checkbox" name="lift" checked={formData.lift || false} onChange={handleChange} /> Lift
-            </label>
-            <label>
-              <input type="checkbox" name="parking" checked={formData.parking || false} onChange={handleChange} /> Parking
-            </label>
-          </div>
-
-          
-          <div>
-            <label className="block text-lg font-medium mb-2">Lock-in (months)</label>
-            <input
-              type="number"
-              name="lockIn"
-              value={formData.lockIn ?? 0}
-              onChange={handleChange}
-              disabled={isSell}
-              className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`}
-            />
-          </div>
-          <div>
-            <label className="block text-lg font-medium mb-2">Yearly Increase (%)</label>
-            <input
-              type="number"
-              name="yearlyIncrease"
-              value={formData.yearlyIncrease ?? 0}
-              onChange={handleChange}
-              disabled={isSell}
-              className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`}
-            />
-          </div>
-        </div>
-      )} */}
-
       {category === "commercial" && (
-      <Section title="Commercial Features" className="mt-6">
-        {showCabins && (
-          <Row cols={3}>
+        <Section title="Commercial Features" className="mt-6">
+          {showCabins && (
+            <Row cols={3}>
+              <div>
+                <label className="flex block text-sm font-medium mb-2 text-gray-700">
+                  <Briefcase className="w-4 h-4 text-orange-500 mr-1" />
+                  Cabins
+                </label>
+                <input type="number" name="cabins" value={formData.cabins ?? 0} onChange={handleChange} className={INPUT_CLASS} />
+              </div>
+            </Row>
+          )}
+          <div className="flex flex-wrap gap-6 mt-2 text-sm">
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" name="meetingRoom" checked={!!formData.meetingRoom} onChange={handleChange} className="accent-orange-600" />
+              Meeting Room <Users className="w-4 h-4 text-orange-500" />
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" name="conferenceRoom" checked={!!formData.conferenceRoom} onChange={handleChange} className="accent-orange-600" />
+              Conference Room <Projector className="w-4 h-4 text-orange-500" />
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" name="receptionArea" checked={!!formData.receptionArea} onChange={handleChange} className="accent-orange-600" />
+              Reception Area <ConciergeBell className="w-4 h-4 text-orange-500" />
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" name="washroom" checked={!!formData.washroom} onChange={handleChange} className="accent-orange-600" />
+              Washroom <SoapDispenserDroplet className="w-4 h-4 text-orange-500" />
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" name="lift" checked={!!formData.lift} onChange={handleChange} className="accent-orange-600" />
+              Lift <ChevronsUpDown className="w-4 h-4 text-orange-500" />
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" name="parking" checked={!!formData.parking} onChange={handleChange} className="accent-orange-600" />
+              Parking <CarFront className="w-4 h-4 text-orange-500" />
+            </label>
+          </div>
+
+          <Row className="mt-4">
             <div>
               <label className="flex block text-sm font-medium mb-2 text-gray-700">
-                <Briefcase className="w-4 h-4 text-orange-500 mr-1" />
-                Cabins</label>
-              <input type="number" name="cabins" value={formData.cabins ?? 0} onChange={handleChange} className={INPUT_CLASS} />
+                <LockIcon className="w-4 h-4 text-orange-500 mr-1" />
+                Lock-in (months)
+              </label>
+              <input type="number" name="lockIn" value={formData.lockIn ?? 0} onChange={handleChange} disabled={isSell} className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`} />
+            </div>
+            <div>
+              <label className="flex block text-sm font-medium mb-2 text-gray-700">
+                <TrendingUp className="w-4 h-4 text-orange-500 mr-1" />
+                Yearly Increase (%)
+              </label>
+              <input type="number" name="yearlyIncrease" value={formData.yearlyIncrease ?? 0} onChange={handleChange} disabled={isSell} className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`} />
             </div>
           </Row>
-        )}
-        <div className="flex flex-wrap gap-6 mt-2 text-sm">
-          <label className="inline-flex items-center gap-2"><input type="checkbox" name="meetingRoom" checked={!!formData.meetingRoom} onChange={handleChange} className="accent-orange-600" />
-          Meeting Room <Users className="w-4 h-4 text-orange-500" />
-          </label>
-          <label className="inline-flex items-center gap-2"><input type="checkbox" name="conferenceRoom" checked={!!formData.conferenceRoom} onChange={handleChange} className="accent-orange-600" />
-          Conference Room <Projector className="w-4 h-4 text-orange-500" />
-          </label>
-          <label className="inline-flex items-center gap-2"><input type="checkbox" name="receptionArea" checked={!!formData.receptionArea} onChange={handleChange} className="accent-orange-600" />
-          Reception Area <ConciergeBell className="w-4 h-4 text-orange-500" />
-          </label>
-          <label className="inline-flex items-center gap-2"><input type="checkbox" name="washroom" checked={!!formData.washroom} onChange={handleChange} className="accent-orange-600" />
-          Washroom <SoapDispenserDroplet className="w-4 h-4 text-orange-500" />
-          </label>
-          <label className="inline-flex items-center gap-2"><input type="checkbox" name="lift" checked={!!formData.lift} onChange={handleChange} className="accent-orange-600" />
-          Lift <ChevronsUpDown className="w-4 h-4 text-orange-500" />
-          </label>
-          <label className="inline-flex items-center gap-2"><input type="checkbox" name="parking" checked={!!formData.parking} onChange={handleChange} className="accent-orange-600" />
-          Parking <CarFront className="w-4 h-4 text-orange-500" />
-          </label>
-        </div>
-
-        <Row className="mt-4">
-          <div>
-            <label className="flex block text-sm font-medium mb-2 text-gray-700">
-              <LockIcon className="w-4 h-4 text-orange-500 mr-1" />
-              Lock-in (months)</label>
-            <input type="number" name="lockIn" value={formData.lockIn ?? 0} onChange={handleChange} disabled={isSell} className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`} />
-          </div>
-          <div>
-            <label className="flex block text-sm font-medium mb-2 text-gray-700">
-              <TrendingUp className="w-4 h-4 text-orange-500 mr-1" />
-              Yearly Increase (%)</label>
-            <input type="number" name="yearlyIncrease" value={formData.yearlyIncrease ?? 0} onChange={handleChange} disabled={isSell} className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`} />
-          </div>
-        </Row>
-      </Section>
-    )}
-
-
-    {/* <div className="flex items-end space-x-4 mt-6 mb-6">
-      <button
-        type="button"
-        onClick={resetForm}
-        className="w-full mt-3 bg-gray-200 text-gray-800 font-medium py-3 rounded hover:bg-gray-300 focus:outline-none transition"
-      >
-        RESET FORM
-      </button>
-      <button onClick={handleSubmit} className="w-full bg-themeOrange text-white font-bold py-3 rounded hover:bg-hoverOrange focus:outline-none">
-        SUBMIT PROPERTY FOR REVIEW
-      </button>
-      </div> */}
+        </Section>
+      )}
 
       <div className="grid md:grid-cols-2 gap-3 mt-8">
         <button type="button" onClick={resetForm} className="w-full bg-gray-100 text-gray-800 font-medium py-3 rounded-lg hover:bg-gray-200 border border-gray-200 transition">
@@ -1801,21 +1276,22 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
           SUBMIT PROPERTY FOR REVIEW
         </button>
       </div>
+
       {savingOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-gray-100">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-gray-100 overflow-auto max-h-[90vh]">
             <div className="flex items-center gap-3">
-              {saveStatus === 'saving' && (
+              {saveStatus === "saving" && (
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50">
                   <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
                 </div>
               )}
-              {saveStatus === 'success' && (
+              {saveStatus === "success" && (
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-50">
                   <CheckCircle2 className="h-6 w-6 text-green-600" />
                 </div>
               )}
-              {saveStatus === 'error' && (
+              {saveStatus === "error" && (
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
                   <XCircle className="h-6 w-6 text-red-600" />
                 </div>
@@ -1823,27 +1299,19 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
 
               <div className="min-w-0">
                 <h3 className="text-base font-semibold text-gray-900">
-                  {saveStatus === 'saving' ? 'Saving Property' : saveStatus === 'success' ? 'Submitted' : 'Submission Failed'}
+                  {saveStatus === "saving" ? "Saving Property" : saveStatus === "success" ? "Submitted" : "Submission Failed"}
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">{saveMsg}</p>
               </div>
             </div>
 
             <div className="mt-5 flex justify-end gap-2">
-              {saveStatus !== 'saving' ? (
-                <button
-                  type="button"
-                  onClick={() => setSavingOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition"
-                >
+              {saveStatus !== "saving" ? (
+                <button type="button" onClick={() => setSavingOpen(false)} className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition">
                   Close
                 </button>
               ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-600 cursor-not-allowed"
-                >
+                <button type="button" disabled className="px-4 py-2 rounded-lg bg-gray-200 text-gray-600 cursor-not-allowed">
                   Please wait…
                 </button>
               )}

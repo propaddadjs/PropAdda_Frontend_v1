@@ -1,4 +1,3 @@
-// MediaUploader.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Images, Video, FileText, Upload, Trash2, CornerUpRight, BadgeQuestionMarkIcon } from "lucide-react";
 
@@ -9,9 +8,9 @@ export type SavedMeta = {
 };
 
 // ---- Limits (tweak as needed) ----
-const MAX_IMAGE_SIZE_MB = 100; 
-const MAX_VIDEO_SIZE_MB = 2500; 
-const MAX_BROCHURE_SIZE_MB = 200; 
+const MAX_IMAGE_SIZE_MB = 100;
+const MAX_VIDEO_SIZE_MB = 2500;
+const MAX_BROCHURE_SIZE_MB = 200;
 const MAX_TOTAL_SIZE_MB = 3500; // images + videos + brochures combined
 
 // ---- Toast (no deps) ----
@@ -223,33 +222,36 @@ const MediaUploader: React.FC<Props> = ({
 
   return (
     <div className="space-y-4">
-      {/* Action buttons */}
-      <div className="flex flex-wrap gap-3">
+      {/* Action buttons
+          - stack on phones (flex-col)
+          - horizontal row from small screens upwards
+          - laptop look unchanged */}
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
         <button
           type="button"
           onClick={() => imgInputRef.current?.click()}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.99] transition"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.99] transition w-full sm:w-auto justify-center"
         >
           <Images className="w-4 h-4" />
-          Add Images ({images.length}/{maxImages})
+          <span className="truncate">Add Images ({images.length}/{maxImages})</span>
         </button>
 
         <button
           type="button"
           onClick={() => vidInputRef.current?.click()}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.99] transition"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.99] transition w-full sm:w-auto justify-center"
         >
           <Video className="w-4 h-4" />
-          Add Videos ({videos.length}/{maxVideos})
+          <span className="truncate">Add Videos ({videos.length}/{maxVideos})</span>
         </button>
 
         <button
           type="button"
           onClick={() => docInputRef.current?.click()}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.99] transition"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.99] transition w-full sm:w-auto justify-center"
         >
           <FileText className="w-4 h-4" />
-          Add Brochures ({brochures.length}/{maxBrochures})
+          <span className="truncate">Add Brochures ({brochures.length}/{maxBrochures})</span>
         </button>
       </div>
 
@@ -285,16 +287,21 @@ const MediaUploader: React.FC<Props> = ({
       {/* Images grid with remove X */}
       {images.length > 0 && (
         <div>
-          <div className="mb-2 text-sm text-gray-600">
-            Images: {images.length}/{maxImages} (min {minImages} optional)
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <div className="mb-2 text-sm text-gray-600">Images: {images.length}/{maxImages} (min {minImages} optional)</div>
+
+          {/* Responsive grid:
+              phone: 2 cols
+              small tablet: 3 cols
+              iPad (md): 3 cols
+              laptop (lg): 4 cols  <-- preserves original laptop layout */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {imageUrls.map((src, idx) => (
               <div
                 key={idx}
                 className="relative group rounded-lg overflow-hidden shadow-sm border border-gray-200 bg-white transition transform duration-200 hover:scale-[1.02]"
               >
-                <img src={src} alt={`img-${idx}`} className="w-full h-28 object-cover" />
+                {/* responsive image height: smaller on phones, original on md+ */}
+                <img src={src} alt={`img-${idx}`} className="w-full h-20 md:h-28 object-cover" />
                 <button
                   type="button"
                   aria-label="Remove image"
@@ -318,16 +325,18 @@ const MediaUploader: React.FC<Props> = ({
               <div key={idx} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
                 <div className="truncate text-sm inline-flex items-center gap-2">
                   <Video className="w-4 h-4 text-orange-500" />
-                  {v.name}
+                  <span className="truncate max-w-[60vw] sm:max-w-[40vw] md:max-w-[24rem]">{v.name}</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeVideoAt(idx)}
-                  className="ml-3 bg-white rounded-full shadow p-1 hover:bg-gray-100 transition"
-                  aria-label="Remove video"
-                >
-                  <Trash2 className="w-5 h-5 text-orange-500" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => removeVideoAt(idx)}
+                    className="bg-white rounded-full shadow p-1 hover:bg-gray-100 transition"
+                    aria-label="Remove video"
+                  >
+                    <Trash2 className="w-5 h-5 text-orange-500" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -343,7 +352,7 @@ const MediaUploader: React.FC<Props> = ({
               <div key={idx} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
                 <div className="truncate text-sm inline-flex items-center gap-2">
                   <FileText className="w-4 h-4 text-orange-500" />
-                  {b.name}
+                  <span className="truncate max-w-[60vw] sm:max-w-[40vw] md:max-w-[24rem]">{b.name}</span>
                 </div>
                 <button
                   type="button"
@@ -364,7 +373,7 @@ const MediaUploader: React.FC<Props> = ({
         <Upload className="w-4 h-4 text-orange-500" />
         Total selected: {bytesToMB(totalSizeBytes)} MB (limit {MAX_TOTAL_SIZE_MB} MB)
       </div>
-
+      <br />
       <div className="text-xs text-gray-600 hover:text-orange-600 inline-flex items-center gap-2">
         <BadgeQuestionMarkIcon className="w-4 h-4 text-orange-600" />
         Don't have images and videos? We can shoot for you. Proceed with posting the property and contact us for shoot through your agent panel.

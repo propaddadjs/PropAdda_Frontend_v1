@@ -67,29 +67,36 @@ type ApiResponse = {
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
-// type Props = {
-//   initial?: Partial<Filters>;
-//   onApply: (f: Filters) => void;
-//   onReset?: () => void;
-// };
-
 type Props = {
   initial?: Partial<Filters>;
   onApply: (f: Filters, data: ApiResponse | null) => void;
   onReset?: () => void;
+
+  // NEW optional props:
+  // - initialCollapsed: set initial collapsed state (default preserved: true)
+  // - hideCollapseButton: hide the collapse toggle UI (useful for mobile drawer)
+  initialCollapsed?: boolean;
+  hideCollapseButton?: boolean;
 };
 
 const MAX_PRICE = 100000000;
 const MAX_AREA = 1000000;
 const SLIDER_COLOR = "#ff671f";
 
-const FilterSidebarBuyer: React.FC<Props> = ({ initial = {}, onApply, onReset }) => {
+const FilterSidebarBuyer: React.FC<Props> = ({
+  initial = {},
+  onApply,
+  onReset,
+  initialCollapsed,
+  hideCollapseButton,
+}) => {
   const initialMerged: Filters = { ...DEFAULTS, ...initial };
   const [filters, setFilters] = useState<Filters>(initialMerged);
   const [states, setStates] = useState<{ name: string; iso2: string }[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [expanded, setExpanded] = useState(false);
-  const [collapsed, setCollapsed] = useState(true);
+  // default collapsed is true for desktop, but if initialCollapsed prop provided use it
+  const [collapsed, setCollapsed] = useState<boolean>(initialCollapsed ?? true);
   const [loading, setLoading] = useState(false);
 
   const CSC_API_KEY =
@@ -180,12 +187,6 @@ const FilterSidebarBuyer: React.FC<Props> = ({ initial = {}, onApply, onReset })
 
   //const apply = () => onApply(filters);
   const apply = () => callApi(filters);
-//   const reset = () => {
-//     setFilters(DEFAULTS);
-//     setCities([]);
-//     setExpanded(false);
-//     onReset?.();
-//   };
     const reset = () => {
     const cleared = { ...DEFAULTS };
     setFilters(cleared);
@@ -211,9 +212,13 @@ const FilterSidebarBuyer: React.FC<Props> = ({ initial = {}, onApply, onReset })
             <FilterIcon className="w-5 h-5 text-[#ff671f]" />
           </div>
         )}
-        <button className="p-1.5 rounded-md hover:bg-gray-50" onClick={() => setCollapsed((v) => !v)}>
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+
+        {/* Collapse toggle: hide it when parent requests hideCollapseButton */}
+        {!hideCollapseButton && (
+          <button className="p-1.5 rounded-md hover:bg-gray-50" onClick={() => setCollapsed((v) => !v)}>
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        )}
       </div>
 
       {collapsed && <div className="text-xs text-gray-500 text-center">Click to apply filters</div>}
@@ -460,33 +465,21 @@ const FilterSidebarBuyer: React.FC<Props> = ({ initial = {}, onApply, onReset })
 
           {/* Actions */}
           <div className="mt-4">
-            {/* <button
-              onClick={apply}
-              className="w-full bg-[#ff671f] text-white py-2 rounded flex items-center justify-center gap-2 hover:scale-[1.02] transition"
-            >
-              <Search className="w-4 h-4"/> Apply
-            </button>
-            <button
-              onClick={reset}
-              className="w-full bg-gray-300 text-gray-800 py-2 rounded mt-2 flex items-center justify-center gap-2 hover:scale-[1.02] transition"
-            >
-              <RotateCw className="w-4 h-4"/> Reset Filters
-            </button> */}
             <button
                 onClick={apply}
                 disabled={loading}
                 className="w-full bg-[#ff671f] text-white py-2 rounded flex items-center justify-center gap-2 hover:scale-[1.02] transition disabled:opacity-50"
                 >
                 <Search className="w-4 h-4"/> {loading ? "Applying..." : "Apply"}
-                </button>
+            </button>
 
-                <button
+            <button
                 onClick={reset}
                 disabled={loading}
                 className="w-full bg-gray-300 text-gray-800 py-2 rounded mt-2 flex items-center justify-center gap-2 hover:scale-[1.02] transition disabled:opacity-50"
                 >
                 <RotateCw className="w-4 h-4"/> {loading ? "Resetting..." : "Reset Filters"}
-                </button>
+            </button>
           </div>
         </>
       )}

@@ -14,7 +14,7 @@ const CityRent: React.FC = () => {
             <a href="#">RENT</a>
             <a href="#">BUY</a>
             <a href="#">PG / CO-LIVING</a>
-            <a href="#">PLOTS / LAND</a>
+            <a href="#">PLOT / LAND</a>
           </div>
         </div>
       </h2>

@@ -95,7 +95,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
           {/* LEFT: Logo + (md+) location */}
           <div className="flex items-center gap-3">
             <Link to="/" className="inline-flex items-center">
-              <img src={logo} alt="PropAdda Logo" className="h-8 w-auto sm:h-12 md:h-16 object-contain" />
+              <img src={logo} alt="PropAdda Logo" className="h-12 w-auto sm:h-12 md:h-16 object-contain" />
             </Link>
 
             {/* vertical separator for md+ */}
@@ -261,7 +261,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                           navigate("/account/feedback");
                         }}
                       >
-                        Add Feedback
+                        Feedback
                       </button>
 
                       <button
@@ -323,14 +323,15 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
           onClick={() => setMobileDrawerOpen(false)}
         >
           <div className="fixed inset-0 bg-black/40" />
+          {/* NOTE: aside now has max-h-screen + overflow-y-auto so it can scroll */}
           <aside
-            className="relative ml-auto w-80 max-w-full bg-white p-4 shadow-xl"
+            className="relative ml-auto w-80 max-w-full bg-white p-4 shadow-xl max-h-screen overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
+            style={{ WebkitOverflowScrolling: "touch" }} // iOS momentum scrolling
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <img src={logo} alt="PropAdda Logo" className="h-8 w-auto" />
-                {/* <div className="text-sm font-medium text-gray-900">{appliedStateName || "All India"}</div> */}
+                <img src={logo} alt="PropAdda Logo" className="h-12 w-auto" />
               </div>
               <button onClick={() => setMobileDrawerOpen(false)} aria-label="Close menu">
                 <X className="w-6 h-6" />
@@ -461,7 +462,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                       navigate("/account/feedback");
                     }}
                   >
-                    Add Feedback
+                    Feedback
                   </button>
 
                   <button
@@ -488,45 +489,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               )}
             </div>
           </aside>
-        </div>
-      )}
-
-      {/* Filter modal */}
-      <FilterExplorerModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onExplore={handleExplore}
-        initial={{
-          category: "All",
-          preference: "All",
-          propertyTypes: [],
-        }}
-      />
-
-      {/* Login prompt modal */}
-      {loginPromptOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          onClick={() => setLoginPromptOpen(false)}
-        >
-          <div
-            className="w-[90%] max-w-sm rounded-lg bg-white p-5 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold text-gray-900">You are not logged in</h3>
-            <p className="mt-1 text-sm text-gray-600">Log in or sign up to post your property.</p>
-            <div className="mt-4 flex justify-end">
-              <button
-                className="inline-flex items-center rounded-md bg-orange-500 px-3 py-1.5 text-sm font-medium text-white hover:opacity-95"
-                onClick={() => {
-                  setLoginPromptOpen(false);
-                  navigate("/login");
-                }}
-              >
-                Log in / Sign up
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </header>

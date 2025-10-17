@@ -4,7 +4,48 @@ import { useNavigate } from "react-router-dom";
 import AddressSelector from "./AddressSelector";
 import MediaUploader, { type SavedMeta } from "./MediaUploader";
 import AmenitiesPanel from "./AmenitiesPanel";
-import { Loader2, CheckCircle2, XCircle, BadgeCheck, Bath, BatteryCharging, BedDouble, BookMarked, Briefcase, Building2, CalendarCheck, CalendarRange, Car, CarFront, ChevronsUpDown, Compass, ConciergeBell, DoorClosed, Edit, FileText, History, Home, Images, IndianRupee, Layers, LockIcon, MapPin, Maximize2, PanelsTopLeft, Projector, RotateCw, Shapes, Shield, SoapDispenserDroplet, Sofa, TagIcon, TrendingUp, Users, Video, Wrench } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  BadgeCheck,
+  Bath,
+  BatteryCharging,
+  BedDouble,
+  BookMarked,
+  Briefcase,
+  Building2,
+  CalendarCheck,
+  CalendarRange,
+  Car,
+  CarFront,
+  ChevronsUpDown,
+  Compass,
+  ConciergeBell,
+  DoorClosed,
+  Edit,
+  FileText,
+  History,
+  Home,
+  Images,
+  IndianRupee,
+  Layers,
+  LockIcon,
+  MapPin,
+  Maximize2,
+  PanelsTopLeft,
+  Projector,
+  RotateCw,
+  Shapes,
+  Shield,
+  SoapDispenserDroplet,
+  Sofa,
+  TagIcon,
+  TrendingUp,
+  Users,
+  Video,
+  Wrench,
+} from "lucide-react";
 import { api } from "../lib/api";
 
 // ---------- Shared styling (same as create page) ----------
@@ -19,23 +60,18 @@ const SOFT_BTN_HOVER = "transition-transform duration-150 hover:-translate-y-0.5
 export type PropertyCategory = "Residential" | "Commercial";
 
 export type PropertyFormData = {
-  // Non-editable in Edit form (but needed in payload)
   preference: string;
   propertyType: string;
-
-  // Editable
   title: string;
   description: string;
   price: number;
   area: number;
-
   state: string;
   city: string;
   locality: string;
   address?: string;
   pincode?: number;
   nearbyPlace?: string;
-
   maintenance?: number;
   bedrooms?: number;
   bathrooms?: number;
@@ -52,8 +88,6 @@ export type PropertyFormData = {
   securityDeposit?: number;
   coveredParking?: number | null;
   openParking?: number | null;
-
-  // Commercial only extras (some hidden per conditions)
   cabins?: number;
   meetingRoom?: boolean;
   washroom?: boolean;
@@ -63,11 +97,8 @@ export type PropertyFormData = {
   parking?: boolean;
   lockIn?: number;
   yearlyIncrease?: number;
-
   commercialOwnerId?: number;
   residentialOwnerId?: number;
-
-  // Amenity booleans, etc. (same set you used on create)
   centerCooling?: boolean;
   fireAlarm?: boolean;
   heating?: boolean;
@@ -88,12 +119,10 @@ export type PropertyFormData = {
   vastuCompliant?: boolean;
   rainWaterHarvesting?: boolean;
   maintenanceStaff?: boolean;
-
   poojaRoom?: boolean;
   studyRoom?: boolean;
   servantRoom?: boolean;
   storeRoom?: boolean;
-
   highCeilingHeight?: boolean;
   falseCeilingLighting?: boolean;
   internetConnectivity?: boolean;
@@ -105,32 +134,26 @@ export type PropertyFormData = {
   airyRooms?: boolean;
   intercomFacility?: boolean;
   spaciousInteriors?: boolean;
-
   fitnessCenter?: boolean;
   swimmingPool?: boolean;
   clubhouseCommunityCenter?: boolean;
   securityPersonnel?: boolean;
   lifts?: boolean;
-
   separateEntryForServantRoom?: boolean;
   noOpenDrainageAround?: boolean;
   bankAttachedProperty?: boolean;
   lowDensitySociety?: boolean;
-
   municipalCorporation?: boolean;
   borewellTank?: boolean;
   water24x7?: boolean;
-
   overlookingPool?: boolean;
   overlookingParkGarden?: boolean;
   overlookingClub?: boolean;
   overlookingMainRoad?: boolean;
-
   inGatedSociety?: boolean;
   cornerProperty?: boolean;
   petFriendlySociety?: boolean;
   wheelchairFriendly?: boolean;
-
   closeToMetroStation?: boolean;
   closeToSchool?: boolean;
   closeToHospital?: boolean;
@@ -142,26 +165,25 @@ export type PropertyFormData = {
 };
 
 type FilesPayload = {
-  images: File[];      // max 10
-  videos: File[];      // max 4
-  brochures: File[];   // max 4
+  images: File[]; // max 10
+  videos: File[]; // max 4
+  brochures: File[]; // max 4
 };
 
 type ExistingMedia = {
   images: string[];
-  videos?: string[];     // server may return multiple video names
-  brochures?: string[];  // server may return multiple brochure names
+  videos?: string[];
+  brochures?: string[];
 };
-
 
 type SavedMetaState = SavedMeta[];
 
 type EditPropertyFormProps = {
   agentId: number;
   listingId: number;
-  category: PropertyCategory; // immutable
+  category: PropertyCategory;
   initialData: PropertyFormData;
-  existingMedia: ExistingMedia; // from server (names)
+  existingMedia: ExistingMedia;
   apiBase: string;
 };
 
@@ -198,7 +220,7 @@ function numberToIndianWords(amount: number): string {
     return `${tens[ten]}${unit ? " " + units[unit] : ""}`;
   };
 
-  const recurse = (n: number): string => numberToIndianWords(n); // for clarity
+  const recurse = (n: number): string => numberToIndianWords(n);
 
   const parts: string[] = [];
   const crore = Math.floor(amount / 1_00_00_000);
@@ -227,30 +249,23 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
   existingMedia,
   apiBase,
 }) => {
-  // Form state
   const [formData, setFormData] = useState<PropertyFormData>(initialData);
   const navigate = useNavigate();
-  // Price pretty input
+
   const [priceInput, setPriceInput] = useState<string>(() =>
     initialData.price ? `₹ ${initialData.price.toLocaleString("en-IN")}` : ""
   );
 
-  // Total floors input UX (string)
-  const [totalFloorsInput, setTotalFloorsInput] = useState<string>(
-    String(initialData.totalFloors ?? 0)
-  );
+  const [totalFloorsInput, setTotalFloorsInput] = useState<string>(String(initialData.totalFloors ?? 0));
 
-  // Media (replace flow)
   const [replaceMode, setReplaceMode] = useState(false);
   const [, setMediaMeta] = useState<SavedMetaState>([]);
   const [mediaFiles, setMediaFiles] = useState<FilesPayload | null>(null);
 
-const [savingOpen, setSavingOpen] = useState(false);
-const [saveStatus, setSaveStatus] = useState<'saving'|'success'|'error'>('saving');
-const [saveMsg, setSaveMsg] = useState('We are saving your property details. Please wait…');
+  const [savingOpen, setSavingOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"saving" | "success" | "error">("saving");
+  const [saveMsg, setSaveMsg] = useState("We are saving your property details. Please wait…");
 
-
-  // Derived flags
   const isCommercial = category === "Commercial";
   const isSell = (formData.preference || "").toLowerCase() === "sale";
   const isPlot = formData.propertyType === "Plot/Land";
@@ -258,9 +273,17 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
   const showAvailability = isSell && !isPlot;
   const showCabins = isCommercial && !isPlot;
 
-  // Options
   const FURNISHING_OPTIONS = ["Unfurnished", "Semi-furnished", "Fully-furnished"] as const;
-  const FACING_OPTIONS = ["North", "South", "East", "West", "North-East", "North-West", "South-East", "South-West"] as const;
+  const FACING_OPTIONS = [
+    "North",
+    "South",
+    "East",
+    "West",
+    "North-East",
+    "North-West",
+    "South-East",
+    "South-West",
+  ] as const;
   const AGE_OPTIONS = [
     "0-1 Years",
     "1-3 Years",
@@ -281,7 +304,6 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     "By 2032",
   ] as const;
 
-  // Handlers
   const onMediaChanged = (meta: SavedMeta[], files?: FilesPayload) => {
     setMediaMeta(meta || []);
     if (files) setMediaFiles(files);
@@ -314,7 +336,6 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     setFormData((prev) => ({ ...prev, [name]: newValue }));
   };
 
-  // Price formatter
   const formatIndian = (digitsOnly: string) => {
     if (!digitsOnly) return "";
     const n = Number(digitsOnly);
@@ -328,7 +349,6 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     setFormData((prev) => ({ ...prev, price: digitsOnly ? Number(digitsOnly) : 0 }));
   };
 
-  // Special numeric fields: prevent negative and avoid “appending after 0”
   const handleAreaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = e.target.value.replace(/\D/g, "");
     setFormData((prev) => ({ ...prev, area: digits ? Math.max(0, Number(digits)) : 0 }));
@@ -358,7 +378,6 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     nearbyPlace?: string;
   }) => setFormData((prev) => ({ ...prev, ...changes }));
 
-  // Effects: keep totalFloors in sync, disable fields on Sell, clear on Commercial Plot
   useEffect(() => {
     const total = Number(totalFloorsInput || 0);
     if (showFloorsUI) {
@@ -391,7 +410,6 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlot]);
 
-  // Replace media flow
   const handleStartReplace = async () => {
     if (!confirm("This will remove existing media for this listing so you can upload new files. Continue?")) return;
 
@@ -403,7 +421,6 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     try {
       await api.delete(url);
       setReplaceMode(true);
-      // clear client copies of existing names (just for UI)
     } catch (e) {
       console.error(e);
       alert("Failed to prepare media replacement. Please try again.");
@@ -416,9 +433,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     setMediaMeta([]);
   };
 
-  // Submit update
   const handleSubmit = async () => {
-    // basic validations similar to create
     const missing: string[] = [];
     if (!formData.title?.trim()) missing.push("title");
     if (!formData.description?.trim()) missing.push("description");
@@ -430,8 +445,7 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
     if (!formData.address?.trim()) missing.push("address");
     if (!formData.nearbyPlace?.trim()) missing.push("nearbyPlace");
     if (!formData.pincode || String(formData.pincode).length !== 6) missing.push("pincode");
-    if (!isPlot && (formData.totalFloors === undefined || formData.totalFloors === null))
-      missing.push("totalFloors");
+    if (!isPlot && (formData.totalFloors === undefined || formData.totalFloors === null)) missing.push("totalFloors");
 
     if (showAvailability && formData.availability === "Under Construction" && !formData.possessionBy) {
       missing.push("possession_by");
@@ -442,7 +456,6 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       return;
     }
 
-    // If replaceMode, validate max caps only (nothing is mandatory)
     if (replaceMode) {
       const imgCount = mediaFiles?.images?.length ?? 0;
       const vidCount = mediaFiles?.videos?.length ?? 0;
@@ -460,12 +473,11 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
         alert("You can upload up to 4 brochures.");
         return;
       }
-      // nothing is required — empty uploads allowed
     }
 
     setSavingOpen(true);
-    setSaveStatus('saving');
-    setSaveMsg('We are saving your property details. Please wait…');
+    setSaveStatus("saving");
+    setSaveMsg("We are saving your property details. Please wait…");
 
     const HARD_CODED_USER_ID = 2;
 
@@ -480,19 +492,13 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       propertyType: initialData.propertyType,
     };
 
-    // inject owner id based on category
     if (category.toLowerCase() === "commercial") {
       (payload as any).commercialOwnerId = HARD_CODED_USER_ID;
     } else {
       (payload as any).residentialOwnerId = HARD_CODED_USER_ID;
     }
 
-    // const payload = { listingId, category,  ...formData, preference: initialData.preference, propertyType: initialData.propertyType };
-
-    const url =
-      category === "Commercial"
-        ? "/commercial-properties/update"
-        : "/residential-properties/update";
+    const url = category === "Commercial" ? "/commercial-properties/update" : "/residential-properties/update";
 
     try {
       const form = new FormData();
@@ -500,164 +506,105 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
       form.append("property", propertyBlob);
 
       if (replaceMode && mediaFiles) {
-        // append videos
         for (const vid of mediaFiles.videos ?? []) {
           form.append("files", vid, vid.name);
         }
-        // append images
         for (const img of mediaFiles.images ?? []) {
           form.append("files", img, img.name);
         }
-        // append brochures
         for (const doc of mediaFiles.brochures ?? []) {
           form.append("files", doc, doc.name);
         }
-      } else {
-        // No new media selected; backend expects files part. Most Spring setups allow an empty list.
       }
 
       const resp = await api.put(url, form, { headers: { Accept: "application/json" } });
       console.log("Update response:", resp.data);
-      // alert("Property updated successfully.");
-      // setReplaceMode(false);
-      setSaveStatus('success');
-      setSaveMsg('Your property was submitted to Admin for approval.');
+      setSaveStatus("success");
+      setSaveMsg("Your property was submitted to Admin for approval.");
       setTimeout(() => {
-          navigate('/agent/listings/pending', { replace: true });
-        }, 2000);
+        navigate("/agent/listings/pending", { replace: true });
+      }, 2000);
     } catch (err) {
       console.error("Update error:", err);
-      // alert("Failed to update property. See console.");
-      setSaveStatus('error');
+      setSaveStatus("error");
       setSaveMsg(`Failed to submit property. Please try again. listing id is ${listingId}`);
     }
   };
 
-  // --------- Render ---------
   return (
     <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 bg-white p-6 sm:p-8 shadow-lg rounded-lg mt-2">
-         <div className="flex justify-center">
-      <div className="mb-6 rounded-2xl bg-gradient-to-r from-orange-50 to-[#ffe9df] border border-orange-100 p-5">
-        
-        <h2 className="text-xl font-bold text-gray-800 flex gap-3">
-          <Edit className="w-8 h-8 text-orange-600" /> EDIT PROPERTY</h2>
+      <div className="flex justify-center">
+        <div className="mb-6 rounded-2xl bg-gradient-to-r from-orange-50 to-[#ffe9df] border border-orange-100 p-5">
+          <h2 className="text-xl font-bold text-gray-800 flex gap-3">
+            <Edit className="w-8 h-8 text-orange-600" /> EDIT PROPERTY
+          </h2>
         </div>
-        </div>
-        
-      {/* Header badges (non-editable) */}
-      {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-        <div className="flex items-center gap-2 bg-gray-100 rounded px-3 py-2">
-          {category === "residential" ? <Home className="w-4 h-4 text-themeOrange" /> : <Building2 className="w-4 h-4 text-themeOrange" />}
-          <span className="text-sm text-gray-700 font-medium capitalize">Category:</span>
-          <span className="text-sm font-semibold">{category}</span>
-        </div>
-        <div className="flex items-center gap-2 bg-gray-100 rounded px-3 py-2">
-          <Layers className="w-4 h-4 text-themeOrange" />
-          <span className="text-sm text-gray-700 font-medium">Property Type:</span>
-          <span className="text-sm font-semibold">{initialData.propertyType}</span>
-        </div>
-        <div className="flex items-center gap-2 bg-gray-100 rounded px-3 py-2">
-          <FileSpreadsheet className="w-4 h-4 text-themeOrange" />
-          <span className="text-sm text-gray-700 font-medium">Preference:</span>
-          <span className="text-sm font-semibold">{initialData.preference}</span>
-        </div>
-      </div> */}
+      </div>
 
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        
-        {/* Badge 1: Category */}
-        <div className="flex justify-center items-center gap-2 bg-orange-50 rounded-xl px-4 py-2.5 border border-orange-200">
-            {category === "Residential" 
-                ? <Home className="w-5 h-5 text-orange-900" /> 
-                : <Building2 className="w-5 h-5 text-orange-900" />}
-            
-            <span className="text-lg text-orange-800 font-medium capitalize">
-            Category:
-            </span>
-            <span className="text-xl text-orange-900 font-bold">
-            {category}
-            </span>
+      {/* Badges: stack on phones, 3 columns on sm+ */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 bg-orange-50 rounded-xl px-4 py-3 border border-orange-200 text-center sm:text-left">
+          {category === "Residential" ? <Home className="w-5 h-5 text-orange-900" /> : <Building2 className="w-5 h-5 text-orange-900" />}
+          <div>
+            <div className="text-sm text-orange-800 font-medium">Category:</div>
+            <div className="text-lg text-orange-900 font-bold capitalize">{category}</div>
+          </div>
         </div>
 
-        {/* Badge 2: Property Type */}
-        <div className="flex justify-center items-center gap-2 bg-orange-50 rounded-xl px-4 py-2.5 border border-orange-200">
-            <Shapes className="w-5 h-5 text-orange-900" />
-            
-            <span className="text-lg text-orange-800 font-medium">
-            Property Type:
-            </span>
-            <span className="text-xl text-orange-900 font-bold">
-            {initialData.propertyType}
-            </span>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 bg-orange-50 rounded-xl px-4 py-3 border border-orange-200 text-center sm:text-left">
+          <Shapes className="w-5 h-5 text-orange-900" />
+          <div>
+            <div className="text-sm text-orange-800 font-medium">Property Type:</div>
+            <div className="text-lg text-orange-900 font-bold">{initialData.propertyType}</div>
+          </div>
         </div>
 
-        {/* Badge 3: Preference */}
-        <div className="flex justify-center items-center gap-2 bg-orange-50 rounded-xl px-4 py-2.5 border border-orange-200">
-            <TagIcon className="w-5 h-5 text-orange-900" />
-            
-            <span className="text-lg text-orange-800 font-medium">
-            Preference:
-            </span>
-            <span className="text-xl text-orange-900 font-bold">
-            {initialData.preference}
-            </span>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 bg-orange-50 rounded-xl px-4 py-3 border border-orange-200 text-center sm:text-left">
+          <TagIcon className="w-5 h-5 text-orange-900" />
+          <div>
+            <div className="text-sm text-orange-800 font-medium">Preference:</div>
+            <div className="text-lg text-orange-900 font-bold">{initialData.preference}</div>
+          </div>
         </div>
-
-    </div>
+      </div>
 
       {/* Title & Description */}
       <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="flex block text-sm font-medium mb-2">
             <BookMarked className="w-4 h-4 text-orange-500 mr-1" />
-            Property Name/Title<span className="text-red-500">*</span></label>
+            Property Name/Title<span className="text-red-500">*</span>
+          </label>
           <input type="text" name="title" value={formData.title} onChange={handleChange} className={INPUT_CLASS} placeholder="Enter Title" />
         </div>
         <div>
           <label className="flex block text-sm font-medium mb-2">
             <FileText className="w-4 h-4 text-orange-500 mr-1" />
-            Description<span className="text-red-500">*</span></label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            className={TEXTAREA_CLASS}
-            rows={3}
-            placeholder="Enter Description"
-          />
+            Description<span className="text-red-500">*</span>
+          </label>
+          <textarea name="description" value={formData.description} onChange={handleChange} className={TEXTAREA_CLASS} rows={3} placeholder="Enter Description" />
         </div>
       </div>
 
-      {/* Floors block (hidden for Commercial Plot/Land) */}
+      {/* Floors block (stack on phones, side-by-side on md+) */}
       {showFloorsUI && (
-        <div className="flex items-end gap-4 mb-6">
+        <div className="flex flex-col md:flex-row items-end gap-4 mb-6">
           <div className="flex-1">
             <label className="flex block text-sm font-medium mb-2">
-                <Layers className="w-4 h-4 text-orange-500 mr-1" />
-                Total Floors<span className="text-red-500">*</span></label>
-            <input
-              type="number"
-              min={0}
-              max={500}
-              value={totalFloorsInput}
-              onChange={(e) => setTotalFloorsInput(e.target.value.replace(/\D/g, ""))}
-              className={INPUT_CLASS}
-              placeholder="Enter total floors"
-            />
+              <Layers className="w-4 h-4 text-orange-500 mr-1" />
+              Total Floors<span className="text-red-500">*</span>
+            </label>
+            <input type="number" min={0} max={500} value={totalFloorsInput} onChange={(e) => setTotalFloorsInput(e.target.value.replace(/\D/g, ""))} className={INPUT_CLASS} placeholder="Enter total floors" />
           </div>
           <div className="flex-1">
             <label className="flex block text-sm font-medium mb-2">
-                <DoorClosed className="w-4 h-4 text-orange-500 mr-1" />
-                Select Floor</label>
-            <select
-              name="floor"
-              value={String(formData.floor ?? "")}
-              onChange={(e) => {
-                const v = Number(e.target.value);
-                setFormData((prev) => ({ ...prev, floor: Number.isNaN(v) ? prev.floor : v }));
-              }}
-              className={SELECT_CLASS}
-            >
+              <DoorClosed className="w-4 h-4 text-orange-500 mr-1" />
+              Select Floor
+            </label>
+            <select name="floor" value={String(formData.floor ?? "")} onChange={(e) => {
+              const v = Number(e.target.value);
+              setFormData((prev) => ({ ...prev, floor: Number.isNaN(v) ? prev.floor : v }));
+            }} className={SELECT_CLASS}>
               {getFloorOptions(totalFloorsInput).map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
@@ -668,14 +615,16 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
         </div>
       )}
 
-      {/* Residential-only quick fields */}
+      {/* Residential-only quick fields (responsive grids) */}
       {category === "Residential" && (
         <div className="space-y-6 mb-6">
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="flex block text-sm font-medium mb-2">
                 <Wrench className="w-4 h-4 text-orange-500 mr-1" />
-                Maintenance (₹)</label>
+                Maintenance (₹)
+              </label>
               <input
                 type="text"
                 name="maintenance"
@@ -688,7 +637,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div>
               <label className="flex block text-sm font-medium mb-2">
                 <BedDouble className="w-4 h-4 text-orange-500 mr-1" />
-                Bedrooms<span className="text-red-500">*</span></label>
+                Bedrooms<span className="text-red-500">*</span>
+              </label>
               <div className="flex items-center gap-2">
                 <button type="button" onClick={() => decrement("bedrooms")} className="px-3 py-1 bg-orange-500 text-white rounded">-</button>
                 <div className="px-4">{formData.bedrooms ?? 0}</div>
@@ -698,7 +648,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div>
               <label className="flex block text-sm font-medium mb-2">
                 <Bath className="w-4 h-4 text-orange-500 mr-1" />
-                Bathrooms<span className="text-red-500">*</span></label>
+                Bathrooms<span className="text-red-500">*</span>
+              </label>
               <div className="flex items-center gap-2">
                 <button type="button" onClick={() => decrement("bathrooms")} className="px-3 py-1 bg-orange-500 text-white rounded">-</button>
                 <div className="px-4">{formData.bathrooms ?? 0}</div>
@@ -711,7 +662,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div>
               <label className="flex block text-sm font-medium mb-2">
                 <Sofa className="w-4 h-4 text-orange-500 mr-1" />
-                Furnishing<span className="text-red-500">*</span></label>
+                Furnishing<span className="text-red-500">*</span>
+              </label>
               <select name="furnishing" value={formData.furnishing} onChange={handleChange} className={SELECT_CLASS}>
                 {FURNISHING_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
@@ -721,7 +673,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div>
               <label className="flex block text-sm font-medium mb-2">
                 <Compass className="w-4 h-4 text-orange-500 mr-1" />
-                Facing<span className="text-red-500">*</span></label>
+                Facing<span className="text-red-500">*</span>
+              </label>
               <select name="facing" value={formData.facing} onChange={handleChange} className={SELECT_CLASS}>
                 {FACING_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
@@ -731,7 +684,8 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div>
               <label className="flex block text-sm font-medium mb-2">
                 <BadgeCheck className="w-4 h-4 text-orange-500 mr-1" />
-                RERA Number</label>
+                RERA Number
+              </label>
               <input
                 type="text"
                 name="reraNumber"
@@ -743,11 +697,14 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* --- Balconies + Power Backup in one row, Parking below --- */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Number of Balconies */}
             <div>
               <label className="flex block text-sm font-medium mb-2">
                 <PanelsTopLeft className="w-4 h-4 text-orange-500 mr-1" />
-                Number of Balconies</label>
+                Number of Balconies
+              </label>
               <input
                 type="number"
                 name="balconies"
@@ -759,67 +716,77 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
               />
             </div>
 
-            {/* Reserved Parking */}
-            <div className="md:col-span-2">
-              <label className="flex text-sm font-medium mb-2">
-                <Car className="w-4 h-4 text-orange-500 mr-1" />
-                Reserved Parking <span className="text-sm text-gray-400 ml-1 italic">(Optional)</span></label>
-              <div className="flex flex-wrap gap-8">
-                <div className="flex items-center gap-4">
-                  <label className="text-sm text-gray-700">Covered Parking</label>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, coveredParking: Math.max(0, Number(prev.coveredParking ?? 0) - 1) }))}
-                      className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
-                    >
-                      −
-                    </button>
-                    <div className="w-8 text-center text-sm">{formData.coveredParking ?? 0}</div>
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, coveredParking: Number(prev.coveredParking ?? 0) + 1 }))}
-                      className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <label className="text-sm text-gray-700">Open Parking</label>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, openParking: Math.max(0, Number(prev.openParking ?? 0) - 1) }))}
-                      className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
-                    >
-                      −
-                    </button>
-                    <div className="w-8 text-center text-sm">{formData.openParking ?? 0}</div>
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, openParking: Number(prev.openParking ?? 0) + 1 }))}
-                      className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            {/* Power Backup (same row as balconies) */}
             <div>
               <label className="flex block text-sm font-medium mb-2">
                 <BatteryCharging className="w-4 h-4 text-orange-500 mr-1" />
-                Power Backup</label>
-              <select name="powerBackup" value={formData.powerBackup} onChange={handlePowerBackupChange} className={SELECT_CLASS}>
+                Power Backup
+              </label>
+              <select
+                name="powerBackup"
+                value={formData.powerBackup}
+                onChange={handlePowerBackupChange}
+                className={SELECT_CLASS}
+              >
                 <option value="None">None</option>
                 <option value="Partial">Partial</option>
                 <option value="Full">Full</option>
               </select>
             </div>
           </div>
+
+          {/* Reserved Parking (always on its own line beneath) */}
+          <div className="mt-4">
+            <label className="flex text-sm font-medium mb-2">
+              <Car className="w-4 h-4 text-orange-500 mr-1" />
+              Reserved Parking <span className="text-sm text-gray-400 ml-1 italic">(Optional)</span>
+            </label>
+
+            <div className="flex flex-wrap gap-8">
+              <div className="flex items-center gap-4">
+                <label className="text-sm text-gray-700">Covered Parking</label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, coveredParking: Math.max(0, Number(prev.coveredParking ?? 0) - 1) }))}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
+                  >
+                    −
+                  </button>
+                  <div className="w-8 text-center text-sm">{formData.coveredParking ?? 0}</div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, coveredParking: Number(prev.coveredParking ?? 0) + 1 }))}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <label className="text-sm text-gray-700">Open Parking</label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, openParking: Math.max(0, Number(prev.openParking ?? 0) - 1) }))}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
+                  >
+                    −
+                  </button>
+                  <div className="w-8 text-center text-sm">{formData.openParking ?? 0}</div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, openParking: Number(prev.openParking ?? 0) + 1 }))}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-orange-300 bg-orange-500 text-white font-bold hover:bg-orange-600"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       )}
 
@@ -828,39 +795,25 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
         <div>
           <label className="flex block text-sm font-medium mb-2">
             <IndianRupee className="w-4 h-4 text-orange-500 mr-1" />
-            Price in ₹<span className="text-red-500">*</span></label>
-          <input
-            type="text"
-            name="price"
-            value={priceInput}
-            onChange={handlePriceChange}
-            className={INPUT_CLASS}
-            placeholder="₹ Expected Price"
-          />
-          <p className="mt-2 text-gray-600 italic">
-            {formData.price > 0 ? `₹ ${formData.price.toLocaleString("en-IN")} (${numberToIndianWords(formData.price)} only)` : ""}
-          </p>
+            Price in ₹<span className="text-red-500">*</span>
+          </label>
+          <input type="text" name="price" value={priceInput} onChange={handlePriceChange} className={INPUT_CLASS} placeholder="₹ Expected Price" />
+          <p className="mt-2 text-gray-600 italic">{formData.price > 0 ? `₹ ${formData.price.toLocaleString("en-IN")} (${numberToIndianWords(formData.price)} only)` : ""}</p>
         </div>
 
         <div>
           <label className="flex block text-sm font-medium mb-2">
             <Maximize2 className="w-4 h-4 text-orange-500 mr-1" />
-            Area (sq.ft)<span className="text-red-500">*</span></label>
-          <input
-            type="number"
-            name="area"
-            value={formData.area}
-            onChange={handleAreaChange}
-            className={INPUT_CLASS}
-            placeholder="Enter Area"
-            min={0}
-          />
+            Area (sq.ft)<span className="text-red-500">*</span>
+          </label>
+          <input type="number" name="area" value={formData.area} onChange={handleAreaChange} className={INPUT_CLASS} placeholder="Enter Area" min={0} />
         </div>
 
         <div>
           <label className="flex block text-sm font-medium mb-2">
             <History className="w-4 h-4 text-orange-500 mr-1" />
-            Age<span className="text-red-500">*</span></label>
+            Age<span className="text-red-500">*</span>
+          </label>
           <select name="age" value={formData.age} onChange={handleChange} className={SELECT_CLASS}>
             {AGE_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>
@@ -875,13 +828,9 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <>
               <label className="flex block text-sm font-medium mb-2">
                 <CalendarCheck className="w-4 h-4 text-orange-500 mr-1" />
-                Availability</label>
-              <select
-                name="availability"
-                value={formData.availability}
-                onChange={handleChange}
-                className={SELECT_CLASS}
-              >
+                Availability
+              </label>
+              <select name="availability" value={formData.availability} onChange={handleChange} className={SELECT_CLASS}>
                 <option value="Ready to move">Ready to move</option>
                 <option value="Under Construction">Under Construction</option>
               </select>
@@ -889,13 +838,9 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
                 <div className="mt-3">
                   <label className="flex block text-sm font-medium mb-1">
                     <CalendarRange className="w-4 h-4 text-orange-500 mr-1" />
-                    Possession By</label>
-                  <select
-                    name="possessionBy"
-                    value={formData.possessionBy ?? ""}
-                    onChange={handleChange}
-                    className={SELECT_CLASS}
-                  >
+                    Possession By
+                  </label>
+                  <select name="possessionBy" value={formData.possessionBy ?? ""} onChange={handleChange} className={SELECT_CLASS}>
                     <option value="">-- Select Possession --</option>
                     {POSSESSION_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>
@@ -912,15 +857,9 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div className="mt-3">
               <label className="flex block text-sm font-medium mb-2">
                 <Shield className="w-4 h-4 text-orange-500 mr-1" />
-                Security Deposit (optional)</label>
-              <input
-                type="text"
-                name="securityDeposit"
-                value={formData.securityDeposit ?? ""}
-                onChange={handleSecurityDepositChange}
-                className={INPUT_CLASS}
-                placeholder="Enter security deposit (optional)"
-              />
+                Security Deposit (optional)
+              </label>
+              <input type="text" name="securityDeposit" value={formData.securityDeposit ?? ""} onChange={handleSecurityDepositChange} className={INPUT_CLASS} placeholder="Enter security deposit (optional)" />
             </div>
           )}
         </div>
@@ -945,51 +884,50 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
 
       {/* Media */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-3">
           <div className="flex items-center gap-2">
             <Images className="w-4 h-4 text-themeOrange" />
             <h3 className="text-lg font-semibold">Media</h3>
           </div>
-          {!replaceMode ? (
-            <button
-              type="button"
-              onClick={handleStartReplace}
-              className={`px-3 py-2 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 ${SOFT_BTN_HOVER}`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <RotateCw className="w-4 h-4" /> Replace Media
-              </span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleCancelReplace}
-              className={`px-3 py-2 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 ${SOFT_BTN_HOVER}`}
-            >
-              Cancel Replace
-            </button>
-          )}
+          <div className="w-full sm:w-auto">
+            {!replaceMode ? (
+              <button type="button" onClick={handleStartReplace} className={`w-full sm:w-auto px-3 py-2 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 ${SOFT_BTN_HOVER}`}>
+                <span className="inline-flex items-center gap-2">
+                  <RotateCw className="w-4 h-4" /> Replace Media
+                </span>
+              </button>
+            ) : (
+              <button type="button" onClick={handleCancelReplace} className={`w-full sm:w-auto px-3 py-2 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 ${SOFT_BTN_HOVER}`}>
+                Cancel Replace
+              </button>
+            )}
+          </div>
         </div>
 
         {!replaceMode ? (
           <div className="space-y-2">
-            {/* Names only (as received) */}
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <Images className="w-4 h-4" />
-              <span className="font-medium">Images:</span>
-              <span className="truncate">
-                {existingMedia.images.length ? existingMedia.images.join(", ") : "—"}
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 text-sm text-gray-700">
+              <div className="inline-flex items-center gap-2">
+                <Images className="w-4 h-4" />
+                <span className="font-medium">Images:</span>
+              </div>
+              <div className="truncate mt-1 sm:mt-0">{existingMedia.images.length ? existingMedia.images.join(", ") : "—"}</div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <Video className="w-4 h-4" />
-              <span className="font-medium">Video:</span>
-              <span>{(existingMedia.videos && existingMedia.videos.length) ? existingMedia.videos.join(", ") : "—"}</span>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 text-sm text-gray-700">
+              <div className="inline-flex items-center gap-2">
+                <Video className="w-4 h-4" />
+                <span className="font-medium">Video:</span>
+              </div>
+              <div className="truncate mt-1 sm:mt-0">{(existingMedia.videos && existingMedia.videos.length) ? existingMedia.videos.join(", ") : "—"}</div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <FileText className="w-4 h-4" />
-              <span className="font-medium">Brochure:</span>
-              <span>{(existingMedia.brochures && existingMedia.brochures.length) ? existingMedia.brochures.join(", ") : "—"}</span>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 text-sm text-gray-700">
+              <div className="inline-flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="font-medium">Brochure:</span>
+              </div>
+              <div className="truncate mt-1 sm:mt-0">{(existingMedia.brochures && existingMedia.brochures.length) ? existingMedia.brochures.join(", ") : "—"}</div>
             </div>
           </div>
         ) : (
@@ -1004,124 +942,91 @@ const [saveMsg, setSaveMsg] = useState('We are saving your property details. Ple
             <div>
               <label className="flex block text-sm font-medium mb-2">
                 <Briefcase className="w-4 h-4 text-orange-500 mr-1" />
-                Cabins</label>
-              <input
-                type="number"
-                name="cabins"
-                value={formData.cabins ?? 0}
-                onChange={handleChange}
-                className={INPUT_CLASS}
-                min={0}
-              />
+                Cabins
+              </label>
+              <input type="number" name="cabins" value={formData.cabins ?? 0} onChange={handleChange} className={INPUT_CLASS} min={0} />
             </div>
           )}
 
           <div className="flex flex-wrap gap-4">
-            <label><input type="checkbox" name="meetingRoom" checked={formData.meetingRoom || false} onChange={handleChange} /> Meeting Room <Users className="w-4 h-4 text-orange-500" /> </label>
-            <label><input type="checkbox" name="conferenceRoom" checked={formData.conferenceRoom || false} onChange={handleChange} /> Conference Room <Projector className="w-4 h-4 text-orange-500" /> </label>
-            <label><input type="checkbox" name="receptionArea" checked={formData.receptionArea || false} onChange={handleChange} /> Reception Area <ConciergeBell className="w-4 h-4 text-orange-500" /> </label>
-            <label><input type="checkbox" name="washroom" checked={formData.washroom || false} onChange={handleChange} /> Washroom <SoapDispenserDroplet className="w-4 h-4 text-orange-500" /> </label>
-            <label><input type="checkbox" name="lift" checked={formData.lift || false} onChange={handleChange} /> Lift <ChevronsUpDown className="w-4 h-4 text-orange-500" /> </label>
-            <label><input type="checkbox" name="parking" checked={formData.parking || false} onChange={handleChange} /> Parking <CarFront className="w-4 h-4 text-orange-500" /> </label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" name="meetingRoom" checked={formData.meetingRoom || false} onChange={handleChange} className="accent-orange-600" /> Meeting Room <Users className="w-4 h-4 text-orange-500" /></label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" name="conferenceRoom" checked={formData.conferenceRoom || false} onChange={handleChange} className="accent-orange-600" /> Conference Room <Projector className="w-4 h-4 text-orange-500" /></label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" name="receptionArea" checked={formData.receptionArea || false} onChange={handleChange} className="accent-orange-600" /> Reception Area <ConciergeBell className="w-4 h-4 text-orange-500" /></label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" name="washroom" checked={formData.washroom || false} onChange={handleChange} className="accent-orange-600" /> Washroom <SoapDispenserDroplet className="w-4 h-4 text-orange-500" /></label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" name="lift" checked={formData.lift || false} onChange={handleChange} className="accent-orange-600" /> Lift <ChevronsUpDown className="w-4 h-4 text-orange-500" /></label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" name="parking" checked={formData.parking || false} onChange={handleChange} className="accent-orange-600" /> Parking <CarFront className="w-4 h-4 text-orange-500" /></label>
           </div>
 
           <div>
             <label className="flex block text-sm font-medium mb-2">
-                <LockIcon className="w-4 h-4 text-orange-500 mr-1" />
-                Lock-in (months)</label>
-            <input
-              type="number"
-              name="lockIn"
-              value={formData.lockIn ?? 0}
-              onChange={handleChange}
-              disabled={isSell}
-              className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`}
-              min={0}
-            />
+              <LockIcon className="w-4 h-4 text-orange-500 mr-1" />
+              Lock-in (months)
+            </label>
+            <input type="number" name="lockIn" value={formData.lockIn ?? 0} onChange={handleChange} disabled={isSell} className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`} min={0} />
           </div>
+
           <div>
             <label className="flex block text-sm font-medium mb-2">
-                <TrendingUp className="w-4 h-4 text-orange-500 mr-1" />
-                Yearly Increase (%)</label>
-            <input
-              type="number"
-              name="yearlyIncrease"
-              value={formData.yearlyIncrease ?? 0}
-              onChange={handleChange}
-              disabled={isSell}
-              className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`}
-              min={0}
-            />
+              <TrendingUp className="w-4 h-4 text-orange-500 mr-1" />
+              Yearly Increase (%)
+            </label>
+            <input type="number" name="yearlyIncrease" value={formData.yearlyIncrease ?? 0} onChange={handleChange} disabled={isSell} className={`${INPUT_CLASS} ${isSell ? "opacity-50 cursor-not-allowed" : ""}`} min={0} />
           </div>
         </div>
       )}
 
       {/* Amenities (same component) */}
-      {category !== "Commercial" && (
-        <AmenitiesPanel formData={formData as any} setFormData={setFormData as any} />
-      )}
+      {category !== "Commercial" && <AmenitiesPanel formData={formData as any} setFormData={setFormData as any} />}
 
       {/* Actions */}
-      <div className="flex items-end gap-4 mt-6">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className={`w-full bg-themeOrange text-white font-bold py-3 rounded hover:bg-hoverOrange focus:outline-none ${SOFT_BTN_HOVER}`}
-        >
+      <div className="mt-6">
+        <button type="button" onClick={handleSubmit} className={`w-full md:w-auto bg-themeOrange text-white font-bold py-3 px-6 rounded hover:bg-hoverOrange ${SOFT_BTN_HOVER}`}>
           UPDATE PROPERTY
         </button>
       </div>
+
       {savingOpen && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-gray-100">
-      <div className="flex items-center gap-3">
-        {saveStatus === 'saving' && (
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50">
-            <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
-          </div>
-        )}
-        {saveStatus === 'success' && (
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-50">
-            <CheckCircle2 className="h-6 w-6 text-green-600" />
-          </div>
-        )}
-        {saveStatus === 'error' && (
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
-            <XCircle className="h-6 w-6 text-red-600" />
-          </div>
-        )}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-gray-100">
+            <div className="flex items-center gap-3">
+              {saveStatus === "saving" && (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50">
+                  <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+                </div>
+              )}
+              {saveStatus === "success" && (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-50">
+                  <CheckCircle2 className="h-6 w-6 text-green-600" />
+                </div>
+              )}
+              {saveStatus === "error" && (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
+                  <XCircle className="h-6 w-6 text-red-600" />
+                </div>
+              )}
 
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold text-gray-900">
-            {saveStatus === 'saving' ? 'Saving Property' : saveStatus === 'success' ? 'Submitted' : 'Submission Failed'}
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">{saveMsg}</p>
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-gray-900">
+                  {saveStatus === "saving" ? "Saving Property" : saveStatus === "success" ? "Submitted" : "Submission Failed"}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">{saveMsg}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              {saveStatus !== "saving" ? (
+                <button type="button" onClick={() => setSavingOpen(false)} className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition">
+                  Close
+                </button>
+              ) : (
+                <button type="button" disabled className="px-4 py-2 rounded-lg bg-gray-200 text-gray-600 cursor-not-allowed">
+                  Please wait…
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div className="mt-5 flex justify-end gap-2">
-        {saveStatus !== 'saving' ? (
-          <button
-            type="button"
-            onClick={() => setSavingOpen(false)}
-            className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition"
-          >
-            Close
-          </button>
-        ) : (
-          <button
-            type="button"
-            disabled
-            className="px-4 py-2 rounded-lg bg-gray-200 text-gray-600 cursor-not-allowed"
-          >
-            Please wait…
-          </button>
-        )}
-      </div>
-    </div>
-  </div>
-)}
-
+      )}
     </div>
   );
 };

@@ -266,7 +266,7 @@ const DISPLAY_LABEL_BY_TAB: Record<"villa" | "flat" | "plot" | "pg", string> = {
 };
 
 const PropertySection: React.FC = () => {
-  const [active, setActive] = useState<"villa" | "flat" | "plot" | "pg">("villa");
+  const [active, setActive] = useState<"villa" | "flat" | "plot" | "pg">("flat");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [residential, setResidential] = useState<ResidentialPropertyResponse[]>([]);
