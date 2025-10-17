@@ -12,8 +12,13 @@ type Props = {
 };
 
 export function ProtectedRoute({ children, allow, requireApprovedKyc }: Props) {
-  const { user, refreshKyc } = useAuth();
+  const { user, refreshKyc, loading } = useAuth();
   const location = useLocation();
+
+  if (loading) {
+    // Optionally show a spinner or blank until rehydrate completes
+    return <div />;
+  }
 
   // not logged in
   if (!user) {

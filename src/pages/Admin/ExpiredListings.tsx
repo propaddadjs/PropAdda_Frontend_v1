@@ -1,8 +1,6 @@
 // src/pages/admin/ExpiredListings.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import { api } from "../../lib/api";
-// import { Link } from "react-router-dom";
 import FilterSidebar, { type Filters as SidebarFilters } from "../../components/FilterSidebar";
 import {
   BedDouble,
@@ -17,7 +15,7 @@ import {
   Maximize2,
   MapPin,
   RefreshCw,
-  Bell,   // Alternative for area/size
+  Bell,
 } from "lucide-react";
 
 /* --- types --- */
@@ -149,19 +147,16 @@ interface PageResponse {
   number?: number;
 }
 
-/* --- Card (disabled style for expired) --- */
-const Card: React.FC<{
-  p: PropertyResponse;
-  onRenew: (id: number) => void;
-  onNotify: (id: number) => void;
-}> = ({ p }) => {
+/* --- Card (image on top, disabled look for expired) --- */
+const Card: React.FC<{ p: PropertyResponse }> = ({ p }) => {
   const media = p.mediaFiles ?? p.media ?? [];
   const thumb = media.find((m) => m.ord === 1)?.url;
   const owner = p.residentialOwner ?? p.commercialOwner;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 flex gap-4 opacity-70 pointer-events-none">
-      <div className="w-36 h-24 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+    <article className="rounded-lg border-2 shadow-sm overflow-hidden bg-white">
+      {/* Image top */}
+      <div className="w-full h-44 sm:h-52 md:h-44 lg:h-40 bg-gray-100 overflow-hidden">
         {thumb ? (
           <img src={thumb} alt={p.title ?? "thumbnail"} className="w-full h-full object-cover" />
         ) : (
@@ -169,52 +164,52 @@ const Card: React.FC<{
         )}
       </div>
 
-      <div className="flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="font-semibold text-lg text-gray-700">{p.title ?? p.propertyType ?? "Untitled"}</div>
-            <div className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
-              <MapPin className="w-4 h-4" />
-              {p.locality ? `${p.locality}, ` : ""}{p.city ?? ""}{p.address ? ` • ${p.address}` : ""}
-            </div>
-            <div className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                {p.category && <span className="flex items-center gap-1.5"><Home className="w-4 h-4"/>{p.category}</span>}
-                {p.preference && <span className="flex items-center gap-1.5"><Tag className="w-4 h-4"/>{p.preference}</span>}
-                {p.propertyType && <span className="flex items-center gap-1.5"><Building className="w-4 h-4"/>{p.propertyType}</span>}
-            </div>
-            <div className="mt-2 text-sm text-gray-700 flex items-center gap-3">
-              {p.bedrooms !== undefined && <span className="flex items-center gap-1.5"><BedDouble className="w-4 h-4" /> {p.bedrooms} BHK</span>}
-              {p.bathrooms !== undefined && <span className="flex items-center gap-1.5"><Bath className="w-4 h-4" /> {p.bathrooms} Bath</span>}
-              {p.area !== undefined && <span className="flex items-center gap-1.5"><Maximize2 className="w-4 h-4" /> {p.area} sq.ft</span>}
-              {p.cabins !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4" /> {p.cabins} cabins</span>}
-            </div>
+      {/* Content (dimmed to indicate expired) */}
+      <div className="p-4 opacity-70 pointer-events-none">
+        <div className="mb-2">
+          <div className="font-semibold text-base sm:text-lg text-gray-700 truncate">{p.title ?? p.propertyType ?? "Untitled"}</div>
+          <div className="text-xs sm:text-sm text-gray-500 mt-1 flex items-center gap-1.5 truncate">
+            <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
+            <span className="truncate">
+              {p.locality ? `${p.locality}, ` : ""}
+              {p.city ?? ""}
+              {p.address ? ` • ${p.address}` : ""}
+            </span>
           </div>
 
-          <div className="text-right">
-            <div className="text-xl font-bold text-gray-700">
-              {p.price !== undefined ? `₹${Number(p.price).toLocaleString("en-IN")}` : "-"}
-            </div>
-            <div className="mt-2 flex flex-col items-end gap-2">
-              {p.vip && <div className="text-xs font-semibold text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded flex items-center gap-1"><Star className="w-3 h-3" /> VIP</div>}
-              {p.reraVerified && <div className="text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded flex items-center gap-1"><BadgeCheck className="w-3 h-3" /> RERA Verified</div>}
-              {p.expired && <div className="text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded flex items-center gap-1"><TimerOff className="w-3 h-3" /> Expired</div>}
-            </div>
+          <div className="mt-2 text-xs sm:text-sm text-gray-600 flex flex-wrap gap-2">
+            {p.bedrooms !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><BedDouble className="w-4 h-4 text-gray-600" />{p.bedrooms} BHK</span>}
+            {p.bathrooms !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><Bath className="w-4 h-4 text-gray-600" />{p.bathrooms} Bath</span>}
+            {p.area !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><Maximize2 className="w-4 h-4 text-gray-600" />{p.area} sq.ft</span>}
+            {p.cabins !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><Briefcase className="w-4 h-4 text-gray-600" />{p.cabins} cabins</span>}
           </div>
         </div>
 
-        {p.description && <div className="text-sm text-gray-600 mt-3 line-clamp-3">{p.description}</div>}
+        {p.description && <div className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-3">{p.description}</div>}
 
         {owner && (
-          <div className="text-xs text-gray-500 mt-3 border-t p-2">
-            Owner: {owner.firstName ?? ""}{owner.lastName ? ` ${owner.lastName}` : ""}{owner.email ? ` • ${owner.email}` : ""}
+          <div className="text-xs text-gray-500 mb-3 border-t pt-2">
+            Owner:{" "}
+            <span className="truncate">
+              {owner.firstName ?? ""}
+              {owner.lastName ? ` ${owner.lastName}` : ""}
+              {owner.email ? ` • ${owner.email}` : ""}
+            </span>
           </div>
         )}
-      </div>
 
-      <div className="flex flex-col justify-between items-end pointer-events-auto">
-        <div className="text-xs text-gray-400 mt-2">ID: {p.listingId}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-lg font-bold text-gray-700 whitespace-nowrap">
+            {p.price !== undefined ? `₹${Number(p.price).toLocaleString("en-IN")}` : "-"}
+          </div>
+          <div className="flex items-center gap-2">
+            {p.vip && <div className="flex items-center gap-1 text-xs font-semibold text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded"><Star className="w-3 h-3" /> VIP</div>}
+            {p.reraVerified && <div className="flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded"><BadgeCheck className="w-3 h-3" /> RERA</div>}
+            {p.expired && <div className="flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded"><TimerOff className="w-3 h-3" /> Expired</div>}
+          </div>
+        </div>
       </div>
-    </div>
+    </article>
   );
 };
 
@@ -229,9 +224,15 @@ const ExpiredListings: React.FC = () => {
 
   const [appliedFilters, setAppliedFilters] = useState<SidebarFilters | null>(null);
 
-   const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
-
+  // responsive: compact when <= 1024px
+  const [isCompactScreen, setIsCompactScreen] = useState<boolean>(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 1024 : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsCompactScreen(window.innerWidth <= 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     fetch(appliedFilters);
@@ -266,7 +267,6 @@ const ExpiredListings: React.FC = () => {
       if (f.areaMax !== null) params.areaMax = f.areaMax;
     }
     if (f.ageRanges && f.ageRanges.length) params.ageRanges = f.ageRanges.join(",");
-    console.log("params for filter: ", params);
     return params;
   };
 
@@ -289,6 +289,7 @@ const ExpiredListings: React.FC = () => {
           setLoading(false);
           return;
         }
+
         if (body && (Array.isArray(body.commercial) || Array.isArray(body.residential))) {
           const com: PropertyResponse[] = Array.isArray(body.commercial) ? body.commercial : [];
           const res: PropertyResponse[] = Array.isArray(body.residential) ? body.residential : [];
@@ -301,6 +302,7 @@ const ExpiredListings: React.FC = () => {
           setLoading(false);
           return;
         }
+
         if (Array.isArray(body)) {
           setRawData(body);
           const tp = Math.max(1, Math.ceil(body.length / size));
@@ -310,6 +312,7 @@ const ExpiredListings: React.FC = () => {
           setLoading(false);
           return;
         }
+
         setRawData([]);
         setPageSlice([]);
         setTotalPages(0);
@@ -327,6 +330,7 @@ const ExpiredListings: React.FC = () => {
           setLoading(false);
           return;
         }
+
         if (body && (Array.isArray(body.commercial) || Array.isArray(body.residential))) {
           const com: PropertyResponse[] = Array.isArray(body.commercial) ? body.commercial : [];
           const res: PropertyResponse[] = Array.isArray(body.residential) ? body.residential : [];
@@ -339,6 +343,7 @@ const ExpiredListings: React.FC = () => {
           setLoading(false);
           return;
         }
+
         if (Array.isArray(body)) {
           setRawData(body);
           const tp = Math.max(1, Math.ceil(body.length / size));
@@ -348,12 +353,13 @@ const ExpiredListings: React.FC = () => {
           setLoading(false);
           return;
         }
+
         setRawData([]);
         setPageSlice([]);
         setTotalPages(0);
       }
     } catch (err) {
-      console.error("fetch expired properties error", err);
+      console.error("fetch expired properties error:", err);
       setRawData([]);
       setPageSlice([]);
       setTotalPages(0);
@@ -362,7 +368,7 @@ const ExpiredListings: React.FC = () => {
     }
   };
 
-  /* ---- actions (preserve filters) ---- */
+  /* ---- actions ---- */
   const renewListing = async (id: number, category: string) => {
     try {
       await api.patch(`/admin/renewProperty/${category}/${id}`);
@@ -398,46 +404,86 @@ const ExpiredListings: React.FC = () => {
 
   return (
     <div className="flex">
-      {/* Sidebar */}
-      <FilterSidebar initial={appliedFilters ?? undefined} onApply={onFilterApply} onReset={onFilterReset} />
+      {/* Sidebar - show only on larger screens */}
+      {!isCompactScreen && (
+        <FilterSidebar initial={appliedFilters ?? undefined} onApply={onFilterApply} onReset={onFilterReset} />
+      )}
 
-      {/* Main content */}
-      <main className="flex-1 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Expired Listings</h2>
-          <div className="text-sm text-gray-600">
+      <main className="flex-1 p-4 sm:p-6">
+        {/* Header */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Expired Listings</h2>
+
+            <div className="flex items-center gap-3">
+              {/* Desktop / tablet count (right side) */}
+              <div className="text-sm text-gray-600 hidden sm:block">
+                {loading ? "Loading..." : `${itemsToRender.length} results`}
+              </div>
+
+              {/* On compact screens, place the filter trigger inline in header so it doesn't take extra layout space */}
+              {isCompactScreen ? (
+                <div className="ml-2">
+                  <FilterSidebar initial={appliedFilters ?? undefined} onApply={onFilterApply} onReset={onFilterReset} />
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Mobile-only: show count under the title */}
+          <div className="block sm:hidden mt-1 text-sm text-gray-600">
             {loading ? "Loading..." : `${itemsToRender.length} results`}
           </div>
         </div>
 
-        <div className="space-y-4">
-          {!loading && itemsToRender.length === 0 && <div>No expired listings found.</div>}
+        {/* Grid: 1 column on small & tablet, 2 columns on large (desktop/laptop) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {!loading && itemsToRender.length === 0 && <div className="text-gray-600 col-span-1">No expired listings found.</div>}
 
           {[...itemsToRender]
-            .sort((a, b) => (b?.listingId ?? 0) - (a?.listingId ?? 0)) // DESC by listingId
+            .sort((a, b) => (b?.listingId ?? 0) - (a?.listingId ?? 0))
             .map((p) => (
-            <div key={p.listingId} className="relative">
-              {/* disabled card */}
-              <Card p={p} onRenew={() => {}} onNotify={() => {}} />
+              <div key={p.listingId} className="w-full relative">
+                {/* Card (dimmed) */}
+                <Card p={p} />
 
-              {/* action buttons overlay (clickable) */}
-              <div className="absolute right-4 top-4 flex flex-col gap-2 pointer-events-auto">
-                <button
-                  onClick={() => renewListing(p.listingId, p.category)}
-                  className="px-3 py-1 text-white rounded text-sm bg-teal-600 transition delay-150 duration-300 ease-in-out hover: hover:scale-105 hover:bg-teal-700 flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Renew Listing
-                </button>
-                <button
-                  onClick={() => notifyDealer(p.listingId, p.category)}
-                  className="px-3 py-1 text-white rounded text-sm bg-amber-700 transition delay-150 duration-300 ease-in-out hover: hover:scale-105 hover:bg-amber-800 flex items-center justify-center gap-2"
-                >
-                  <Bell className="w-4 h-4" />
-                  Send Notification to Dealer
-                </button>
+                {/* Action buttons:
+                    - overlay at top-right on md+ (desktop/tablet)
+                    - stacked below card on small screens (mobile)
+                */}
+                <div className="hidden md:flex absolute right-4 top-4 flex-col gap-2 pointer-events-auto">
+                  <button
+                    onClick={() => renewListing(p.listingId, p.category)}
+                    className="px-3 py-1 text-white rounded text-sm bg-teal-600 hover:bg-teal-700 flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Renew Listing
+                  </button>
+                  <button
+                    onClick={() => notifyDealer(p.listingId, p.category)}
+                    className="px-3 py-1 text-white rounded text-sm bg-amber-700 hover:bg-amber-800 flex items-center justify-center gap-2"
+                  >
+                    <Bell className="w-4 h-4" />
+                    Notify Dealer
+                  </button>
+                </div>
+
+                {/* Mobile: show buttons below card so they stack naturally on narrow screens */}
+                <div className="mt-3 md:hidden flex flex-col gap-2 pointer-events-auto">
+                  <button
+                    onClick={() => renewListing(p.listingId, p.category)}
+                    className="w-full px-3 py-2 text-white rounded text-sm bg-teal-600 hover:bg-teal-700 flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Renew Listing
+                  </button>
+                  <button
+                    onClick={() => notifyDealer(p.listingId, p.category)}
+                    className="w-full px-3 py-2 text-white rounded text-sm bg-amber-700 hover:bg-amber-800 flex items-center justify-center gap-2"
+                  >
+                    <Bell className="w-4 h-4" /> Notify Dealer
+                  </button>
+                </div>
               </div>
-            </div>
             ))}
         </div>
 
@@ -487,15 +533,12 @@ const ExpiredListings: React.FC = () => {
             </button>
           </div>
 
-          {/* Per page selector (5/10/15) */}
+          {/* Per page selector */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Per page:</span>
             <select
               value={size}
-              onChange={(e) => {
-                setSize(Number(e.target.value));
-                setPage(0);
-              }}
+              onChange={(e) => { setSize(Number(e.target.value)); setPage(0); }}
               className="border rounded-lg px-2 py-1 text-sm bg-white"
             >
               <option value={5}>5</option>

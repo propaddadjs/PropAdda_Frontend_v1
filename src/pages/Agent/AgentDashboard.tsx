@@ -1,3 +1,4 @@
+// (entire file — updated per your requests)
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
@@ -9,7 +10,6 @@ import {
   Phone,
   MapPin,
   CheckCircle,
-  Bell,
   Clock,
   User,
   ExternalLink,
@@ -123,15 +123,15 @@ const QuickActionButton: React.FC<{
   accent?: string;
 }> = ({ to, onClick, label, icon, accent = "from-orange-50 to-blue-50" }) => {
   const content = (
-    <div className="relative overflow-hidden flex flex-col items-center justify-center p-4 text-sm font-medium rounded-2xl bg-white border-2 border-gray-100 shadow-sm text-gray-700 hover:border-orange-500 hover:bg-orange-100 transition duration-200 text-center hover:-translate-y-0.5 h-full">
+    <div className="relative overflow-hidden flex flex-col items-start justify-center p-4 text-sm font-medium rounded-2xl bg-white border-2 border-gray-100 shadow-sm text-gray-700 hover:border-orange-500 hover:bg-orange-100 transition duration-200 text-left hover:-translate-y-0.5 h-full">
       <div className={`absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r ${accent} opacity-0 hover:opacity-100 transition`} />
       <div className="p-3 rounded-full bg-gray-50 border border-gray-200 transition group-hover:bg-orange-100">{icon}</div>
       <span className="mt-3 text-sm font-semibold">{label}</span>
     </div>
   );
 
-  if (to) return <Link to={to}>{content}</Link>;
-  return <button onClick={onClick}>{content}</button>;
+  if (to) return <Link to={to} className="block w-full h-full">{content}</Link>;
+  return <button onClick={onClick} className="w-full h-full">{content}</button>;
 };
 
 /* Renewal item used in dashboard preview */
@@ -181,13 +181,14 @@ const AgentDashboard: React.FC = () => {
   const [sending, setSending] = useState(false);
 
   // Utility function to convert a string to PascalCase
-const toPascalCase = (str: string): string => {
-    if (!str) return '';
-    return str.toLowerCase()
-              .split(/[\s_-]+/)
-              .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join('');
-};
+  const toPascalCase = (str: string): string => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .split(/[\s_-]+/)
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("");
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -375,16 +376,21 @@ const toPascalCase = (str: string): string => {
   /* ---------------- RENDER ---------------- */
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+      {/* Welcome message: center on phone, left on sm+ */}
+      <div className="text-center sm:text-left">
+        <h1 className="text-lg sm:text-2xl font-serif font-semibold">Welcome, {details?.firstName} {details?.lastName}!</h1>
+      </div>
+
       {/* USER CARD — image covers left side on wide screens */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
         <div className="flex flex-col lg:flex-row">
           {/* Image left (cover) */}
-          <div className="w-full lg:w-72 h-44 lg:h-auto flex-shrink-0 relative">
+          <div className="w-full lg:w-72 max-h-56 sm:h-44 lg:h-auto flex-shrink-0 relative">
             {details?.profileImageUrl ? (
-              <img src={details.profileImageUrl} alt="Agent" className="max-h-72 w-full object-cover" />
+              <img src={details.profileImageUrl} alt="Agent" className="max-h-56 md:h-full lg:h-full w-full object-contain" />
             ) : (
               <div className="w-full h-full bg-orange-100 flex items-center justify-center">
-                <span className="text-orange-500 text-8xl font-semibold">{`${details?.firstName?.[0] ?? "A"}${details?.lastName?.[0] ?? ""}`}</span>
+                <span className="text-6xl sm:text-8xl text-orange-500 font-semibold">{`${details?.firstName?.[0] ?? "A"}${details?.lastName?.[0] ?? ""}`}</span>
               </div>
             )}
           </div>
@@ -392,18 +398,18 @@ const toPascalCase = (str: string): string => {
           {/* Right content */}
           <div className="p-6 flex-1 flex flex-col justify-between">
             <div>
-              <div className="flex gap-4 items-center">
-                <h2 className="text-2xl font-bold text-gray-900">{details?.firstName} {details?.lastName}</h2>
+              <div className="flex gap-4 items-center flex-wrap">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{details?.firstName} {details?.lastName}</h2>
                 <p className="flex text-xs font-semibold text-orange-700 bg-yellow-50 rounded-full px-2 py-2">
                   <UserCheck2 className="w-4 h-4 mr-1" />
                   PropAdda {toPascalCase(details?.role ?? "")}
-                </p> 
+                </p>
               </div>
               <p className="flex text-sm text-gray-600 mt-1"><MapPin className="text-orange-500 h-4 w-4 mr-1" />{details?.city}, {details?.state}</p>
 
               <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-6 gap-3">
                 <div className="flex items-center text-gray-700">
-                  <Mail className="w-4 h-4 mr-2 text-orange-500" /> <span className="text-sm">{details?.email}</span>
+                  <Mail className="w-4 h-4 mr-2 text-orange-500" /> <span className="text-sm break-all">{details?.email}</span>
                 </div>
                 <div className="flex items-center text-gray-700">
                   <Phone className="w-4 h-4 mr-2 text-orange-500" /> <span className="text-sm">+91 {details?.phoneNumber}</span>
@@ -437,20 +443,20 @@ const toPascalCase = (str: string): string => {
         ))}
       </div>
 
-      {/* Main area: Media on left, 2x2 quick actions on right */}
+      {/* Main area: Media on left, 2x2 quick actions on right (quick action grid is 2x2 even on phone) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left — Media & Creative Services (span 2 cols on desktop) */}
+        {/* Left — Media & Creative Services */}
         <div className="lg:col-span-1 h-full">
           <div className="bg-white shadow-md rounded-2xl border border-gray-100 p-6 h-full flex flex-col justify-between">
             <h4 className="text-lg font-semibold text-gray-800">Media & Creative Services</h4>
             <p className="text-sm text-gray-500 mt-1">Request Graphic Services or Photo Shoot / Drone Shoot for your listed properties.</p>
 
             <div className="mt-4 flex flex-col gap-3">
-              <button onClick={() => openRequestModal("graphics")} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-600 font-semibold hover:bg-orange-500 hover:text-white transition">
+              <button onClick={() => openRequestModal("graphics")} className="inline-flex w-full sm:w-auto justify-start items-center gap-2 px-4 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-600 text-sm md:text-base lg:text-lg font-semibold hover:bg-orange-500 hover:text-white transition">
                 <Image className="w-4 h-4" /> Request Graphic Services
               </button>
 
-              <button onClick={() => openRequestModal("photoshoot")} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-600 font-semibold hover:bg-orange-500 hover:text-white transition">
+              <button onClick={() => openRequestModal("photoshoot")} className="inline-flex w-full sm:w-auto justify-start items-center gap-2 px-4 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-600 text-sm md:text-base lg:text-lg font-semibold hover:bg-orange-500 hover:text-white transition">
                 <Drone className="w-4 h-4" /> Request Photo Shoot / Drone Shoot
               </button>
             </div>
@@ -467,7 +473,6 @@ const toPascalCase = (str: string): string => {
             </div>
 
             <div className="h-full">
-              {/* Using link to listings; you can adjust route if you have a specific one for 'total posted' */}
               <QuickActionButton to="/agent/listings/active" label={`Total Properties Posted`} icon={<DollarSign className="w-5 h-5 text-blue-600" />} />
             </div>
 
@@ -484,14 +489,15 @@ const toPascalCase = (str: string): string => {
 
       {/* Listing Expiry Renewal — full width */}
       <div className="bg-white shadow-md rounded-2xl border border-gray-100 p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800">Listing Expiry Renewal</h3>
-          <Link to="/agent/listings/expired" className={`text-sm font-medium ${themeOrange} ${themeOrangeHover} flex items-center`}>
+        {/* header: stack on phone (centered), inline on sm+ */}
+        <div className="flex flex-col sm:flex-row sm:justify-between items-center sm:items-center gap-2">
+          <h3 className="text-xl font-semibold text-gray-800 text-center sm:text-left">Listing Expiry Renewal</h3>
+          <Link to="/agent/listings/expired" className={`text-sm font-medium ${themeOrange} ${themeOrangeHover} flex items-center justify-center sm:justify-start`}>
             View Expired <ExternalLink className="w-4 h-4 ml-1" />
           </Link>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 mt-4">
           {loadingExpired ? (
             <>
               <div className="h-12 bg-gray-50 border border-gray-100 rounded-md animate-pulse" />
@@ -510,13 +516,13 @@ const toPascalCase = (str: string): string => {
 
       {/* --- Request Modal (unchanged functionality, UI preserved) --- */}
       {reqModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-black/40" onClick={() => setReqModalOpen(false)} />
 
-          <div className="relative z-10 w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden border border-orange-100">
-            <div className="px-6 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white flex items-center justify-between">
+          <div className="relative z-10 w-full max-w-3xl sm:max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden border border-orange-100">
+            <div className="px-4 sm:px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-semibold">{reqType === "graphics" ? "Request Graphic Services" : "Request Photo / Drone Shoot"}</h3>
+                <h3 className="text-lg sm:text-xl font-semibold">{reqType === "graphics" ? "Request Graphic Services" : "Request Photo / Drone Shoot"}</h3>
                 <div className="text-sm opacity-90 mt-1">{propsList.length} properties available</div>
               </div>
 
@@ -528,7 +534,7 @@ const toPascalCase = (str: string): string => {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {propsLoading ? (
                 <div className="space-y-3">
                   <Shimmer className="h-16 rounded" />
@@ -557,7 +563,7 @@ const toPascalCase = (str: string): string => {
                         }`}
                         aria-pressed={selected}
                       >
-                        <div className="w-36 h-24 bg-gray-100 flex-shrink-0 overflow-hidden rounded">
+                        <div className="w-28 h-20 sm:w-36 sm:h-24 bg-gray-100 flex-shrink-0 overflow-hidden rounded">
                           <img src={imgUrl} alt={p.title} className="w-full h-full object-cover" />
                         </div>
 
@@ -600,11 +606,11 @@ const toPascalCase = (str: string): string => {
               )}
             </div>
 
-            <div className="p-4 border-t flex items-center justify-between bg-gray-50">
+            <div className="p-3 sm:p-4 border-t flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-gray-50 gap-3">
               <div className="text-sm text-gray-600">Selected: <span className="font-medium">{Object.values(selectedProps).filter(Boolean).length}</span></div>
-              <div className="flex items-center gap-3">
-                <button onClick={() => { setReqModalOpen(false); setPropsList([]); setSelectedProps({}); }} className="px-4 py-2 rounded bg-white border">Cancel</button>
-                <button onClick={sendRequests} disabled={Object.values(selectedProps).filter(Boolean).length === 0 || sending} className="px-4 py-2 rounded bg-orange-500 text-white font-semibold disabled:opacity-60">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button onClick={() => { setReqModalOpen(false); setPropsList([]); setSelectedProps({}); }} className="px-4 py-2 rounded bg-white border w-full sm:w-auto">Cancel</button>
+                <button onClick={sendRequests} disabled={Object.values(selectedProps).filter(Boolean).length === 0 || sending} className="px-4 py-2 rounded bg-orange-500 text-white font-semibold disabled:opacity-60 w-full sm:w-auto">
                   {sending ? "Sending..." : "Send Request"}
                 </button>
               </div>

@@ -191,7 +191,16 @@ const PropertyCard: React.FC<{ p: AnyProp; onView: (p: AnyProp) => void }> = ({ 
   };
   useEffect(() => () => { if (timerRef.current) window.clearInterval(timerRef.current); }, []);
 
-  const img = images[idx] || "https://via.placeholder.com/640x360?text=No+Image";
+  const hasImages = images.length > 0;
+  const img = images[idx];
+
+  // on image error, replace with 1x1 transparent so fallback div is shown
+  const onImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const el = e.currentTarget;
+    el.onerror = null;
+    el.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+  };
+
   const hasNum = (n: unknown) => typeof n === "number" && n > 0;
   const hasTrue = (b: unknown) => (typeof b === "boolean" && b) || (typeof b === "number" && b > 0);
 
@@ -202,9 +211,28 @@ const PropertyCard: React.FC<{ p: AnyProp; onView: (p: AnyProp) => void }> = ({ 
       onMouseLeave={stopSlide}
     >
       <div className="relative">
-        <img src={img} alt={p.title?.trim() || "Property"} className="h-44 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" loading="lazy" />
-        <span className={["absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm", isRes ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"].join(" ") }>
-          {isRes ? <Building2 className="h-3.5 w-3.5" /> : <Briefcase className="h-3.5 w-3.5" />} {isRes ? "Residential" : "Commercial"}
+        {hasImages ? (
+          <img
+            src={img}
+            onError={onImgError}
+            alt={p.title?.trim() || "Property"}
+            className="h-44 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            loading="lazy"
+          />
+        ) : (
+          <div className="h-44 w-full bg-gray-100 flex items-center justify-center text-gray-500 font-medium">
+            No image found
+          </div>
+        )}
+
+        <span
+          className={[
+            "absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm",
+            isRes ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700",
+          ].join(" ")}
+        >
+          {isRes ? <Building2 className="h-3.5 w-3.5" /> : <Briefcase className="h-3.5 w-3.5" />}{" "}
+          {isRes ? "Residential" : "Commercial"}
         </span>
         {p.vip && (
           <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-yellow-100 text-yellow-800 px-2 py-1 text-xs font-semibold shadow-sm">
@@ -232,7 +260,7 @@ const PropertyCard: React.FC<{ p: AnyProp; onView: (p: AnyProp) => void }> = ({ 
           {hasNum(p.area) && (
             <span className="inline-flex items-center gap-1"><Maximize2 className="h-4 w-4" /> {p.area} sq.ft</span>
           )}
-          {isRes ? (
+          {p._kind === "Residential" ? (
             <>
               {hasNum((p as ResidentialPropertyResponse).bedrooms) && (
                 <span className="inline-flex items-center gap-1"><BedDouble className="h-4 w-4" /> {(p as ResidentialPropertyResponse).bedrooms} Beds</span>
@@ -290,7 +318,6 @@ const FavoritePropertiesPage: React.FC = () => {
     async function fetchFavs() {
       setLoading(true); setError(null);
       try {
-        // Controller is under buyer; adjust if your controller sits elsewhere
         const { data } = await api.get<FavoritesApiResponse>("/buyer/allFavoritePropertiesByBuyer");
         if (!active) return;
         setResidential((data?.Residential ?? []) as ResidentialPropertyResponse[]);
@@ -372,52 +399,183 @@ const FavoritePropertiesPage: React.FC = () => {
 
       {/* Page header */}
       <div className="bg-white border-b">
-        <div className="mx-auto max-w-6xl px-4 py-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="flex items-center gap-3">
-            <Heart className="w-5 h-5 text-orange-600" />
-            <h1 className="text-xl font-semibold">Shortlisted Properties</h1>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex rounded-lg border border-orange-200 bg-orange-50 p-1 text-sm">
-              {(["All", "Residential", "Commercial"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => { setTab(t); setPage(0); }}
-                  className={[
-                    "px-3 py-1.5 rounded-md",
-                    t === tab ? "bg-white border border-orange-200 text-orange-700" : "text-gray-700",
-                  ].join(" ")}
-                >
-                  {t}
-                </button>
-              ))}
+        <div className="mx-auto max-w-6xl px-4 py-6">
+          {/* Heading: Laptop -> left; Tablet & Phone -> centered */}
+          <div className="mb-4">
+            <div className="hidden lg:flex items-center">
+              <Heart className="w-6 h-6 text-red-500" />
+              <h1 className="text-xl font-semibold ml-3">Shortlisted properties</h1>
             </div>
 
-            <input
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-              placeholder="Search by title, city, locality..."
-              className="w-64 border rounded-lg px-3 py-1.5 text-sm bg-orange-50 border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
-            />
+            <div className="flex lg:hidden justify-center items-center">
+              <Heart className="w-6 h-6 text-red-500" />
+              <h1 className="text-xl font-semibold ml-2">Shortlisted properties</h1>
+            </div>
+          </div>
 
-            <label className="inline-flex items-center gap-2 text-sm">
-              <span className="text-black font-bold">Sort:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => { setSortBy(e.target.value as any); setPage(0); }}
-                className="rounded-md border border-orange-100 bg-orange-50 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-              >
-                <option value="newest">Newest</option>
-                <option value="priceAsc">Price: Low→High</option>
-                <option value="priceDesc">Price: High→Low</option>
-                <option value="areaAsc">Area: Low→High</option>
-                <option value="areaDesc">Area: High→Low</option>
-              </select>
-            </label>
+          {/* Controls layout */}
+          {/* ---------- Laptop (lg+): Under heading show one row: toggle | search(flex) | count | sort ---------- */}
+          <div className="hidden lg:flex items-center gap-4">
+            {/* left: toggle */}
+            <div className="flex items-center gap-3">
+              <div className="inline-flex rounded-lg border border-orange-200 bg-orange-50 p-1 text-sm">
+                {(["All", "Residential", "Commercial"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => { setTab(t); setPage(0); }}
+                    className={[
+                      "px-3 py-1.5 rounded-md",
+                      t === tab ? "bg-white border border-orange-200 text-orange-700" : "text-gray-700",
+                    ].join(" ")}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            <div className="text-sm text-gray-600">
-              <span className="font-semibold">{total}</span> saved
+            {/* center: search fills the space */}
+            <div className="flex-1 mx-6 min-w-0">
+              <input
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                placeholder="Search by title, city, locality..."
+                className="w-full rounded-lg px-4 py-2 text-sm bg-orange-50 border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
+              />
+            </div>
+
+            {/* right: count + sort */}
+            <div className="flex items-center gap-3 ml-auto">
+              <div className="text-sm text-gray-600">
+                <span className="font-semibold">{total}</span> saved
+              </div>
+
+              <label className="inline-flex items-center gap-2 text-sm">
+                <span className="text-black font-bold hidden sm:inline">Sort:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => { setSortBy(e.target.value as any); setPage(0); }}
+                  className="rounded-md border border-orange-100 bg-orange-50 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="priceAsc">Price: Low→High</option>
+                  <option value="priceDesc">Price: High→Low</option>
+                  <option value="areaAsc">Area: Low→High</option>
+                  <option value="areaDesc">Area: High→Low</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          {/* ---------- Tablet (md) layout:
+                Under heading show: left -> toggle ; right -> count+sort
+                Under that (stacked) show search full-width
+            ---------- */}
+          <div className="hidden md:flex lg:hidden flex-col gap-3">
+            <div className="flex items-center justify-between">
+              {/* toggle left */}
+              <div className="flex items-center gap-3">
+                <div className="inline-flex rounded-lg border border-orange-200 bg-orange-50 p-1 text-sm">
+                  {(["All", "Residential", "Commercial"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => { setTab(t); setPage(0); }}
+                      className={[
+                        "px-3 py-1.5 rounded-md",
+                        t === tab ? "bg-white border border-orange-200 text-orange-700" : "text-gray-700",
+                      ].join(" ")}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* count + sort right */}
+              <div className="flex items-center gap-3">
+                <div className="text-sm text-gray-600">
+                  <span className="font-semibold">{total}</span> saved
+                </div>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => { setSortBy(e.target.value as any); setPage(0); }}
+                    className="rounded-md border border-orange-100 bg-orange-50 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                  >
+                    <option value="newest">Newest</option>
+                    <option value="priceAsc">Price: Low→High</option>
+                    <option value="priceDesc">Price: High→Low</option>
+                    <option value="areaAsc">Area: Low→High</option>
+                    <option value="areaDesc">Area: High→Low</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            {/* search row */}
+            <div>
+              <input
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                placeholder="Search by title, city, locality..."
+                className="w-full border rounded-lg px-3 py-1.5 text-sm bg-orange-50 border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
+              />
+            </div>
+          </div>
+
+          {/* ---------- Phone layout:
+                Heading centered above (already handled).
+                Row 1: toggle centered
+                Row 2: count (left) | sort (right)
+                Row 3: search full-width
+              ---------- */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {/* toggle centered */}
+            <div className="flex justify-center">
+              <div className="inline-flex rounded-lg border border-orange-200 bg-orange-50 p-1 text-sm">
+                {(["All", "Residential", "Commercial"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => { setTab(t); setPage(0); }}
+                    className={[
+                      "px-3 py-1.5 rounded-md",
+                      t === tab ? "bg-white border border-orange-200 text-orange-700" : "text-gray-700",
+                    ].join(" ")}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* count left and sort right */}
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                <span className="font-semibold">{total}</span> saved
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm">
+                <select
+                  value={sortBy}
+                  onChange={(e) => { setSortBy(e.target.value as any); setPage(0); }}
+                  className="rounded-md border border-orange-100 bg-orange-50 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="priceAsc">Price: Low→High</option>
+                  <option value="priceDesc">Price: High→Low</option>
+                  <option value="areaAsc">Area: Low→High</option>
+                  <option value="areaDesc">Area: High→Low</option>
+                </select>
+              </label>
+            </div>
+
+            {/* search row */}
+            <div>
+              <input
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                placeholder="Search by title, city, locality..."
+                className="w-full border rounded-lg px-3 py-1.5 text-sm bg-orange-50 border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
+              />
             </div>
           </div>
         </div>
@@ -439,7 +597,8 @@ const FavoritePropertiesPage: React.FC = () => {
 
         {!loading && !error && total > 0 && (
           <>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
+            {/* Grid: phones 1col, tablets 1col, laptop 2col */}
+            <div className="grid gap-5 grid-cols-1 md:grid-cols-1 lg:grid-cols-2">
               {slice.map((p) => (
                 <PropertyCard key={`${p._kind}-${p.listingId}`} p={p} onView={onView} />
               ))}
@@ -481,7 +640,8 @@ const FavoritePropertiesPage: React.FC = () => {
           </>
         )}
       </div>
-        <PropertyAction />
+
+      <PropertyAction />
       <Footer />
     </div>
   );

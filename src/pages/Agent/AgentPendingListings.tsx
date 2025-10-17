@@ -18,7 +18,7 @@ import {
   import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
 
 const AGENT_ID = 2; 
-const PAGE_SIZE_OPTIONS = [5, 8, 10, 15]; 
+const PAGE_SIZE_OPTIONS = [5, 12, 10, 15]; 
 
 // --- Types (Reused from AgentAllListings) ---
 interface MediaResponse { filename?: string; ord?: number; url: string; }
@@ -163,7 +163,7 @@ const AgentPendingListings: React.FC = () => {
   const [rawData, setRawData] = useState<PropertyResponse[]>([]);
   const [pageSlice, setPageSlice] = useState<PropertyResponse[]>([]);
   const [page, setPage] = useState<number>(0); 
-  const [size, setSize] = useState<number>(8); 
+  const [size, setSize] = useState<number>(12); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -276,7 +276,7 @@ const AgentPendingListings: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Listings Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
             {pageSlice.map((p) => (
               <AgentPendingListingCard key={p.listingId} p={p} />
             ))}

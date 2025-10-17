@@ -21,6 +21,8 @@ import {
   StarOff,
   BadgeX,
 } from "lucide-react";
+
+// ... (interfaces unchanged; copy from your original file)
 interface MediaResponse { filename?: string; ord?: number; url: string; }
 interface OwnerResponse {
   userId?: number;
@@ -149,98 +151,101 @@ interface PageResponse {
   number?: number;
 }
 
-/* Card component used in listing */
-/* Card component used in listing */
+/* Card component (replace existing) */
 const Card: React.FC<{
   p: PropertyResponse;
   onToggleVip?: (id: number, category: string) => void;
   onToggleRera?: (id: number, category: string) => void;
-
-  
 }> = ({ p, onToggleVip, onToggleRera }) => {
   const media = p.mediaFiles ?? p.media ?? [];
   const thumb = media.find((m) => m.ord === 1)?.url;
   const owner = p.residentialOwner ?? p.commercialOwner;
 
- 
-
   return (
-    <div
-      className={`rounded-lg shadow-sm p-4 flex gap-4 border-2 ${
-        p.vip ? "border-yellow-500 bg-yellow-50" : "border-gray-200 bg-white"
-      }`}
+    <article
+      className={`rounded-lg border-2 shadow-sm overflow-hidden bg-white
+        ${p.vip ? "border-yellow-500 bg-yellow-50" : "border-gray-200"}
+        flex flex-col h-full`}
     >
-      <div className="w-36 h-24 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+      {/* Image on top */}
+      <div className="w-full h-44 sm:h-52 md:h-44 lg:h-40 bg-gray-100 overflow-hidden">
         {thumb ? (
           <img src={thumb} alt={p.title ?? "thumbnail"} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No image</div>
+          <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+            No image
+          </div>
         )}
       </div>
 
-      <div className="flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="font-semibold text-lg">{p.title ?? p.propertyType ?? "Untitled"}</div>
-
-            <div className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
-              <span>{p.locality ? `${p.locality}, ` : ""}{p.city ?? ""}{p.address ? ` • ${p.address}` : ""}</span>
-            </div>
-
-            {/* Icons added here for category and preference */}
-            <div className="text-sm text-gray-500 mt-1 flex items-center gap-3">
-              {p.category === 'Residential' && <span className="flex items-center gap-1.5"><Home className="w-4 h-4" /> Residential</span>}
-              {p.category === 'Commercial' && <span className="flex items-center gap-1.5"><Building className="w-4 h-4" /> Commercial</span>}
-              {p.preference && <span className="flex items-center gap-1.5"><Tag className="w-4 h-4" /> {p.preference}</span>}
-            </div>
-
-            <div className="mt-2 text-sm text-gray-700 flex flex-wrap items-center gap-x-4 gap-y-1">
-              {p.bedrooms !== undefined && <span className="flex items-center gap-1.5"><BedDouble className="w-4 h-4 text-gray-600" /> {p.bedrooms} BHK</span>}
-              {p.bathrooms !== undefined && <span className="flex items-center gap-1.5"><Bath className="w-4 h-4 text-gray-600" /> {p.bathrooms} Bath</span>}
-              {p.area !== undefined && <span className="flex items-center gap-1.5"><Maximize2 className="w-4 h-4 text-gray-600" /> {p.area} sq.ft</span>} {/* Corrected here */}
-              {p.cabins !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-gray-600" /> {p.cabins} cabins</span>} {/* Corrected here */}
-            </div>
+      {/* Content */}
+      <div className="p-4 flex-1 flex flex-col">
+        {/* Title & meta */}
+        <div className="mb-2">
+          <div className="font-semibold text-base sm:text-lg truncate">{p.title ?? p.propertyType ?? "Untitled"}</div>
+          <div className="text-xs sm:text-sm text-gray-500 mt-1 flex items-center gap-1.5 truncate">
+            <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
+            <span className="truncate">
+              {p.locality ? `${p.locality}, ` : ""}
+              {p.city ?? ""}
+              {p.address ? ` • ${p.address}` : ""}
+            </span>
           </div>
 
-          <div className="text-right">
-            <div className="text-xl font-bold">
-              {p.price !== undefined ? `₹${Number(p.price).toLocaleString("en-IN")}` : "-"}
-            </div>
-
-            {/* Icons added to status tags */}
-            <div className="mt-2 flex flex-col items-end gap-1.5">
-              {p.vip && <div className="flex items-center gap-1 text-xs font-semibold text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded"><Star className="w-3 h-3" /> VIP</div>}
-              {p.reraVerified && <div className="flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded"><BadgeCheck className="w-3 h-3" /> RERA Verified</div>}
-              {p.expired && <div className="flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded"><TimerOff className="w-3 h-3" /> Expired</div>}
-              {p.adminApproved && <div className="flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded"><CheckCircle2 className="w-3 h-3" /> {p.adminApproved}</div>}
-            </div>
+          <div className="mt-2 text-xs sm:text-sm text-gray-600 flex flex-wrap gap-2">
+            {p.bedrooms !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><BedDouble className="w-4 h-4 text-gray-600" />{p.bedrooms} BHK</span>}
+            {p.bathrooms !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><Bath className="w-4 h-4 text-gray-600" />{p.bathrooms} Bath</span>}
+            {p.area !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><Maximize2 className="w-4 h-4 text-gray-600" />{p.area} sq.ft</span>}
           </div>
         </div>
 
-        {p.description && <div className="text-sm text-gray-600 mt-3 line-clamp-3">{p.description}</div>}
-
-        {owner && (
-          <div className="text-xs text-gray-500 mt-3 border-t p-2">
-            Owner: {owner.firstName ?? ""}{owner.lastName ? ` ${owner.lastName}` : ""}{owner.email ? ` • ${owner.email}` : ""}
+        {/* Description */}
+        {p.description && (
+          <div className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-3 break-words">
+            {p.description}
           </div>
         )}
-      </div>
 
-      <div className="flex flex-col justify-between items-end">
-        <div className="flex flex-col gap-2">
-          {/* Icons added to action buttons */}
-          <Link to={`/admin/listings/view/${p.category ?? "Residential"}/${p.listingId}`} className="px-3 py-1 text-white text-center rounded text-sm bg-blue-500 transition delay-150 duration-300 ease-in-out hover: hover:scale-105 hover:bg-blue-500 flex items-center justify-center gap-1">
-            <Eye className="w-4 h-4" /> View Listing
-          </Link>
+        {/* Owner details */}
+        {owner && (
+          <div className="text-xs text-gray-500 mb-3 border-t pt-2">
+            Owner:{" "}
+            <span className="truncate">
+              {owner.firstName ?? ""}
+              {owner.lastName ? ` ${owner.lastName}` : ""}
+              {owner.email ? ` • ${owner.email}` : ""}
+            </span>
+          </div>
+        )}
 
-          <div className="flex flex-col space-y-2">
+        {/* Price + status row (keeps to top of bottom area) */}
+        <div className="mt-auto">
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-lg font-bold whitespace-nowrap">
+              {p.price !== undefined ? `₹${Number(p.price).toLocaleString("en-IN")}` : "-"}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {p.vip && <div className="flex items-center gap-1 text-xs font-semibold text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded"><Star className="w-3 h-3" /> VIP</div>}
+              {p.reraVerified && <div className="flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded"><BadgeCheck className="w-3 h-3" /> RERA</div>}
+              {p.expired && <div className="flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded"><TimerOff className="w-3 h-3" /> Expired</div>}
+            </div>
+          </div>
+
+          {/* Buttons stacked vertically */}
+          <div className="mt-3 flex flex-col gap-2">
+            <Link
+              to={`/admin/listings/view/${p.category ?? "Residential"}/${p.listingId}`}
+              className="w-full px-3 py-2 text-white text-center rounded text-sm bg-blue-500 flex items-center justify-center gap-2"
+            >
+              <Eye className="w-4 h-4" /> View Listing
+            </Link>
+
             {onToggleVip && (
               <button
                 onClick={() => onToggleVip(p.listingId, p.category)}
-                className="px-3 py-1 text-white rounded text-sm bg-yellow-400 transition delay-150 duration-300 ease-in-out hover: hover:scale-105 hover:bg-yellow-500 flex items-center justify-center gap-1"
+                className="w-full px-3 py-2 text-white rounded text-sm bg-yellow-400 flex items-center justify-center gap-2"
               >
-                {p.vip ? <StarOff className="w-4 h-4" /> : <Star className="w-4 h-4" />} {/* <-- Changed here */}
+                {p.vip ? <StarOff className="w-4 h-4" /> : <Star className="w-4 h-4" />}
                 {p.vip ? "Unmark VIP" : "Mark VIP"}
               </button>
             )}
@@ -249,27 +254,27 @@ const Card: React.FC<{
               onToggleRera ? (
                 <button
                   onClick={() => onToggleRera(p.listingId, p.category)}
-                  className="px-3 py-1 text-white rounded text-sm bg-purple-600 transition delay-150 duration-300 ease-in-out hover: hover:scale-105 hover:bg-purple-700 flex items-center justify-center gap-1"
+                  className="w-full px-3 py-2 text-white rounded text-sm bg-purple-600 flex items-center justify-center gap-2"
                 >
-                  {p.reraVerified ? <BadgeX className="w-4 h-4" /> : <BadgeCheck className="w-4 h-4" />} {/* <-- Changed here */}
+                  {p.reraVerified ? <BadgeX className="w-4 h-4" /> : <BadgeCheck className="w-4 h-4" />}
                   {p.reraVerified ? "Unmark RERA Verified" : "Mark RERA Verified"}
                 </button>
               ) : null
             ) : (
               <button
                 disabled
-                className="px-3 py-1 bg-gray-300 text-white rounded text-sm cursor-not-allowed flex items-center justify-center gap-1"
+                className="w-full px-3 py-2 bg-gray-300 text-white rounded text-sm cursor-not-allowed flex items-center justify-center gap-2"
                 title="RERA number not available for this listing"
               >
                 <BadgeCheck className="w-4 h-4" /> Mark RERA Verified
               </button>
             )}
+
+            <div className="text-xs text-gray-400 mt-2">ID: {p.listingId}</div>
           </div>
         </div>
-
-        <div className="text-xs text-gray-400 mt-2">ID: {p.listingId}</div>
       </div>
-    </div>
+    </article>
   );
 };
 
@@ -285,8 +290,17 @@ const AllListings: React.FC = () => {
   const [appliedFilters, setAppliedFilters] = useState<SidebarFilters | null>(null);
 
   const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
+    import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
 
+  // determine compact screen (<=1024) to move filter trigger into header
+  const [isCompactScreen, setIsCompactScreen] = useState<boolean>(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 1024 : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsCompactScreen(window.innerWidth <= 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     fetch(appliedFilters);
@@ -468,25 +482,58 @@ const AllListings: React.FC = () => {
   );
 
   return (
+    // larger breakpoint: show sidebar + main (two-column)
+    // compact: don't render sidebar as left column to avoid taking space; render trigger in header
     <div className="flex">
-      {/* Sidebar */}
-      <FilterSidebar initial={appliedFilters ?? undefined} onApply={onFilterApply} onReset={onFilterReset} />
+      {!isCompactScreen && (
+        <FilterSidebar initial={appliedFilters ?? undefined} onApply={onFilterApply} onReset={onFilterReset} />
+      )}
 
-      <main className="flex-1 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Active Listings</h2>
-          <div className="text-sm text-gray-600">
+      <main className="flex-1 p-4 sm:p-6">
+        {/* Header: title + desktop controls */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Active Listings</h2>
+
+            <div className="flex items-center gap-3">
+              {/* Desktop / tablet count (right side) */}
+              <div className="text-sm text-gray-600 hidden sm:block">
+                {loading ? "Loading..." : `${itemsToRender.length} results`}
+              </div>
+
+              {/* On compact screens, place the filter trigger inline in header so it doesn't take extra layout space */}
+              {isCompactScreen ? (
+                <div className="ml-2">
+                  {/* FilterSidebar renders only a compact trigger + drawer on compact screens */}
+                  <FilterSidebar initial={appliedFilters ?? undefined} onApply={onFilterApply} onReset={onFilterReset} />
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Mobile-only: show count under the title */}
+          <div className="block sm:hidden mt-1 text-sm text-gray-600">
             {loading ? "Loading..." : `${itemsToRender.length} results`}
           </div>
         </div>
 
-        <div className="space-y-4">
-          {itemsToRender.length === 0 && !loading && <div className="text-gray-600">No listings found.</div>}
+        {/* For non-compact screens show the results count below header too */}
+        { !isCompactScreen && (
+          <div className="mb-4 text-sm text-gray-600">
+            {loading ? "Loading..." : `${itemsToRender.length} results`}
+          </div>
+        )}
+
+        {/* Grid: 1 column on small & tablet, 2 columns on large (desktop/laptop) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {itemsToRender.length === 0 && !loading && <div className="text-gray-600 col-span-1">No listings found.</div>}
 
           {[...itemsToRender]
-            .sort((a, b) => (b?.listingId ?? 0) - (a?.listingId ?? 0)) // DESC by listingId
+            .sort((a, b) => (b?.listingId ?? 0) - (a?.listingId ?? 0))
             .map((p) => (
-              <Card key={p.listingId} p={p} onToggleVip={toggleVip} onToggleRera={toggleRera} />
+              <div key={p.listingId} className="w-full">
+                <Card p={p} onToggleVip={toggleVip} onToggleRera={toggleRera} />
+              </div>
             ))}
         </div>
 

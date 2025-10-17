@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { jwtDecode } from "jwt-decode";
-import { api, token } from "../lib/api";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode"; // <- correct default import
+import api, { token, tryRefreshViaCookie } from "../lib/api"; // <- import tryRefreshViaCookie
+// ... keep other imports if any
 
 type Role = "ADMIN" | "AGENT" | "BUYER";
 export type KycStatus = "INAPPLICABLE" | "PENDING" | "APPROVED" | "REJECTED" | null;
@@ -13,7 +14,7 @@ export interface AuthUser {
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;
-  state?: string;      // human-readable state name
+  state?: string;
   city?: string;
   profileImageUrl?: string;
 }
@@ -27,17 +28,16 @@ type Geo = {
 type AuthCtx = {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  loading: boolean; // <-- expose loading so guards can wait
   login: (email: string, password: string) => Promise<void>;
   register: (payload: {
     firstName: string; lastName: string; email: string; phoneNumber: string;
-    state: string; city: string; password: string;   // 'state' should be the NAME (not iso)
+    state: string; city: string; password: string;
   }) => Promise<void>;
   logout: () => void;
   refreshKyc: () => Promise<KycStatus | null>;
   hasRole: (...roles: Role[]) => boolean;
   canEnterAgentPanel: boolean;
-
-  // global state/city for header/hero/search
   geo: Geo;
   setGeo: (g: Geo) => void;
 };
@@ -47,20 +47,16 @@ export const useAuth = () => useContext(Ctx);
 
 type JwtPayload = { sub: string; role?: string };
 
-// normalize "ROLE_ADMIN" → "ADMIN"
 function parseRole(claim?: string): Role {
   if (!claim) return "BUYER";
   const clean = claim.startsWith("ROLE_") ? claim.slice(5) : claim;
   return (["ADMIN", "AGENT", "BUYER"].includes(clean) ? (clean as Role) : "BUYER");
 }
 
-// Try to build an AuthUser from login/register response
 function pickUser(data: any): AuthUser | null {
   if (!data) return null;
-  // backend might return { accessToken, refreshToken, user: {...} }
   if (data.user) return data.user as AuthUser;
 
-  // or { accessToken, refreshToken, ...flat }
   const possible: Partial<AuthUser> = {
     userId: data.userId,
     email: data.email,
@@ -91,48 +87,73 @@ function pickUser(data: any): AuthUser | null {
 export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [geo, setGeo] = useState<Geo>({});
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // On mount, if we already have an access token, derive minimal user from JWT.
-  // (If your backend exposes /auth/me you can call it here to hydrate full profile.)
-  // useEffect(() => {
-  //   const at = token.access;
-  //   if (!at) return;
-  //   try {
-  //     const decoded = jwtDecode<JwtPayload>(at);
-  //     setUser((prev) => ({
-  //       userId: prev?.userId ?? 0,
-  //       email: decoded.sub!,
-  //       role: parseRole(decoded.role),
-  //       kycVerified: prev?.kycVerified ?? null,
-  //       firstName: prev?.firstName,
-  //       lastName: prev?.lastName,
-  //       phoneNumber: prev?.phoneNumber,
-  //       state: prev?.state,
-  //       city: prev?.city,
-  //       profileImageUrl: prev?.profileImageUrl,
-  //     }));
-  //   } catch {
-  //     token.clear();
-  //     setUser(null);
-  //   }
-  // }, []);
-
+  // Rehydrate on mount:
   useEffect(() => {
-    const at = token.access;
-    if (!at) return;
+    let mounted = true;
     (async () => {
       try {
-        const { data } = await api.get("/auth/me");     // carries Bearer from interceptor
-        const embedded = pickUser(data);
-        if (embedded) setUser(embedded);
-      } catch {
-        // fallback to decoded
+        // try /auth/me first (works if access token present and valid)
+        const meResp = await api.get("/auth/me");
+        if (!mounted) return;
+        const embedded = pickUser(meResp.data);
+        if (embedded) {
+          setUser(embedded);
+          // if server returned a new access token, persist and set header
+          if (meResp.data.accessToken) {
+            token.set(meResp.data.accessToken, meResp.data.refreshToken);
+            api.defaults.headers.common["Authorization"] = `Bearer ${meResp.data.accessToken}`;
+          }
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        // /auth/me failed - try refresh via cookie
         try {
-          const decoded = jwtDecode<JwtPayload>(at);
-          setUser({ userId: 0, email: decoded.sub!, role: parseRole(decoded.role), kycVerified: null });
-        } catch { token.clear(); setUser(null); }
+          const refreshResp = await tryRefreshViaCookie(); // must be exported from ../lib/api
+          if (!mounted) return;
+          const newAccess = refreshResp?.accessToken ?? refreshResp?.token ?? null;
+          if (newAccess) {
+            token.set(newAccess, refreshResp.refreshToken ?? token.refresh);
+            api.defaults.headers.common["Authorization"] = `Bearer ${newAccess}`;
+          }
+          const embeddedFromRefresh = pickUser(refreshResp) || (refreshResp?.user ?? null);
+          if (embeddedFromRefresh) {
+            setUser(embeddedFromRefresh);
+            setLoading(false);
+            return;
+          }
+          // fallback: call /auth/me again now that we have an access token (if provided)
+          try {
+            const me2 = await api.get("/auth/me");
+            if (!mounted) return;
+            const emb2 = pickUser(me2.data);
+            if (emb2) setUser(emb2);
+          } catch {
+            // final fallback: decode access token if available
+            const at = token.access;
+            if (at) {
+              try {
+                const decoded = jwtDecode<JwtPayload>(at);
+                setUser({ userId: 0, email: decoded.sub!, role: parseRole(decoded.role), kycVerified: null });
+              } catch {
+                token.clear();
+                setUser(null);
+              }
+            } else {
+              setUser(null);
+            }
+          }
+        } catch (refreshErr) {
+          token.clear();
+          setUser(null);
+        }
+      } finally {
+        if (mounted) setLoading(false);
       }
     })();
+    return () => { mounted = false; };
   }, []);
 
   const isAuthenticated = !!user;
@@ -140,15 +161,12 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   async function login(email: string, password: string) {
     const { data } = await api.post("/auth/login", { email, password });
     token.set(data.accessToken, data.refreshToken);
-
-    // Prefer full user payload if present, else combine JWT + flat fields
+    if (data.accessToken) api.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
     const embedded = pickUser(data);
     if (embedded) {
       setUser(embedded);
       return;
     }
-
-    // fallback: decode role/email from token and use flat fields if they exist
     const decoded = jwtDecode<JwtPayload>(data.accessToken);
     setUser({
       userId: Number(data.userId ?? 0),
@@ -166,11 +184,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
   async function register(payload: {
     firstName: string; lastName: string; email: string; phoneNumber: string;
-    state: string; city: string; password: string;   // IMPORTANT: state is NAME
+    state: string; city: string; password: string;
   }) {
     const { data } = await api.post("/auth/register", payload);
     token.set(data.accessToken, data.refreshToken);
-
+    if (data.accessToken) api.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
     const embedded = pickUser(data);
     if (embedded) {
       setUser(embedded);
@@ -185,15 +203,37 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       firstName: data.firstName,
       lastName: data.lastName,
       phoneNumber: data.phoneNumber,
-      state: data.state, // save NAME (your signup already sends name)
+      state: data.state,
       city: data.city,
       profileImageUrl: data.profileImageUrl,
     });
   }
 
-  function logout() {
-    token.clear();
-    setUser(null);
+  async function logout() {
+    try {
+      // read current access token BEFORE clearing it
+      const currentAccess = token.access;
+
+      // send logout request to backend; include Authorization explicitly as a fallback
+      await api.post(
+        "/auth/logout",
+        {},
+        {
+          headers: {
+            // include header only if token exists
+            ...(currentAccess ? { Authorization: `Bearer ${currentAccess}` } : {}),
+          },
+          // withCredentials: true, // enable only if backend expects/uses httpOnly cookie
+        }
+      );
+    } catch (err) {
+      // Log but do not block local logout — server might reject but we still want to clear local auth
+      console.warn("Logout request failed (server):", err);
+    } finally {
+      // Always clear tokens and user state locally
+      token.clear();
+      setUser(null);
+    }
   }
 
   async function refreshKyc(): Promise<KycStatus | null> {
@@ -214,6 +254,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const value: AuthCtx = {
     user,
     isAuthenticated,
+    loading,
     login,
     register,
     logout,

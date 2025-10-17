@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import Header from "../components/Header";
 import faqicon from "../images/icon4.png";
 import { ChevronDown } from "lucide-react";
+import { motion, useReducedMotion, type Variants, AnimatePresence } from "framer-motion";
 
 type FaqItem = {
   q: string;
@@ -35,32 +36,56 @@ const FAQS: FaqItem[] = [
 ];
 
 const FAQ: React.FC = () => {
+  const reduceMotion = useReducedMotion();
+
   // Which items are open
   const [open, setOpen] = useState<Record<number, boolean>>({});
 
   const toggle = (idx: number) =>
     setOpen((prev) => ({ ...prev, [idx]: !prev[idx] }));
 
+  // ---------- Motion variants (balanced feel) ----------
+  const sectionVariants: Variants = {
+    hidden: { opacity: 0, y: 18 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.12,
+        duration: 0.7,
+        ease: [0.25, 0.8, 0.25, 1],
+      },
+    },
+  };
+
+  const itemEntrance: Variants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
+    },
+  };
+
+  const collapseVariants: Variants = {
+    collapsed: { height: 0, opacity: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+    expanded: { height: "auto", opacity: 1, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+  };
+
+  const chevronVariants: Variants = {
+    closed: { rotate: 0, transition: { duration: 0.35, ease: "easeInOut" } },
+    open: { rotate: 180, transition: { duration: 0.45, ease: "easeOut" } },
+  };
+
+  const sectionVar = reduceMotion ? undefined : sectionVariants;
+  const itemVar = reduceMotion ? undefined : itemEntrance;
+  const collapseVar = reduceMotion ? undefined : collapseVariants;
+  const chevVar = reduceMotion ? undefined : chevronVariants;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Hero/Header band with centered title (per PDF) */}
       <Header title="FAQ's" />
-      {/* <section className="relative bg-white border-b">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-3">
-            </div>
-
-            <div className="absolute left-1/2 -translate-x-1/2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">
-                FAQ&apos;s
-              </h1>
-            </div>
-
-            <div />
-          </div>
-        </div>
-      </section> */}
 
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="bg-white">
@@ -76,36 +101,43 @@ const FAQ: React.FC = () => {
       {/* Content */}
       <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-8 lg:py-12 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-10">
-          {/* Left: Title block + illustration (per PDF) */}
-          <div className="lg:col-span-5">
-            <p className="text-black font-semibold uppercase tracking-wide">
+          {/* Left: Title block + illustration */}
+          <motion.div
+            className="lg:col-span-5"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={sectionVar}
+          >
+            <motion.p className="text-black font-semibold uppercase tracking-wide" variants={itemVar}>
               FAQ’s
-            </p>
-            <h2 className="mt-1 text-3xl md:text-4xl font-extrabold leading-tight text-gray-900">
+            </motion.p>
+
+            <motion.h2 className="mt-1 text-3xl md:text-4xl font-extrabold leading-tight text-gray-900" variants={itemVar}>
               <span className="block">FREQUENTLY</span>
               <span className="block">
                 <span className="text-themeOrange">ASKED QUESTIONS</span>
               </span>
-            </h2>
+            </motion.h2>
 
-            <div className="mt-8">
-              {/* If you have the same icon as the HTML (assets/icon4.png), keep the path below. */}
-              <img
-                src={faqicon}
-                alt="FAQ Illustration"
-                className="max-w-56 w-full"
-              />
-            </div>
-          </div>
+            <motion.div className="mt-8" variants={itemVar}>
+              <img src={faqicon} alt="FAQ Illustration" className="max-w-56 w-full" />
+            </motion.div>
+          </motion.div>
 
           {/* Right: Accordion */}
           <div className="lg:col-span-7 space-y-4">
             {FAQS.map((item, idx) => {
               const isOpen = !!open[idx];
+
               return (
-                <div
+                <motion.div
                   key={idx}
-                  className="rounded-xl border-b-2 border-orange-200 bg-white shadow-sm"
+                  className="rounded-xl border-b-2 border-orange-200 bg-white shadow-sm overflow-hidden"
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.18 }}
+                  variants={itemVar}
                 >
                   <button
                     type="button"
@@ -114,36 +146,46 @@ const FAQ: React.FC = () => {
                     onClick={() => toggle(idx)}
                     className="w-full text-left px-4 sm:px-5 py-4 sm:py-5 flex items-start justify-between gap-4"
                   >
-                    <span className="text-gray-900 font-semibold">
-                      {item.q}
-                    </span>
-                    <span
-                      className={`mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-sm transition ${
-                        isOpen
-                          ? "text-orange-600"
-                          : "text-gray-500"
+                    <span className="text-gray-900 font-semibold">{item.q}</span>
+
+                    <motion.span
+                      className={`mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-sm ${
+                        isOpen ? "text-orange-600" : "text-gray-500"
                       }`}
                       aria-hidden="true"
+                      variants={chevVar}
+                      animate={isOpen ? "open" : "closed"}
                     >
                       <ChevronDown />
-                    </span>
+                    </motion.span>
                   </button>
 
-                  <div
-                    id={`faq-panel-${idx}`}
-                    role="region"
-                    className={`px-4 sm:px-5 overflow-hidden transition-[max-height] duration-300 ${
-                      isOpen ? "max-h-96 pb-5" : "max-h-0"
-                    }`}
-                  >
-                    <p className="text-sm text-gray-700">{item.a}</p>
-                  </div>
-                </div>
+                  {/* Collapsible content: Animate height + opacity */}
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        id={`faq-panel-${idx}`}
+                        role="region"
+                        initial="collapsed"
+                        animate="expanded"
+                        exit="collapsed"
+                        variants={collapseVar}
+                        style={{ overflow: "hidden" }}
+                        className="px-4 sm:px-5 pb-5"
+                      >
+                        <motion.p className="text-sm text-gray-700" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                          {item.a}
+                        </motion.p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
               );
             })}
           </div>
         </div>
       </main>
+
       <PropertyAction />
       <Footer />
     </div>

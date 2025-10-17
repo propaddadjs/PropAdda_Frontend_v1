@@ -2,8 +2,12 @@
 import axios from "axios";
 
 export const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
-export const api = axios.create({ baseURL: API_BASE ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app"});
+export const api = axios.create({
+  baseURL: API_BASE ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app",
+  withCredentials: true, // <= CRITICAL: send cookies (httpOnly refresh cookie)
+});
 
+// helpers for token storage (local/session)
 function read(key: string) {
   return localStorage.getItem(key) ?? sessionStorage.getItem(key);
 }
@@ -27,6 +31,7 @@ export const token = {
   }
 };
 
+// Attach Authorization header if access token present
 api.interceptors.request.use(cfg => {
   const t = token.access;
   if (t) {
@@ -35,3 +40,16 @@ api.interceptors.request.use(cfg => {
   }
   return cfg;
 });
+
+/**
+ * Try refresh using httpOnly cookie (server must set cookie on login).
+ * Returns { accessToken?, user? } or throws.
+ */
+export async function tryRefreshViaCookie() {
+  // Make a direct axios call (not using api instance defaults) with credentials to refresh
+  // Note: api already sets withCredentials; using it here is fine.
+  const resp = await api.get("/auth/refresh"); // server should read refresh cookie and return accessToken + user
+  return resp.data;
+}
+
+export default api;

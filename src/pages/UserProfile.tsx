@@ -236,7 +236,7 @@ const UserProfile: React.FC = () => {
       <Header title="MANAGE PROFILE" />
 
       <div className="max-w-5xl mx-auto p-4 md:p-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <h2 className="w-full text-center md:text-left text-3xl md:text-3xl font-bold text-gray-800 mb-6 flex items-center justify-center md:justify-start gap-2">
           <Edit3 className="w-7 h-7 text-orange-600" /> Manage Profile
         </h2>
 
@@ -260,7 +260,7 @@ const UserProfile: React.FC = () => {
               {previewUrl ? (
                 <img
                   src={previewUrl}
-                  alt="Profile"
+                  alt="Loading..."
                   className="w-24 h-24 rounded-full object-cover ring-4 ring-orange-100"
                 />
               ) : (

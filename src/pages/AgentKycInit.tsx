@@ -1,5 +1,4 @@
-// src/pages/AgentKycInit.tsx
-import React, { useState, type DragEvent } from "react";
+import React, { useState, type DragEvent, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 
@@ -47,22 +46,20 @@ export default function AgentKycInit() {
       });
 
       setMsg("Your KYC has been initiated and is pending for approval with the admin.");
-      setBusy(false);
+      // Keep busy true to show the message overlay until navigation
       setTimeout(() => nav("/account/checkKycStatus"), 2000);
     } catch (e: any) {
       setMsg(e?.response?.data?.message ?? "Failed to submit KYC");
-      setBusy(false);
+      setBusy(false); // Allow user to see error and try again
     }
   }
 
-  // Optional: allow drag & drop into the visual boxes (writes into the same state)
   const onDrop =
     (setter: (f: File | null) => void, accept: string[]) =>
     (evt: DragEvent<HTMLLabelElement>) => {
       evt.preventDefault();
       const file = evt.dataTransfer?.files?.[0];
       if (!file) return;
-      // basic accept check by extension/MIME
       const ok =
         accept.length === 0 ||
         accept.some((a) => {
@@ -80,17 +77,16 @@ export default function AgentKycInit() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Site Header with title */}
       <Header title="INITIATE KYC" />
 
-      {/* Page intro band */}
+      {/* Page intro band - NOW RESPONSIVE */}
       <section className="bg-white border-b">
         <div className="mx-auto max-w-4xl px-4 py-6">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="h-6 w-6 text-orange-600" />
+          <div className="flex flex-col items-center text-center gap-4 sm:flex-row sm:text-left sm:items-start">
+            <ShieldCheck className="h-10 w-10 sm:h-8 sm:w-8 flex-shrink-0 text-orange-600" />
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-800">KYC Registration</h1>
-              <p className="text-sm text-gray-600">
+              <p className="mt-2 text-sm text-gray-600">
                 Upload your documents to get verified by PropAdda and start posting your property.
               </p>
             </div>
@@ -108,7 +104,7 @@ export default function AgentKycInit() {
               Address <span className="text-red-500">*</span>
             </label>
             <textarea
-              className="w-full rounded-lg border border-orange-200 bg-[#faf6f3] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 min-h-28"
+              className="w-full rounded-lg border border-orange-200 bg-[#faf6f3] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 min-h-[112px]"
               placeholder="Enter your full address (required)"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
@@ -138,7 +134,6 @@ export default function AgentKycInit() {
                 <ImageIcon className="h-4 w-4 text-orange-600" />
                 Profile Image <span className="text-gray-400 text-xs font-normal">(optional)</span>
               </label>
-
               <label
                 onDragOver={prevent}
                 onDragEnter={prevent}
@@ -157,7 +152,6 @@ export default function AgentKycInit() {
                   className="sr-only"
                 />
               </label>
-
               {profileImage && (
                 <div className="mt-3 text-xs text-gray-600">
                   Selected: <span className="font-medium">{profileImage.name}</span>
@@ -171,35 +165,18 @@ export default function AgentKycInit() {
                 <IdCard className="h-4 w-4 text-orange-600" />
                 Aadhar <span className="text-red-500">*</span>
               </label>
-
               <label
                 onDragOver={prevent}
                 onDragEnter={prevent}
-                onDrop={onDrop(
-                  (file) => setAadhar(file),
-                  [
-                    ".png",
-                    ".jpg",
-                    ".jpeg",
-                    ".heic",
-                    ".heif",
-                    ".pdf",
-                    ".doc",
-                    ".docx",
-                    "image/",
-                    "application/pdf",
-                    "application/msword",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  ]
-                )}
+                onDrop={onDrop(setAadhar, [".png", ".jpg", ".jpeg", ".heic", ".heif", ".pdf", ".doc", ".docx", "image/", "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"])}
                 className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-orange-200 bg-[#fffaf7] px-4 py-8 text-center hover:border-orange-300 transition"
               >
                 <UploadCloud className="h-7 w-7 text-orange-600" />
                 <div className="text-sm text-gray-700">
-                  Drag & drop your Aadhar file or <span className="text-orange-600 font-semibold">browse</span>
+                  Drag & drop your Aadhar or <span className="text-orange-600 font-semibold">browse</span>
                 </div>
                 <div className="text-xs text-gray-500">
-                  One file only • Max size 10 MB • Formats: png, jpg, jpeg, heic, heif, pdf, doc, docx
+                  Formats: png, jpg, pdf, doc, etc.
                 </div>
                 <input
                   type="file"
@@ -208,7 +185,6 @@ export default function AgentKycInit() {
                   className="sr-only"
                 />
               </label>
-
               {aadhar && (
                 <div className="mt-3 text-xs text-gray-600">
                   Selected: <span className="font-medium">{aadhar.name}</span>
@@ -244,7 +220,6 @@ export default function AgentKycInit() {
         </div>
       )}
 
-      {/* Site Footer */}
       <PropertyAction />
       <Footer />
     </div>

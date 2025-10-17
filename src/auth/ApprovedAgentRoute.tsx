@@ -4,8 +4,13 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 const ApprovedAgentRoute: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const loc = useLocation();
+
+  if (loading) {
+    // Optionally show a spinner or blank until rehydrate completes
+    return <div />;
+  }
 
   // not logged in → go to login
   if (!isAuthenticated) {

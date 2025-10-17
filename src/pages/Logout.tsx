@@ -9,9 +9,17 @@ export default function Logout() {
   const nav = useNavigate();
 
   useEffect(() => {
-    logout();
-    const t = setTimeout(() => nav("/", { replace: true }), 1200);
-    return () => clearTimeout(t);
+    (async () => {
+      try {
+        await logout(); // wait for logout to attempt server call & clear local tokens
+      } catch (e) {
+        // logout() should already swallow server errors, but keep this safeguard
+        console.warn("Logout failed:", e);
+      } finally {
+        // Navigate away once logout finishes (no timeout)
+        nav("/", { replace: true });
+      }
+    })();
   }, [logout, nav]);
 
   return (

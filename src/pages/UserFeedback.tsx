@@ -7,7 +7,7 @@ import PropertyAction from "../components/PropertyAction";
 const UserFeedback: React.FC = () => {
   return (
     <>
-      <Header title="ADD FEEDBACK" />
+      <Header title="FEEDBACK" />
       <AgentFeedback />
       <PropertyAction />
       <Footer />

@@ -1,9 +1,8 @@
 // src/pages/admin/SoldListings.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import { api } from "../../lib/api";
 import { Link } from "react-router-dom";
-import { type Filters as SidebarFilters } from "../../components/FilterSidebar";
+import FilterSidebar, { type Filters as SidebarFilters } from "../../components/FilterSidebar";
 import {
   BedDouble,
   Bath,
@@ -14,7 +13,7 @@ import {
   Briefcase,
   Maximize2,
   MapPin,
-  CircleCheckBig,   // Alternative for area/size
+  CircleCheckBig,
 } from "lucide-react";
 
 /* --- types --- */
@@ -74,69 +73,8 @@ interface PropertyResponse {
   parking?: boolean;
   lockIn?: number;
   yearlyIncrease?: number;
-  centerCooling?: boolean;
-  fireAlarm?: boolean;
-  heating?: boolean;
-  gym?: boolean;
-  modularKitchen?: boolean;
-  pool?: boolean;
-  elevator?: boolean;
-  petFriendly?: boolean;
-  storage?: boolean;
-  laundry?: boolean;
-  dishwasher?: boolean;
-  dryer?: boolean;
-  sauna?: boolean;
-  emergencyExit?: boolean;
-  waterPurifier?: boolean;
-  gasPipeline?: boolean;
-  park?: boolean;
-  vastuCompliant?: boolean;
-  rainWaterHarvesting?: boolean;
-  maintenanceStaff?: boolean;
-  poojaRoom?: boolean;
-  studyRoom?: boolean;
-  servantRoom?: boolean;
-  storeRoom?: boolean;
-  highCeilingHeight?: boolean;
-  falseCeilingLighting?: boolean;
-  internetConnectivity?: boolean;
-  centrallyAirConditioned?: boolean;
-  securityFireAlarm?: boolean;
-  recentlyRenovated?: boolean;
-  privateGardenTerrace?: boolean;
-  naturalLight?: boolean;
-  airyRooms?: boolean;
-  intercomFacility?: boolean;
-  spaciousInteriors?: boolean;
-  fitnessCenter?: boolean;
-  swimmingPool?: boolean;
-  clubhouseCommunityCenter?: boolean;
-  securityPersonnel?: boolean;
-  lifts?: boolean;
-  separateEntryForServantRoom?: boolean;
-  noOpenDrainageAround?: boolean;
-  bankAttachedProperty?: boolean;
-  lowDensitySociety?: boolean;
-  municipalCorporation?: boolean;
-  borewellTank?: boolean;
-  water24x7?: boolean;
-  overlookingPool?: boolean;
-  overlookingParkGarden?: boolean;
-  overlookingClub?: boolean;
-  overlookingMainRoad?: boolean;
-  inGatedSociety?: boolean;
-  cornerProperty?: boolean;
-  petFriendlySociety?: boolean;
-  wheelchairFriendly?: boolean;
-  closeToMetroStation?: boolean;
-  closeToSchool?: boolean;
-  closeToHospital?: boolean;
-  closeToMarket?: boolean;
-  closeToRailwayStation?: boolean;
-  closeToAirport?: boolean;
-  closeToMall?: boolean;
-  closeToHighway?: boolean;
+  // many optional amenity flags...
+  [key: string]: any;
 }
 
 interface PageResponse {
@@ -147,106 +85,89 @@ interface PageResponse {
   number?: number;
 }
 
-/* --- Card --- */
-const Card: React.FC<{
-  p: PropertyResponse;
-//   onUnmarkVip: (id: number, category: string) => void;
-}> = ({ p }) => {
+/* --- Card (image on top for better responsiveness) --- */
+const Card: React.FC<{ p: PropertyResponse }> = ({ p }) => {
   const media = p.mediaFiles ?? p.media ?? [];
   const thumb = media.find((m) => m.ord === 1)?.url;
   const owner = p.residentialOwner ?? p.commercialOwner;
 
   return (
-    <div
-      className={`rounded-lg shadow-sm p-4 flex gap-4 border-2 ${
-        p.sold ? "border-orange-400 bg-orange-50" : "border-gray-200 bg-white"
-      }`}
+    <article
+      className={`rounded-lg border-2 shadow-sm overflow-hidden bg-white
+        ${p.sold ? "border-orange-400 bg-orange-50" : "border-gray-200"}`}
     >
-      {/* Thumbnail */}
-      <div className="w-36 h-24 flex-shrink-0 rounded overflow-hidden bg-gray-100">
+      {/* Image on top */}
+      <div className="w-full h-44 sm:h-52 md:h-44 bg-gray-100 overflow-hidden">
         {thumb ? (
           <img src={thumb} alt={p.title ?? "thumbnail"} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-            No image
-          </div>
+          <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No image</div>
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="font-semibold text-lg">{p.title ?? p.propertyType ?? "Untitled"}</div>
-            <div className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
-              <MapPin className="w-4 h-4" />
-              {p.locality ? `${p.locality}, ` : ""}{p.city ?? ""}{p.address ? ` • ${p.address}` : ""}
-            </div>
-
-            <div className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                {p.category && <span className="flex items-center gap-1.5"><Home className="w-4 h-4"/>{p.category}</span>}
-                {p.preference && <span className="flex items-center gap-1.5"><Tag className="w-4 h-4"/>{p.preference}</span>}
-                {p.propertyType && <span className="flex items-center gap-1.5"><Building className="w-4 h-4"/>{p.propertyType}</span>}
-            </div>
-            <div className="mt-2 text-sm text-gray-700 flex items-center gap-3">
-              {p.bedrooms !== undefined && <span className="flex items-center gap-1.5"><BedDouble className="w-4 h-4" /> {p.bedrooms} BHK</span>}
-              {p.bathrooms !== undefined && <span className="flex items-center gap-1.5"><Bath className="w-4 h-4" /> {p.bathrooms} Bath</span>}
-              {p.area !== undefined && <span className="flex items-center gap-1.5"><Maximize2 className="w-4 h-4" /> {p.area} sq.ft</span>}
-              {p.cabins !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4" /> {p.cabins} cabins</span>}
-            </div>
+      <div className="p-4 flex flex-col h-full">
+        {/* Title + location */}
+        <div className="mb-2">
+          <div className="font-semibold text-base sm:text-lg truncate">{p.title ?? p.propertyType ?? "Untitled"}</div>
+          <div className="text-xs sm:text-sm text-gray-500 mt-1 flex items-center gap-1.5 truncate">
+            <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
+            <span className="truncate">
+              {p.locality ? `${p.locality}, ` : ""}
+              {p.city ?? ""}
+              {p.address ? ` • ${p.address}` : ""}
+            </span>
           </div>
 
-          <div className="text-right">
-            <div className="text-xl font-bold">
+          <div className="text-xs sm:text-sm text-gray-600 mt-2 flex flex-wrap gap-2">
+            {p.bedrooms !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><BedDouble className="w-4 h-4 text-gray-600" />{p.bedrooms} BHK</span>}
+            {p.bathrooms !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><Bath className="w-4 h-4 text-gray-600" />{p.bathrooms} Bath</span>}
+            {p.area !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><Maximize2 className="w-4 h-4 text-gray-600" />{p.area} sq.ft</span>}
+            {p.cabins !== undefined && <span className="flex items-center gap-1.5 whitespace-nowrap"><Briefcase className="w-4 h-4 text-gray-600" />{p.cabins} cabins</span>}
+          </div>
+        </div>
+
+        {/* Description */}
+        {p.description && <div className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-3">{p.description}</div>}
+
+        {/* Owner */}
+        {owner && (
+          <div className="text-xs text-gray-500 mb-3 border-t pt-2">
+            Owner:{" "}
+            <span className="truncate">
+              {owner.firstName ?? ""}{owner.lastName ? ` ${owner.lastName}` : ""}{owner.email ? ` • ${owner.email}` : ""}
+            </span>
+          </div>
+        )}
+
+        {/* Price + status */}
+        <div className="mt-auto">
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-lg font-bold whitespace-nowrap">
               {p.price !== undefined ? `₹${Number(p.price).toLocaleString("en-IN")}` : "-"}
             </div>
-            <div className="mt-2 flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {p.sold && (
-                <div className="text-lg font-semibold text-emerald-600 bg-emerald-200 px-2 py-0.5 rounded flex items-center gap-1">
-                  <CircleCheckBig className="w-5 h-5" /> Sold
+                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                  <CircleCheckBig className="w-4 h-4" /> Sold
                 </div>
               )}
-              {/* {p.adminApproved && (
-                <div className="text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> {p.adminApproved}
-                </div>
-              )} */}
             </div>
           </div>
-        </div>
 
-        {p.description && (
-          <div className="text-sm text-gray-600 mt-3 line-clamp-3">
-            {p.description}
+          {/* Actions: stacked full width - keeps good layout on mobile */}
+          <div className="mt-3 flex flex-col gap-2">
+            <Link
+              to={`/admin/listings/view/${p.category ?? "Residential"}/${p.listingId}`}
+              className="w-full px-3 py-2 text-white rounded text-sm bg-blue-600 flex items-center justify-center gap-2"
+            >
+              <Eye className="w-4 h-4" /> View Listing
+            </Link>
           </div>
-        )}
 
-        {owner && (
-          <div className="text-xs text-gray-500 mt-3 border-t p-2">
-            Owner: {owner.firstName ?? ""}{owner.lastName ? ` ${owner.lastName}` : ""}{owner.email ? ` • ${owner.email}` : ""}
-          </div>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex flex-col justify-between items-end">
-        <div className="flex flex-col gap-2">
-          <Link
-            to={`/admin/listings/view/${p.category ?? "Residential"}/${p.listingId}`}
-            className="px-3 py-1 text-white text-center rounded text-sm bg-blue-600 transition delay-150 duration-300 ease-in-out hover: hover:scale-105 hover:bg-blue-700 flex items-center justify-center gap-1"
-          >
-            <Eye className="w-4 h-4" /> View Listing
-          </Link>
-          {/* <button
-            onClick={() => onUnmarkVip(p.listingId, p.category ?? "Residential")}
-            className="px-3 py-1 text-white rounded text-sm bg-rose-600 transition delay-150 duration-300 ease-in-out hover: hover:scale-105 hover:bg-rose-700 flex items-center justify-center gap-1"
-          >
-            <StarOff className="w-4 h-4" /> Unmark VIP
-          </button> */}
+          <div className="text-xs text-gray-400 mt-2">ID: {p.listingId}</div>
         </div>
-        <div className="text-xs text-gray-400 mt-2">ID: {p.listingId}</div>
       </div>
-    </div>
+    </article>
   );
 };
 
@@ -261,9 +182,15 @@ const SoldListings: React.FC = () => {
 
   const [appliedFilters, setAppliedFilters] = useState<SidebarFilters | null>(null);
 
-   const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
-
+  // responsive: compact when <= 1024px
+  const [isCompactScreen, setIsCompactScreen] = useState<boolean>(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 1024 : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsCompactScreen(window.innerWidth <= 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     fetch(appliedFilters);
@@ -298,7 +225,6 @@ const SoldListings: React.FC = () => {
       if (f.areaMax !== null) params.areaMax = f.areaMax;
     }
     if (f.ageRanges && f.ageRanges.length) params.ageRanges = f.ageRanges.join(",");
-    console.log("params for filter: ", params);
     return params;
   };
 
@@ -404,31 +330,66 @@ const SoldListings: React.FC = () => {
     [windowStart, windowEnd]
   );
 
+  // sidebar handlers
+  const onFilterApply = (f: SidebarFilters) => {
+    setAppliedFilters(f);
+    setPage(0);
+    fetch(f);
+  };
+  const onFilterReset = () => {
+    setAppliedFilters(null);
+    setPage(0);
+    fetch(null);
+  };
+
   return (
     <div className="flex">
-      {/* Sidebar */}
-      {/* <FilterSidebar initial={appliedFilters ?? undefined} onApply={onFilterApply} onReset={onFilterReset} /> */}
+      {/* Desktop/tablet: show full sidebar */}
+      {!isCompactScreen && (
+        <FilterSidebar initial={appliedFilters ?? undefined} onApply={onFilterApply} onReset={onFilterReset} />
+      )}
 
-      {/* Main content */}
-      <main className="flex-1 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Sold Listings</h2>
-          <div className="text-sm text-gray-600">
+      <main className="flex-1 p-4 sm:p-6">
+        {/* Header */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Sold Listings</h2>
+
+            <div className="flex items-center gap-3">
+              {/* Desktop / tablet count */}
+              <div className="text-sm text-gray-600 hidden sm:block">
+                {loading ? "Loading..." : `${pageSlice.length} results`}
+              </div>
+
+              {/* Compact filter trigger */}
+              {isCompactScreen ? (
+                <div>
+                  <FilterSidebar initial={appliedFilters ?? undefined} onApply={onFilterApply} onReset={onFilterReset} />
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Mobile-only: show count under title */}
+          <div className="block sm:hidden mt-1 text-sm text-gray-600">
             {loading ? "Loading..." : `${pageSlice.length} results`}
           </div>
         </div>
 
-        <div className="space-y-4">
-          {pageSlice.length === 0 && !loading && <div className="text-gray-600">No Sold Listings found.</div>}
+        {/* Grid: 1 column on small & tablet, 2 columns on large */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {pageSlice.length === 0 && !loading && <div className="text-gray-600 col-span-1">No Sold Listings found.</div>}
 
           {[...pageSlice]
-            .sort((a, b) => (b?.listingId ?? 0) - (a?.listingId ?? 0)) // DESC by listingId
+            .sort((a, b) => (b?.listingId ?? 0) - (a?.listingId ?? 0))
             .map((p) => (
-              <Card key={p.listingId} p={p} />
+              <div key={p.listingId} className="w-full">
+                <Card p={p} />
+              </div>
             ))}
         </div>
 
-        {/* Unified pagination bar */}
+        {/* Pagination */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#faf6f3] px-4 py-3 border border-orange-100">
           <div className="text-sm text-gray-600">
             Page <span className="font-medium">{current}</span> of{" "}
@@ -474,15 +435,12 @@ const SoldListings: React.FC = () => {
             </button>
           </div>
 
-          {/* Per page selector (5/10/15) */}
+          {/* Per page selector */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Per page:</span>
             <select
               value={size}
-              onChange={(e) => {
-                setSize(Number(e.target.value));
-                setPage(0);
-              }}
+              onChange={(e) => { setSize(Number(e.target.value)); setPage(0); }}
               className="border rounded-lg px-2 py-1 text-sm bg-white"
             >
               <option value={5}>5</option>

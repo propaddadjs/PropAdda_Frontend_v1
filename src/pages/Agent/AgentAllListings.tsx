@@ -22,7 +22,7 @@ import {
 
 // const AGENT_ID = 2; 
 //ADDING FOR REBUILD
-const PAGE_SIZE_OPTIONS = [5, 8, 10, 15]; // Available sizes for per-page selector
+const PAGE_SIZE_OPTIONS = [5, 12, 10, 15]; // Available sizes for per-page selector
 
 // --- Types (Reused from Admin) ---
 interface MediaResponse { filename?: string; ord?: number; url: string; }
@@ -183,7 +183,7 @@ const AgentAllListings: React.FC = () => {
   const [rawData, setRawData] = useState<PropertyResponse[]>([]);
   const [pageSlice, setPageSlice] = useState<PropertyResponse[]>([]);
   const [page, setPage] = useState<number>(0); // 0-based index
-  const [size, setSize] = useState<number>(8); // Default page size
+  const [size, setSize] = useState<number>(12); // Default page size
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -300,7 +300,7 @@ const AgentAllListings: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Listings Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
             {pageSlice.map((p) => (
               <AgentListingCard key={p.listingId} p={p} />
             ))}

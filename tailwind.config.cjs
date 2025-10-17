@@ -15,6 +15,10 @@ module.exports = {
         buttonOrange: "#ff661f53",
         // ...colors,
       },
+      fontFamily: {
+        // Add this line
+        times: ['"Times New Roman"', 'serif'],
+      },
     },
   },
   plugins: [
