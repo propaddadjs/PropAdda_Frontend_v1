@@ -37,7 +37,7 @@ export function ProtectedRoute({ children, allow, requireApprovedKyc }: Props) {
       void refreshKyc();
     }
     // send to public KYC status page (outside agent panel)
-    return <Navigate to="/kycStatus" replace />;
+    return <Navigate to="/account/checkKycStatus" replace />;
   }
 
   return <>{children}</>;

@@ -62,6 +62,7 @@ import ShootRequests from "./pages/Admin/ShootRequests";
 import EMICalculator from "./pages/EMICalculator";
 import SoldListings from "./pages/Admin/SoldListings";
 import { ScrollToTop } from "./components/ScrollToTop";
+import KycInfo from "./pages/KycInfo";
 
 const App: React.FC = () => {
   return (
@@ -104,6 +105,7 @@ const App: React.FC = () => {
             <Route path="change-password" element={<UserChangePassword />} />
             <Route path="feedback" element={<UserFeedback />} />
             <Route path="help" element={<UserHelp />} />
+            <Route path="kycInfo" element={<KycInfo />} />
             <Route path="initiateKyc" element={<AgentKycInit />} />
             <Route path="checkKycStatus" element={<AgentKycStatus />} />
           </Route>

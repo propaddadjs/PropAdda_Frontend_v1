@@ -11,12 +11,13 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import PropertyAction from "../components/PropertyAction";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
+import sample from "../images/sample.webp";
 
 const COMPANY = {
   phone: "+91 8595511411",
   email: "sales@propadda.in",
   address: "New Delhi",
-  postalAddress: "F 5, Manish Plaza 3, Sector 10, Dwaraka, Delhi -110075",
+  postalAddress: "F 5, Manish Plaza 3, Sector 10, Dwarka, Delhi -110075",
   mapAddress: "28.59051502965873, 77.0574798424859",
 };
 
@@ -70,8 +71,8 @@ const ContactUs: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* <Header headerImage={sample} title="CONTACT US" /> */}
       <Header title="CONTACT US" />
-
       {/* Hero */}
       <motion.section
         className="bg-white border-b"

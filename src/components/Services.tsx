@@ -141,21 +141,21 @@ const Services: React.FC = () => {
     }
     if (user.role === "BUYER") {
       if (user.kycVerified === "INAPPLICABLE") {
-        navigate("/account/initiateKyc");
+        navigate("/account/kycInfo");
         return;
       }
       if (user.kycVerified === "PENDING") {
-        navigate("/kycStatus");
+        navigate("/account/checkKycStatus");
         return;
       }
-      navigate("/account/initiateKyc");
+      navigate("/account/kycInfo");
       return;
     }
     if (user.role === "AGENT" || user.role === "ADMIN") {
       navigate("/agent/postproperty");
       return;
     }
-    navigate("/account/initiateKyc");
+    navigate("/account/kycInfo");
   };
 
   return (

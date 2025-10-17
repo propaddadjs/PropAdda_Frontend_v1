@@ -246,7 +246,7 @@ const onDrop =
       const response = await api.get<AgentResponse>("/user/kycStatus");
       // Redirect immediately if INAPPLICABLE
       if (response.data.kycVerified === 'INAPPLICABLE') {
-        navigate("/account/initiateKyc", { replace: true });
+        navigate("/account/kycInfo", { replace: true });
         return;
       }
       setAgentDetails(response.data);

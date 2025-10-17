@@ -11,7 +11,7 @@ const RequireKycApproved: React.FC = () => {
   }
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!canEnterAgentPanel) return <Navigate to="/kycStatus" replace />;
+  if (!canEnterAgentPanel) return <Navigate to="/account/checkKycStatus" replace />;
 
   return <Outlet />; // render children routes
 };

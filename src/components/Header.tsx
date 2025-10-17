@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ReactDOM from "react-dom";
 import logo from "../images/logo.png";
-import headerImg from "../images/header.jpg";
+import headerImg from "../images/header.jpg"; // default fallback
 import FilterExplorerModal, { type Filters as ExploreFilters } from "./FilterExplorerModal";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";
@@ -12,9 +12,15 @@ import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
 
 type HeaderProps = {
   title?: string;
+  /**
+   * Optional image for the header hero.
+   * Pass an imported asset (e.g. `import hero from '../images/hero.jpg'`)
+   * or a string URL (absolute or relative to public).
+   */
+  headerImage?: string;
 };
 
-const Header: React.FC<HeaderProps> = ({ title }) => {
+const Header: React.FC<HeaderProps> = ({ title, headerImage }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -52,11 +58,11 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
     }
     if (user.role === "BUYER") {
       if (user.kycVerified === "INAPPLICABLE") {
-        navigate("/account/initiateKyc");
+        navigate("/account/kycInfo");
         return;
       }
       if (user.kycVerified === "PENDING") {
-        navigate("/kycStatus");
+        navigate("/account/checkKycStatus");
         return;
       }
     }
@@ -64,7 +70,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
       navigate("/agent/postproperty");
       return;
     }
-    navigate("/account/initiateKyc");
+    navigate("/account/kycInfo");
   };
 
   const avatarUrl =
@@ -80,13 +86,17 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
   const isAgent = user?.role === "AGENT";
   const isBuyer = user?.role === "BUYER";
 
+  // Use provided headerImage if present, otherwise fallback to default import
+  const bg = headerImage ?? headerImg;
+
   return (
     <header className="w-full">
       {/* Hero with background image + gradient overlay */}
       <div
         className="relative w-full h-[220px] sm:h-[300px] md:h-[400px] bg-cover bg-center"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 50%), url(${headerImg})`,
+          // keep the same gradient overlay and use the dynamic image
+          backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 50%), url('${bg}')`,
         }}
       >
         {/* Top bar */}
@@ -162,12 +172,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                         {user?.email ? <div className="text-xs text-gray-600 truncate">{user.email}</div> : null}
                       </div>
 
-                      {[
-                        ["Home", "/"],
-                        ["Manage Profile", "/account"],
-                        ["Shortlisted Properties", "/account/shortlisted"],
-                        ["Enquiries", "/account/enquiries"],
-                      ].map(([label, path]) => (
+                      {[["Home", "/"], ["Manage Profile", "/account"], ["Shortlisted Properties", "/account/shortlisted"], ["Enquiries", "/account/enquiries"]].map(([label, path]) => (
                         <button
                           key={label}
                           className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
@@ -197,7 +202,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                           className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
                           onClick={() => {
                             closeMenu();
-                            if (user.kycVerified === "INAPPLICABLE") navigate("/account/initiateKyc");
+                            if (user.kycVerified === "INAPPLICABLE") navigate("/account/kycInfo");
                             else if (user.kycVerified === "PENDING" || user.kycVerified === "REJECTED")
                               navigate("/account/checkKycStatus");
                             else navigate("/");
@@ -219,11 +224,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                         </button>
                       )}
 
-                      {[
-                        ["Change Password", "/account/change-password"],
-                        ["Feedback", "/account/feedback"],
-                        ["Help Desk", "/account/help"],
-                      ].map(([label, path]) => (
+                      {[["Change Password", "/account/change-password"], ["Feedback", "/account/feedback"], ["Help Desk", "/account/help"]].map(([label, path]) => (
                         <button
                           key={label}
                           className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
@@ -384,7 +385,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                       className="w-full text-center rounded-md px-3 py-2 hover:bg-gray-100"
                       onClick={() => {
                         setMobileDrawerOpen(false);
-                        if (user.kycVerified === "INAPPLICABLE") navigate("/account/initiateKyc");
+                        if (user.kycVerified === "INAPPLICABLE") navigate("/account/kycInfo");
                         else if (user.kycVerified === "PENDING" || user.kycVerified === "REJECTED")
                           navigate("/account/checkKycStatus");
                         else navigate("/");

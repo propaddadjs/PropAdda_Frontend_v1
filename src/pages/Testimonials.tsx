@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
@@ -9,27 +9,26 @@ import quotes from "../images/quote.png";
 
 // --- Responsive Breakpoint Hook ---
 const useBreakpoint = () => {
-    const [breakpoint, setBreakpoint] = useState('sm');
-    
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth >= 1024) {
-                setBreakpoint('lg');
-            } else if (window.innerWidth >= 768) {
-                setBreakpoint('md');
-            } else {
-                setBreakpoint('sm');
-            }
-        };
+  const [breakpoint, setBreakpoint] = useState("sm");
 
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setBreakpoint("lg");
+      } else if (window.innerWidth >= 768) {
+        setBreakpoint("md");
+      } else {
+        setBreakpoint("sm");
+      }
+    };
 
-    return breakpoint;
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return breakpoint;
 };
-
 
 type Testimonial = {
   text: string;
@@ -37,22 +36,50 @@ type Testimonial = {
   role: string;
 };
 
-const TESTIMONIALS: Testimonial[] = Array.from({ length: 6 }).map(() => ({
-  text:
-    "My experience with Propadda was excellent. The quality of the leads were superb. I never thought my property would have been sold so fast. Thank you Propadda! Even after selling the property I am flooded with enquiries.",
-  name: "Rajarajeshwar Shetty",
-  role: "Owner Brahmagiri, Udupi",
-}));
+const TESTIMONIALS: Testimonial[] = [
+  {
+    text:
+      "PropAdda has brought structure and accountability to property investments. The verified listings and ROI-driven approach reflect financial discipline and genuine transparency. It’s a trustworthy platform that blends real estate with smart investment logic.",
+    name: "Rahul",
+    role: "Chartered Accountant – Delhi, India",
+  },
+  {
+    text:
+      "PropAdda is redefining investment opportunities in sacred destinations like Vrindavan. Their blend of professionalism, devotion, and transparency makes them a trusted choice for investors and developers alike. A refreshing vision for modern India.",
+    name: "Sanathan Sharma",
+    role: "General Manager – Radisson, Vrindavan",
+  },
+  {
+    text:
+      "As a legal professional, I value PropAdda’s commitment to verified documentation and ethical dealings. Their focus on transparency, compliance, and trust sets a strong precedent for how real estate platforms should function in today’s digital age.",
+    name: "Ishika Rajput",
+    role: "Advocate – Mumbai, Maharashtra",
+  },
+  {
+    text:
+      "PropAdda’s model bridges traditional investment with modern property opportunities. The clarity of returns, verified partnerships, and investor confidence they bring is commendable. It’s an ecosystem built for genuine, long-term growth.",
+    name: "Atul Tanwar",
+    role: "Investment Banker – Kundli, Haryana",
+  },
+  {
+    text:
+      "Working with PropAdda has been a game-changer. Their marketing, presentation, and lead quality far exceed industry standards. The team’s transparency and creative approach have given BhaktiKunj remarkable visibility and investor trust.",
+    name: "Ankur Sharma",
+    role: "BhaktiKunj-Owner/Partner, Kosi Mathura, Uttar Pradesh",
+  },
+  {
+    text:
+      "PropAdda stands apart for its verified property showcasing and client-centric approach. Their professionalism and clarity in communication make them one of the most reliable names in the real estate ecosystem today.",
+    name: "Bhupendar Dhawan",
+    role: "Civil Engineer & Interior Advisor – Dwarka, India",
+  },
+];
 
 const TestimonialCard: React.FC<Testimonial> = ({ text, name, role }) => {
   return (
     <div className="bg-gradient-to-b from-orange-600 to-white border border-orange-200 shadow-sm rounded-xl px-5 py-6 text-center h-full flex flex-col">
       <div className="mb-3 mx-auto">
-        <img 
-          src={quotes} 
-          alt="Quotes" 
-          className="w-8 h-8 object-contain" 
-        />
+        <img src={quotes} alt="Quotes" className="w-8 h-8 object-contain" />
       </div>
       <p className="text-black text-sm leading-relaxed flex-grow">{text}</p>
       <div className="mt-4">
@@ -68,7 +95,8 @@ const Testimonials: React.FC = () => {
   const breakpoint = useBreakpoint();
 
   const grouped: Testimonial[][] = useMemo(() => {
-    const itemsPerSlide = breakpoint === 'lg' ? 3 : breakpoint === 'md' ? 2 : 1;
+    const itemsPerSlide =
+      breakpoint === "lg" ? 3 : breakpoint === "md" ? 2 : 1;
     const g: Testimonial[][] = [];
     for (let i = 0; i < TESTIMONIALS.length; i += itemsPerSlide) {
       g.push(TESTIMONIALS.slice(i, i + itemsPerSlide));
@@ -125,12 +153,15 @@ const Testimonials: React.FC = () => {
                 emulateTouch
                 swipeable
                 useKeyboardArrows
-                autoPlay={true} // THIS LINE IS CHANGED
+                autoPlay={true}
                 selectedItem={current}
                 onChange={(idx) => setCurrent(idx)}
               >
                 {grouped.map((group, idx) => (
-                  <div key={idx} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2 py-2">
+                  <div
+                    key={idx}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2 py-2"
+                  >
                     {group.map((t, j) => (
                       <TestimonialCard key={j} {...t} />
                     ))}

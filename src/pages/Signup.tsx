@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, Suspense, lazy, useRef, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../auth/AuthContext";
@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 
+const LazyTermsContent = lazy(() => import("../components/TermsContent"));
 const CSC_API_KEY =
   (import.meta.env.VITE_CSC_API_KEY as string) ||
   "ZXBOVkxVdmVaNjhiMHlqQm5PZXpxWmRSanlIUHB4a0hCSHBwNGRFRA==";
@@ -118,7 +119,7 @@ export default function Signup() {
       await register({
         firstName, lastName, email, phoneNumber: phone, state: stateName, city, password,
       });
-      if (wantAgent) nav("/account/initiateKyc"); else nav("/");
+      if (wantAgent) nav("/account/kycInfo"); else nav("/");
     } catch (e: any) {
       setError(e?.response?.data?.message ?? "Registration failed.");
     } finally {
@@ -274,17 +275,95 @@ export default function Signup() {
           </div>
         </div>
       </footer>
-
+      
       {showTnC && (
-        <div className="fixed inset-0 bg-black/50 grid place-items-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-5 max-w-2xl w-full animate-in fade-in-0 zoom-in-95 duration-200">
-            <h2 className="text-lg font-semibold mb-3">Terms & Conditions</h2>
-            <div className="h-64 overflow-auto text-sm space-y-2 pr-2">
-              <p>By creating an account you agree to …</p>
+        <div
+          className="fixed inset-0 bg-black/50 z-50 grid place-items-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Terms and Conditions"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setShowTnC(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-3xl w-full mx-auto shadow-lg animate-in fade-in-0"
+            role="document"
+          >
+            {/* Header: title + search + actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border-b">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-semibold">Terms &amp; Conditions</h2>
+              </div>
+
+              <div className="flex-1 sm:flex-none max-w-full">
+                <input
+                  type="text"
+                  placeholder="Search terms..."
+                  className="w-full sm:w-72 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                  onChange={(e) => {
+                    const q = e.target.value.toLowerCase();
+                    const container = document.getElementById("modal-terms-content");
+                    if (!container) return;
+                    const blocks = Array.from(container.querySelectorAll("p, li, h1, h2, h3"));
+                    blocks.forEach((b) => {
+                      const text = (b.textContent || "").toLowerCase();
+                      (b as HTMLElement).style.display = q === "" || text.includes(q) ? "" : "none";
+                    });
+                  }}
+                  aria-label="Search terms"
+                />
+              </div>
+
+              <div className="ml-auto flex items-center gap-2">
+                {/* Agree checkbox visible in header so users can accept quickly */}
+                <label className="flex items-center gap-2 text-sm mr-2">
+                  <input
+                    type="checkbox"
+                    className="accent-orange-600"
+                    checked={agree}
+                    onChange={() => setAgree(a => !a)}
+                    aria-label="I agree to terms"
+                  />
+                  <span>Agree</span>
+                </label>
+
+                <button
+                  type="button"
+                  className="px-3 py-1 rounded border hover:bg-gray-50 text-sm"
+                  onClick={() => setShowTnC(false)}
+                  aria-label="Close terms"
+                  ref={(btn) => {
+                    if (btn) btn.focus();
+                  }}
+                >
+                  Close
+                </button>
+
+                <button
+                  type="button"
+                  className="px-3 py-1 rounded bg-orange-500 text-white text-sm disabled:opacity-60 ml-1"
+                  disabled={!agree}
+                  onClick={() => {
+                    // mark agreed and close
+                    if (!agree) setAgree(true);
+                    setShowTnC(false);
+                  }}
+                  aria-disabled={!agree}
+                >
+                  Accept
+                </button>
+              </div>
             </div>
-            <div className="mt-4 flex justify-end">
-              <button className="px-4 py-2 rounded-lg border hover:bg-gray-50" onClick={() => setShowTnC(false)}>Close</button>
+
+            {/* Content area: slightly shorter height for better balance */}
+            <div id="modal-terms-content" className="p-4 max-h-[60vh] overflow-auto text-sm">
+              <Suspense fallback={<div className="py-8 text-center text-sm text-gray-500">Loading terms…</div>}>
+                <LazyTermsContent />
+              </Suspense>
             </div>
+
+            {/* NOTE: bottom action area removed for cleaner appearance */}
           </div>
         </div>
       )}

@@ -20,7 +20,7 @@ const ApprovedAgentRoute: React.FC = () => {
   // must be agent AND approved
   if (user?.role !== 'AGENT' || user?.kycVerified !== 'APPROVED') {
     // send users to the KYC status page (outside agent panel)
-    return <Navigate to="/kycStatus" replace />;
+    return <Navigate to="/account/checkKycStatus" replace />;
   }
 
   return <Outlet />;
