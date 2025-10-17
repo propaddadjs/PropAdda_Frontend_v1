@@ -16,7 +16,7 @@ const COMPANY = {
   phone: "+91 8595511411",
   email: "sales@propadda.in",
   address: "New Delhi",
-  postalAddress: "F5, Manish Plaza 3, Plot No. 12, Sector 10, Dwarka, New Delhi",
+  postalAddress: "F 5, Manish Plaza 3, Sector 10, Dwaraka, Delhi -110075",
   mapAddress: "28.59051502965873, 77.0574798424859",
 };
 

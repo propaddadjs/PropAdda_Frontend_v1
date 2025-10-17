@@ -27,7 +27,7 @@ const PrivacyPolicy: React.FC = () => {
           <h1 className="font-bold font-times">PropAdda — Privacy Policy</h1>
           <p className="lead font-times">Effective Date: October 2025</p>
           <p className=" font-times">
-          PropAdda (“Company”, “we”, “our”, or “us”) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, store, and protect your information when you access our website <strong>www.propadda.in</strong> (the “Platform”).
+          PropAdda (“Company”, “we”, “our”, or “us”) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, store, and protect your information when you access our website <a className="hover:text-themeOrange font-times font-bold" href="www.propadda.in">www.propadda.in</a> (the “Platform”).
           </p>
 
           <section>
@@ -114,7 +114,7 @@ const PrivacyPolicy: React.FC = () => {
               <br />
               Email: <a className="hover:text-themeOrange font-times" href="mailto:sales@propadda.in">sales@propadda.in</a>
               <br />
-              Address: 43, Mansa Ram Park, Dwarka Mor, Delhi 110059
+              Address: F 5, Manish Plaza 3, Sector 10, Dwaraka, Delhi -110075
             </p>
           </section>
 
@@ -158,7 +158,7 @@ const PrivacyPolicy: React.FC = () => {
               <br />
               Email: <a className="hover:text-themeOrange font-times" href="mailto:sales@propadda.in">sales@propadda.in</a>
               <br />
-              Address: 43, Mansa Ram Park, Dwarka Mor, Delhi 110059
+              Address: F 5, Manish Plaza 3, Sector 10, Dwaraka, Delhi -110075
             </p>
           </section>
         </div>

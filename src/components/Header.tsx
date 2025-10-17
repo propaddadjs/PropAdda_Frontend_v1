@@ -28,7 +28,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
 
   const toggleMenu = () => setMenuOpen((v) => !v);
   const closeMenu = () => setMenuOpen(false);
-
   const openFilters = () => setModalOpen(true);
 
   const handleExplore = async (filters: ExploreFilters) => {
@@ -98,10 +97,8 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               <img src={logo} alt="PropAdda Logo" className="h-12 w-auto sm:h-12 md:h-16 object-contain" />
             </Link>
 
-            {/* vertical separator for md+ */}
             <div className="hidden md:block h-16 w-px bg-gray-200" />
 
-            {/* Location selector: visible on md and up; hidden on small (moved to drawer) */}
             <button
               onClick={openFilters}
               className="hidden md:inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm bg-transparent hover:bg-white/5"
@@ -114,7 +111,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
 
           {/* RIGHT: desktop controls + mobile drawer toggle */}
           <div className="flex items-center gap-3">
-            {/* Post Property: visible on md+ in top bar; hidden on small (moved to drawer) */}
             <Link
               to="/postproperty"
               onClick={onPostProperty}
@@ -124,7 +120,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               <span className="ml-1 rounded-full bg-yellow-300 px-1.5 py-1 text-xs text-gray-600">FREE</span>
             </Link>
 
-            {/* Desktop auth area: avatar + dropdown */}
             {!user ? (
               <Link to="/login" className="hidden md:inline-flex">
                 <span className="inline-flex items-center rounded-3xl px-3 py-1 text-md font-semibold text-white bg-orange-500">
@@ -136,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                 <button
                   ref={buttonRef}
                   className="inline-flex items-center gap-2"
-                  onClick={() => setMenuOpen((v) => !v)}
+                  onClick={toggleMenu}
                   aria-haspopup="menu"
                   aria-expanded={menuOpen}
                 >
@@ -151,7 +146,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                   <ChevronDown className="w-4 h-4 text-gray-700" />
                 </button>
 
-                {/* Desktop portal dropdown */}
                 {menuOpen && buttonRef.current &&
                   ReactDOM.createPortal(
                     <div
@@ -168,47 +162,25 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                         {user?.email ? <div className="text-xs text-gray-600 truncate">{user.email}</div> : null}
                       </div>
 
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
-                        onClick={() => {
-                          closeMenu();
-                          navigate("/");
-                        }}
-                      >
-                        Home
-                      </button>
+                      {[
+                        ["Home", "/"],
+                        ["Manage Profile", "/account"],
+                        ["Shortlisted Properties", "/account/shortlisted"],
+                        ["Enquiries", "/account/enquiries"],
+                      ].map(([label, path]) => (
+                        <button
+                          key={label}
+                          className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
+                          onClick={() => {
+                            closeMenu();
+                            navigate(path);
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
 
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
-                        onClick={() => {
-                          closeMenu();
-                          navigate("/account");
-                        }}
-                      >
-                        Manage Profile
-                      </button>
-
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
-                        onClick={() => {
-                          closeMenu();
-                          navigate("/account/shortlisted");
-                        }}
-                      >
-                        Shortlisted Properties
-                      </button>
-
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
-                        onClick={() => {
-                          closeMenu();
-                          navigate("/account/enquiries");
-                        }}
-                      >
-                        Enquiries
-                      </button>
-
-                      {(isAgent || isAdmin) ? (
+                      {(isAgent || isAdmin) && (
                         <button
                           className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
                           onClick={() => {
@@ -218,19 +190,22 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                         >
                           Agent Panel
                         </button>
-                      ) : isBuyer ? (
+                      )}
+
+                      {isBuyer && (
                         <button
                           className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
                           onClick={() => {
                             closeMenu();
                             if (user.kycVerified === "INAPPLICABLE") navigate("/account/initiateKyc");
-                            else if (user.kycVerified === "PENDING" || user.kycVerified === "REJECTED") navigate("/account/checkKycStatus");
+                            else if (user.kycVerified === "PENDING" || user.kycVerified === "REJECTED")
+                              navigate("/account/checkKycStatus");
                             else navigate("/");
                           }}
                         >
                           Become an Agent
                         </button>
-                      ) : null}
+                      )}
 
                       {isAdmin && (
                         <button
@@ -244,35 +219,22 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                         </button>
                       )}
 
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
-                        onClick={() => {
-                          closeMenu();
-                          navigate("/account/change-password");
-                        }}
-                      >
-                        Change Password
-                      </button>
-
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
-                        onClick={() => {
-                          closeMenu();
-                          navigate("/account/feedback");
-                        }}
-                      >
-                        Feedback
-                      </button>
-
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
-                        onClick={() => {
-                          closeMenu();
-                          navigate("/account/help");
-                        }}
-                      >
-                        Help Desk
-                      </button>
+                      {[
+                        ["Change Password", "/account/change-password"],
+                        ["Feedback", "/account/feedback"],
+                        ["Help Desk", "/account/help"],
+                      ].map(([label, path]) => (
+                        <button
+                          key={label}
+                          className="block w-full text-left px-4 py-2 hover:bg-orange-300 text-sm"
+                          onClick={() => {
+                            closeMenu();
+                            navigate(path);
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
 
                       <button
                         className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 text-sm"
@@ -290,7 +252,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               </div>
             )}
 
-            {/* MOBILE: drawer toggle (visible on small screens only) */}
             <button
               onClick={() => setMobileDrawerOpen(true)}
               className="md:hidden inline-flex items-center rounded-md p-2 bg-orange-500 text-white"
@@ -301,7 +262,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
           </div>
         </div>
 
-        {/* Centered title */}
         {title && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
             <h1
@@ -314,7 +274,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
         )}
       </div>
 
-      {/* MOBILE DRAWER / SLIDE-OVER */}
+      {/* ✅ SCROLLABLE MOBILE DRAWER */}
       {mobileDrawerOpen && (
         <div
           className="fixed inset-0 z-50 flex"
@@ -323,11 +283,10 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
           onClick={() => setMobileDrawerOpen(false)}
         >
           <div className="fixed inset-0 bg-black/40" />
-          {/* NOTE: aside now has max-h-screen + overflow-y-auto so it can scroll */}
           <aside
             className="relative ml-auto w-80 max-w-full bg-white p-4 shadow-xl max-h-screen overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
-            style={{ WebkitOverflowScrolling: "touch" }} // iOS momentum scrolling
+            style={{ WebkitOverflowScrolling: "touch" }}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -338,8 +297,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               </button>
             </div>
 
-            <div className="space-y-3">
-              {/* Location selector moved into drawer */}
+            <div className="space-y-3 pb-8">
               <button
                 onClick={() => {
                   openFilters();
@@ -350,7 +308,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                 Choose Location
               </button>
 
-              {/* Post Property moved into drawer */}
               <Link
                 to="/postproperty"
                 onClick={(e) => {
@@ -363,7 +320,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                 <span className="ml-2 rounded-full bg-yellow-300 px-2 py-1 text-xs text-gray-600">FREE</span>
               </Link>
 
-              {/* Auth / Account */}
               {!user ? (
                 <Link
                   to="/login"
@@ -375,7 +331,9 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               ) : (
                 <>
                   <div className="border-t pt-3">
-                    <div className="text-sm font-semibold text-center text-orange-600">{fullName || displayHandle}</div>
+                    <div className="text-sm font-semibold text-center text-orange-600">
+                      {fullName || displayHandle}
+                    </div>
                     {user?.email && <div className="text-xs text-center text-gray-600 truncate">{user.email}</div>}
                   </div>
 
@@ -409,7 +367,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                     Enquiries
                   </button>
 
-                  {(isAgent || isAdmin) ? (
+                  {(isAgent || isAdmin) && (
                     <button
                       className="w-full text-center rounded-md px-3 py-2 hover:bg-gray-100"
                       onClick={() => {
@@ -419,19 +377,22 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
                     >
                       Agent Panel
                     </button>
-                  ) : isBuyer ? (
+                  )}
+
+                  {isBuyer && (
                     <button
                       className="w-full text-center rounded-md px-3 py-2 hover:bg-gray-100"
                       onClick={() => {
                         setMobileDrawerOpen(false);
                         if (user.kycVerified === "INAPPLICABLE") navigate("/account/initiateKyc");
-                        else if (user.kycVerified === "PENDING" || user.kycVerified === "REJECTED") navigate("/account/checkKycStatus");
+                        else if (user.kycVerified === "PENDING" || user.kycVerified === "REJECTED")
+                          navigate("/account/checkKycStatus");
                         else navigate("/");
                       }}
                     >
                       Become an Agent
                     </button>
-                  ) : null}
+                  )}
 
                   {isAdmin && (
                     <button
@@ -489,6 +450,43 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               )}
             </div>
           </aside>
+        </div>
+      )}
+
+      <FilterExplorerModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onExplore={handleExplore}
+        initial={{
+          category: "All",
+          preference: "All",
+          propertyTypes: [],
+        }}
+      />
+
+      {loginPromptOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setLoginPromptOpen(false)}
+        >
+          <div
+            className="w-[90%] max-w-sm rounded-lg bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-gray-900">You are not logged in</h3>
+            <p className="mt-1 text-sm text-gray-600">Log in or sign up to post your property.</p>
+            <div className="mt-4 flex justify-end">
+              <button
+                className="inline-flex items-center rounded-md bg-orange-500 px-3 py-1.5 text-sm font-medium text-white hover:opacity-95"
+                onClick={() => {
+                  setLoginPromptOpen(false);
+                  navigate("/login");
+                }}
+              >
+                Log in / Sign up
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </header>

@@ -28,7 +28,7 @@ const TermsAndConditions: React.FC = () => {
           <h1 className="font-bold mb-6 font-times ">PropAdda Terms &amp; Conditions</h1>
           <p className="lead font-times ">Please read this document carefully. By accessing or using PropAdda, you agree to be bound by the terms and conditions set forth below.</p>
           <p className="font-times ">
-          Questions? Contact <a className="hover:text-themeOrange" href="mailto:sales@propadda.com">sales@propadda.com</a>.
+          Questions? Contact <a className="hover:text-themeOrange font-times" href="mailto:sales@propadda.com">sales@propadda.in</a>.
           </p>
           </header>
 
@@ -38,7 +38,7 @@ const TermsAndConditions: React.FC = () => {
             <p className="mb-4 font-times ">
               This website <strong>propadda.in</strong>, including subdomains, mobile and smart device applications,
               and APIs (collectively “PropAdda”) is owned, hosted, and operated by Prop Adda India Pvt Ltd, incorporated
-              in India under applicable law, having its registered office at 43, Mansa Ram Park, Dwarka Mor, Delhi 110059.
+              in India under applicable law, having its registered office at F 5, Manish Plaza 3, Sector 10, Dwaraka, Delhi -110075.
               These terms and conditions, privacy policy, and community guidelines constitute a legally binding agreement
               between PropAdda and the User (the “Agreement”).
             </p>
@@ -205,7 +205,7 @@ const TermsAndConditions: React.FC = () => {
             </ul>
 
             <p className=" font-times">
-              Users with grievances may contact PropAdda at <a className="hover:text-themeOrange" href="mailto:sales@propadda.in">sales@propadda.in</a>. Complaints will be addressed promptly according to established timelines.
+              Users with grievances may contact PropAdda at <a className="hover:text-themeOrange font-times" href="mailto:sales@propadda.in">sales@propadda.in</a>. Complaints will be addressed promptly according to established timelines.
               Disputes will be governed by the laws of India and under the jurisdiction of courts located at the company’s registered office.
             </p>
 
