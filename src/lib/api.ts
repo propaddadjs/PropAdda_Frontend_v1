@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 export const api = axios.create({
-  baseURL: API_BASE ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app",
+  baseURL: API_BASE ?? "https://api.propadda.in",
   withCredentials: true, // <= CRITICAL: send cookies (httpOnly refresh cookie)
 });
 
