@@ -11,6 +11,7 @@ import PropertyAction from "../components/PropertyAction";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { PieChartIcon } from "lucide-react";
+import headerImg from "../images/Banners/EMI-calculator.png";
 
 export default function EMICalculator(): React.ReactElement {
   // Constraints
@@ -71,7 +72,7 @@ export default function EMICalculator(): React.ReactElement {
 
   return (
     <div>
-        <Header title="EMI CALCULATOR" />
+        <Header headerImage={headerImg} />
     
     <div className="min-h-screen bg-white p-6 sm:p-8 lg:p-12">
         

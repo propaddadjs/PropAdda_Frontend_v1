@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import PropertyAction from "../components/PropertyAction";
 import Footer from "../components/Footer";
+import headerImg from "../images/Banners/privacy-policy.png";
 
 const PrivacyPolicy: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <Header title="PRIVACY POLICY" />
+      <Header headerImage={headerImg} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="bg-white border-b">

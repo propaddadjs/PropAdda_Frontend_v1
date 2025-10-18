@@ -2,6 +2,7 @@ import React from "react";
 import { Phone, Mail, MapPin, Home, Shield, MessageSquare } from "lucide-react";
 // Re-importing the original logo images
 import facebookLogo from "../images/facebook.png";
+import headerImg from "../images/Banners/contact-us.png";
 import twitterLogo from "../images/twitter.png";
 import instagramLogo from "../images/instagram.png";
 import linkedinLogo from "../images/linkedin.png";
@@ -72,7 +73,7 @@ const ContactUs: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* <Header headerImage={sample} title="CONTACT US" /> */}
-      <Header title="CONTACT US" />
+      <Header headerImage={headerImg}/>
       {/* Hero */}
       <motion.section
         className="bg-white border-b"

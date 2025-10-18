@@ -1,7 +1,7 @@
 import React, { useState, type DragEvent, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
-
+import headerImg from "../images/Banners/Initiate-KYC.png";
 // Header + Footer you already have
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -77,7 +77,7 @@ export default function AgentKycInit() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header title="INITIATE KYC" />
+      <Header headerImage={headerImg} />
 
       {/* Page intro band - NOW RESPONSIVE */}
       <section className="bg-white border-b">

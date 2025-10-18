@@ -42,6 +42,7 @@ import {
 import Footer from "../components/Footer";
 import PropertyAction from "../components/PropertyAction";
 import Header from "../components/Header";
+import headerImg from "../images/Banners/single-property.png";
 
 /* ===================== Types (match your backend) ===================== */
 type MediaResponse = { url?: string; filename?: string; ord?: number };
@@ -770,7 +771,7 @@ const PropertyDetailsPage: React.FC = () => {
   /* ---------------- Render ---------------- */
   return (
     <div className="min-h-screen bg-orange-50">
-      <Header />
+      <Header headerImage={headerImg}/>
       <div className="border-b bg-orange-100">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="flex flex-col gap-3">

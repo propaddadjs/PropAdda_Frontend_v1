@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import Header from "../components/Header";
 import faqicon from "../images/icon4.png";
 import { ChevronDown } from "lucide-react";
+import headerImg from "../images/Banners/FAQ.png";
 import { motion, useReducedMotion, type Variants, AnimatePresence } from "framer-motion";
 
 type FaqItem = {
@@ -85,7 +86,7 @@ const FAQ: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header title="FAQ's" />
+      <Header headerImage={headerImg} />
 
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="bg-white">

@@ -10,11 +10,12 @@ import CityRent from "../components/CityRent";
 import PropertyAction from "../components/PropertyAction";
 import Footer from "../components/Footer";
 import KycStatusCTA from "../components/KycStatusCTA";
+import headerImg from "../images/Banners/Homepage.png";
 
 const Home: React.FC = () => {
   return (
     <>
-      <Header />
+      <Header headerImage={headerImg}/>
       {/* <KycStatusCTA /> */}
       <Hero />
       <PropertySection />

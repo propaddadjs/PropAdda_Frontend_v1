@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import PropertyAction from "../components/PropertyAction";
 import Footer from "../components/Footer";
 import quotes from "../images/quote.png";
+import headerImg from "../images/Banners/testimonials.png";
 
 // --- Responsive Breakpoint Hook ---
 const useBreakpoint = () => {
@@ -120,7 +121,7 @@ const Testimonials: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header title="TESTIMONIALS" />
+      <Header headerImage={headerImg} />
 
       <nav aria-label="Breadcrumb" className="bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 text-sm">

@@ -19,6 +19,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import PropertyAction from "../components/PropertyAction";
+import headerImg from "../images/Banners/Enquiries.png"
 
 /* ----------------------- Types (match your backend) ----------------------- */
 export type MediaResponse = {
@@ -393,7 +394,7 @@ const BuyerEnquiriesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="YOUR ENQUIRIES" />
+      <Header headerImage={headerImg} />
 
       {/* Page header */}
       <div className="bg-white border-b">

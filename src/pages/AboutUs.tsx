@@ -1,5 +1,6 @@
 import React from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
+import headerImg from "../images/Banners/about-us.png";
 import ribbon from "../images/ribbon.png";
 import icon1 from "../images/icon1.png";
 import icon2 from "../images/icon2.png";
@@ -10,6 +11,9 @@ import img3 from "../images/img_5.png";
 import img4 from "../images/img_5.png";
 import handshake from "../images/img_3.png";
 import handshakeOverlay from "../images/img_4.png";
+import aboutus1 from "../images/aboutus1.png";
+import aboutus2 from "../images/aboutus2.png";
+import aboutus3 from "../images/aboutus3.png";
 import bannerBg from "../images/banner.png";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
@@ -142,7 +146,7 @@ export default function AboutUs() {
 
   return (
     <div>
-      <Header title="ABOUT US" />
+      <Header  headerImage={headerImg}/>
       <Breadcrumb items={[{ label: "Home" }, { label: "About Us" }]} />
 
       <main>
@@ -195,18 +199,48 @@ export default function AboutUs() {
             </motion.div>
 
             {/* Images block */}
-            <motion.div
+            {/* <motion.div
               className="mt-24 relative"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.20 }}
               variants={sectionVar}
             >
-              <motion.img src={handshake} alt="handshake" className="w-full rounded-2xl lg:w-[70%]" variants={fadeVar} />
+              <motion.img src={aboutus2} alt="aboutus" className="w-full rounded-2xl lg:w-[70%]" variants={fadeVar} />
               <motion.img
-                src={handshakeOverlay}
-                alt="house-hands"
+                src={aboutus1}
+                alt=""
                 className="w-3/4 rounded-[50px] bg-white absolute -bottom-16 left-1/2 -translate-x-1/2 lg:left-auto lg:right-0 lg:bottom-[100px] lg:w-[500px] lg:-translate-x-0"
+                variants={overlayVar}
+              />
+            </motion.div> */}
+            {/* Images block */}
+            <motion.div
+              className="mt-24 relative flex flex-col items-center lg:block"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={sectionVar}
+            >
+              {/* Background/main image */}
+              <motion.img
+                src={aboutus2}
+                alt="aboutus"
+                className="w-[85%] rounded-2xl lg:w-[70%]"
+                variants={fadeVar}
+              />
+
+              {/* Overlay image */}
+              <motion.img
+                src={aboutus1}
+                alt=""
+                className="
+                  w-[70%] rounded-[40px] bg-white 
+                  mt-[-40px]                /* slightly overlap on mobile */
+                  lg:mt-0 lg:w-[500px] 
+                  lg:absolute lg:-bottom-[100px] lg:right-0
+                  lg:-translate-x-0
+                "
                 variants={overlayVar}
               />
             </motion.div>
@@ -244,7 +278,7 @@ export default function AboutUs() {
 
         {/* Banner - animate when it scrolls into view */}
         <motion.section
-          className="mt-14 mb-10 bg-gray-700 bg-cover bg-center py-24 px-5 text-center text-white sm:py-36"
+          className="mt:14 lg:mt-36 mb-10 bg-gray-700 bg-cover bg-center py-24 px-5 text-center text-white sm:py-36"
           style={{ backgroundImage: `url(${bannerBg})` }}
           initial="hidden"
           whileInView="visible"

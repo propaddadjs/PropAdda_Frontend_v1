@@ -4,12 +4,13 @@ import Header from "../components/Header";
 import PropertyAction from "../components/PropertyAction";
 import Footer from "../components/Footer";
 import TermsContent from "../components/TermsContent";
+import headerImg from "../images/Banners/t&c.png"
 
 const TermsAndConditions: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <Header title="TERMS & CONDITIONS" />
+      <Header headerImage={headerImg} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="bg-white border-b">

@@ -6,6 +6,7 @@ import FilterSidebarBuyer, { type Filters as BuyerFilters } from "../components/
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NoPropertyFound from "../images/NoPropertyfound.png";
+import headerImg from "../images/Banners/explore-properties.png";
 
 // Lucide icons
 import {
@@ -563,7 +564,7 @@ const FilteredPropertiesPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Site Header with title */}
       <div>
-        <Header title="EXPLORE PROPERTIES" />
+        <Header headerImage={headerImg} />
       </div>
 
       {/* Page Header

@@ -18,6 +18,7 @@ import kyc4 from "../images/kycInfo4.png";
 import kyc5 from "../images/kycInfo5.png";
 import kyc6 from "../images/kycInfo6.png";
 import Header from "../components/Header";
+import headerImg from "../images/Banners/property-onboarding.png";
 import PropertyAction from "../components/PropertyAction";
 import Footer from "../components/Footer";
 
@@ -90,7 +91,7 @@ export default function KycInfo(): React.ReactNode {
 
   return (
     <main className="w-full text-gray-800">
-      <Header title="POST PROPERTY" />
+      <Header headerImage={headerImg}/>
       {/* HERO: Start Posting Properties with a Verified Account */}
       <section className="w-full bg-white">
         <div

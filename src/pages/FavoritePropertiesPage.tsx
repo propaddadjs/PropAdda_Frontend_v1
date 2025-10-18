@@ -19,6 +19,7 @@ import {
   Heart,
 } from "lucide-react";
 import PropertyAction from "../components/PropertyAction";
+import headerImg from "../images/Banners/shortlisted-properties.png";
 
 /* ----------------------- Types (match your backend) ----------------------- */
 export type MediaResponse = {
@@ -395,7 +396,7 @@ const FavoritePropertiesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="SHORTLISTED PROPERTIES" />
+      <Header headerImage={headerImg} />
 
       {/* Page header */}
       <div className="bg-white border-b">

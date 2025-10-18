@@ -8,6 +8,7 @@ import {
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import PropertyAction from '../components/PropertyAction';
+import headerImg from "../images/Banners/manage-profiles.png"
 
 /* ---------------- Types ---------------- */
 interface UserResponse {
@@ -212,7 +213,7 @@ const UserProfile: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header title="MANAGE PROFILE" />
+        <Header headerImage={headerImg} />
         <div className="mx-auto max-w-5xl px-4 py-10">
           <div className="animate-pulse space-y-4">
             <div className="h-8 w-64 bg-gray-200 rounded" />
@@ -233,7 +234,7 @@ const UserProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="MANAGE PROFILE" />
+      <Header headerImage={headerImg}/>
 
       <div className="max-w-5xl mx-auto p-4 md:p-8">
         <h2 className="w-full text-center md:text-left text-3xl md:text-3xl font-bold text-gray-800 mb-6 flex items-center justify-center md:justify-start gap-2">
