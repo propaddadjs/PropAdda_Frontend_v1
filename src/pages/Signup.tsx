@@ -187,7 +187,7 @@ export default function Signup() {
           <section className="hidden lg:flex flex-col justify-top mt-16">
             <div className="flex flex-col items-center"><img src={logo} alt="PropAdda" className="max-h-56 max-w-56 mb-6 opacity-90 transition hover:opacity-100" /></div>
             <h2 className="text-2xl font-extrabold leading-tight mt-4 mb-4">              
-              <span className="text-themeOrange">BHAARAT </span>
+              <span className="text-themeOrange">BHARAT </span>
               <span className="text-green-700">KA APNA PROPERTY ADDA</span> 
             </h2>
             <div className="mt-6 grid grid-cols-3 gap-4 text-sm">

@@ -95,7 +95,7 @@ const ContactUs: React.FC = () => {
               className="mt-3 text-3xl md:text-3xl font-bold text-gray-900 leading-tight"
               variants={cardVar}
             >
-              <motion.span className="text-themeOrange" variants={cardVar}>BHAARAT </motion.span>
+              <motion.span className="text-themeOrange" variants={cardVar}>BHARAT </motion.span>
               <motion.span className="text-green-700" variants={cardVar}>KA APNA PROPERTY ADDA</motion.span>
             </motion.h1>
 

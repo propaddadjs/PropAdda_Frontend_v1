@@ -175,7 +175,7 @@ const Services: React.FC = () => {
               <IndianRupee className="h-4 w-4 text-orange-500" /> BUY A HOME
             </h4>
             <h3 className="mt-2 text-2xl font-bold text-gray-800">Find, Buy & Own Your Dream Home</h3>
-            <p className="mt-2 text-gray-600">Explore from Apartments, land, builder floors, villas and more</p>
+            <p className="mt-2 text-gray-600">Explore from Apartments, Land, Builder Floors, Villas and more</p>
             <button
               onClick={openBuying}
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-orange-600 hover:translate-x-0.5"
@@ -195,7 +195,7 @@ const Services: React.FC = () => {
               <Home className="h-4 w-4 text-orange-500" /> RENT A HOME
             </h4>
             <h3 className="mt-2 text-2xl font-bold text-gray-800">Rental Homes for Everyone</h3>
-            <p className="mt-2 text-gray-600">Explore from Apartments, builder floors, villas and more</p>
+            <p className="mt-2 text-gray-600">Explore from Apartments, Builder Floors, Villas and More</p>
             <button
               onClick={openRenting}
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-orange-600 hover:translate-x-0.5"

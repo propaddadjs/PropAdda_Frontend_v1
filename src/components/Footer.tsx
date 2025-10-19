@@ -125,7 +125,7 @@ const Footer: React.FC = () => {
               variants={brandVariants}
             />
             <motion.h4 className="text-xl font-light text-gray-800" variants={brandVariants}>
-              <span className="text-themeOrange">BHAARAT </span>
+              <span className="text-themeOrange">BHARAT </span>
               <span className="text-green-700">KA <br />APNA PROPERTY <br />ADDA</span>
             </motion.h4>
             <motion.div variants={brandVariants} className="mt-4">

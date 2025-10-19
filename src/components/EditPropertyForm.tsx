@@ -1,5 +1,5 @@
 // src/components/EditPropertyForm.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AddressSelector from "./AddressSelector";
 import MediaUploader, { type SavedMeta } from "./MediaUploader";
@@ -189,6 +189,8 @@ type EditPropertyFormProps = {
 
 // ---------- Utils ----------
 function numberToIndianWords(amount: number): string {
+  if (!Number.isFinite(amount) || amount <= 0) return "Zero";
+
   const units = [
     "",
     "One",
@@ -213,31 +215,45 @@ function numberToIndianWords(amount: number): string {
   ];
   const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
 
-  const getTwoDigitWords = (num: number): string => {
-    if (num < 20) return units[num];
-    const ten = Math.floor(num / 10);
-    const unit = num % 10;
-    return `${tens[ten]}${unit ? " " + units[unit] : ""}`;
+  const twoDigit = (n: number) => {
+    if (n < 20) return units[n];
+    const t = Math.floor(n / 10);
+    const u = n % 10;
+    return tens[t] + (u ? " " + units[u] : "");
   };
 
-  const recurse = (n: number): string => numberToIndianWords(n);
+  const threeDigit = (n: number) => {
+    const h = Math.floor(n / 100);
+    const rem = n % 100;
+    return (h ? units[h] + " Hundred" + (rem ? " " : "") : "") + (rem ? twoDigit(rem) : "");
+  };
 
   const parts: string[] = [];
-  const crore = Math.floor(amount / 1_00_00_000);
-  amount %= 1_00_00_000;
-  const lakh = Math.floor(amount / 1_00_000);
-  amount %= 1_00_000;
-  const thousand = Math.floor(amount / 1_000);
-  amount %= 1_000;
-  const hundred = Math.floor(amount / 100);
-  const remainder = amount % 100;
+  let n = Math.floor(amount);
 
-  if (crore > 0) parts.push(`${recurse(crore)} Crore`);
-  if (lakh > 0) parts.push(`${recurse(lakh)} Lakh`);
-  if (thousand > 0) parts.push(`${recurse(thousand)} Thousand`);
-  if (hundred > 0) parts.push(`${recurse(hundred)} Hundred`);
-  if (remainder > 0) parts.push(getTwoDigitWords(remainder));
-  return parts.join(" ") || "Zero";
+  const crore = Math.floor(n / 10000000); // 1 crore = 1e7 (10,000,000)
+  if (crore) {
+    parts.push((crore < 100 ? twoDigit(crore) : threeDigit(crore)) + " Crore");
+    n = n % 10000000;
+  }
+
+  const lakh = Math.floor(n / 100000);
+  if (lakh) {
+    parts.push((lakh < 100 ? twoDigit(lakh) : threeDigit(lakh)) + " Lakh");
+    n = n % 100000;
+  }
+
+  const thousand = Math.floor(n / 1000);
+  if (thousand) {
+    parts.push((thousand < 100 ? twoDigit(thousand) : threeDigit(thousand)) + " Thousand");
+    n = n % 1000;
+  }
+
+  if (n) {
+    parts.push(threeDigit(n));
+  }
+
+  return parts.join(" ").trim() || "Zero";
 }
 
 // ---------- Component ----------
@@ -304,10 +320,14 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
     "By 2032",
   ] as const;
 
-  const onMediaChanged = (meta: SavedMeta[], files?: FilesPayload) => {
+  // const onMediaChanged = (meta: SavedMeta[], files?: FilesPayload) => {
+  //   setMediaMeta(meta || []);
+  //   if (files) setMediaFiles(files);
+  // };
+    const onMediaChanged = useCallback((meta: SavedMeta[], files?: FilesPayload) => {
     setMediaMeta(meta || []);
     if (files) setMediaFiles(files);
-  };
+  }, []);
 
   const getFloorOptions = (totalStr: string) => {
     const total = Math.max(0, Math.min(100, Number(totalStr || 0)));
@@ -379,34 +399,65 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
   }) => setFormData((prev) => ({ ...prev, ...changes }));
 
   useEffect(() => {
-    const total = Number(totalFloorsInput || 0);
-    if (showFloorsUI) {
-      if (formData.floor !== undefined && (formData.floor as number) > total) {
-        setFormData((prev) => ({ ...prev, floor: total }));
+    const total = Math.max(0, Number(totalFloorsInput || 0));
+
+    if (!showFloorsUI) return;
+
+    setFormData((prev) => {
+      // If nothing to change, return previous object (no state update)
+      const newTotalFloors = Number(total || 0);
+      let changed = false;
+      const next: PropertyFormData = { ...prev };
+
+      if (prev.totalFloors !== newTotalFloors) {
+        next.totalFloors = newTotalFloors;
+        changed = true;
       }
-      setFormData((prev) => ({ ...prev, totalFloors: Number(totalFloorsInput || 0) }));
-    }
+
+      // If current floor is greater than new total, clamp it
+      if (typeof prev.floor === "number" && prev.floor > newTotalFloors) {
+        next.floor = newTotalFloors;
+        changed = true;
+      }
+
+      return changed ? next : prev;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalFloorsInput, showFloorsUI]);
 
   useEffect(() => {
-    if (isSell) {
-      setFormData((prev) => ({ ...prev, lockIn: undefined, yearlyIncrease: undefined }));
-    }
+    if (!isSell) return;
+
+    setFormData((prev) => {
+      // Only update if these fields are not already undefined
+      if (prev.lockIn === undefined && prev.yearlyIncrease === undefined) return prev;
+      return { ...prev, lockIn: undefined, yearlyIncrease: undefined };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSell]);
 
   useEffect(() => {
-    if (isPlot) {
-      setFormData((prev) => ({
+    if (!isPlot) return;
+
+    setFormData((prev) => {
+      const shouldChange =
+        prev.totalFloors !== undefined ||
+        prev.floor !== undefined ||
+        prev.availability !== undefined ||
+        prev.possessionBy !== null ||
+        prev.cabins !== undefined;
+
+      if (!shouldChange) return prev;
+
+      return {
         ...prev,
         totalFloors: undefined,
         floor: undefined,
         availability: undefined,
         possessionBy: null,
         cabins: undefined,
-      }));
-    }
+      };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlot]);
 

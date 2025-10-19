@@ -1,5 +1,5 @@
-import React from "react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import React, { useRef } from "react";
+import { motion, useReducedMotion, type Variants, useInView } from "framer-motion";
 import headerImg from "../images/Banners/about-us.png";
 import ribbon from "../images/ribbon.png";
 import icon1 from "../images/icon1.png";
@@ -143,6 +143,8 @@ export default function AboutUs() {
   const popVar = reduceMotion ? undefined : cardPop;
   const overlayVar = reduceMotion ? undefined : overlayUp;
   const bannerVar = reduceMotion ? undefined : bannerVariants;
+  const headerRef = useRef<HTMLElement | null>(null);
+  const inView = useInView(headerRef, { once: true, amount: 0.2 });
 
   return (
     <div>
@@ -152,11 +154,13 @@ export default function AboutUs() {
       <main>
         {/* About header section - animate when visible */}
         <motion.section
-          className="bg-white p-8 pb-12 font-[sans-serif]"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.20 }}
-          variants={sectionVar}
+      // attach ref here
+        ref={headerRef}
+        className="bg-white p-8 pb-12 font-[sans-serif]"
+        initial="hidden"
+        // drive animation from inView to avoid the whileInView race
+        animate={inView ? "visible" : "hidden"}
+        variants={sectionVar}
         >
           <div className="max-w-7xl mx-auto">
             <motion.div className="flex flex-col md:flex-row items-center md:items-start gap-8" variants={fadeVar}>
@@ -172,11 +176,10 @@ export default function AboutUs() {
 
             {/* Icons row - each card pops in as it scrolls into view */}
             <motion.div
-              className="mt-12 flex flex-wrap justify-center gap-5"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.20 }}
-              variants={sectionVar}
+            className="mt-12 flex flex-wrap justify-center gap-5"
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            variants={sectionVar}
             >
               {iconItems.map((it, i) => (
                 <motion.div
@@ -218,8 +221,7 @@ export default function AboutUs() {
             <motion.div
               className="mt-24 relative flex flex-col items-center lg:block"
               initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
+              animate={inView ? "visible" : "hidden"}
               variants={sectionVar}
             >
               {/* Background/main image */}
@@ -278,7 +280,7 @@ export default function AboutUs() {
 
         {/* Banner - animate when it scrolls into view */}
         <motion.section
-          className="mt:14 lg:mt-36 mb-10 bg-gray-700 bg-cover bg-center py-24 px-5 text-center text-white sm:py-36"
+          className="mt-14 lg:mt-36 mb-10 bg-gray-700 bg-cover bg-center py-24 px-5 text-center text-white sm:py-36"
           style={{ backgroundImage: `url(${bannerBg})` }}
           initial="hidden"
           whileInView="visible"

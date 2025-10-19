@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import {
   Home,
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   Mail,
   Phone,
@@ -238,7 +238,7 @@ const AgentDashboard: React.FC = () => {
 
   const statCards = useMemo(
     () => [
-      { title: "Total Properties Sold", value: totalPropertiesSold, icon: <DollarSign className="w-5 h-5 text-green-600" />, accent: "from-green-500 to-emerald-300" },
+      { title: "Total Properties Sold", value: totalPropertiesSold, icon: <IndianRupee className="w-5 h-5 text-green-600" />, accent: "from-green-500 to-emerald-300" },
       { title: "Total Properties Posted", value: totalPropertiesListed, icon: <Home className="w-5 h-5 text-blue-600" />, accent: "from-blue-500 to-sky-300" },
       { title: "Active Listings", value: activeProperties, icon: <TrendingUp className="w-5 h-5 text-orange-600" />, accent: "from-orange-500 to-amber-300" },
       { title: "Pending Approval", value: totalPropertiesPendingApproval, icon: <Clock className="w-5 h-5 text-red-600" />, accent: "from-red-500 to-pink-300" },
@@ -473,7 +473,7 @@ const AgentDashboard: React.FC = () => {
             </div>
 
             <div className="h-full">
-              <QuickActionButton to="/agent/listings/active" label={`Total Properties Posted`} icon={<DollarSign className="w-5 h-5 text-blue-600" />} />
+              <QuickActionButton to="/agent/listings/active" label={`Total Properties Posted`} icon={<IndianRupee className="w-5 h-5 text-blue-600" />} />
             </div>
 
             <div className="h-full">

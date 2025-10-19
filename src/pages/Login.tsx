@@ -120,7 +120,7 @@ export default function Login() {
               <img src={logo} alt="PropAdda" className="max-h-56 max-w-56 mb-6 opacity-90 transition hover:opacity-100" />
             </div>
             <h2 className="text-2xl font-extrabold leading-tight mt-4 mb-4">
-              <span className="text-themeOrange">BHAARAT </span>
+              <span className="text-themeOrange">BHARAT </span>
               <span className="text-green-700">KA APNA PROPERTY ADDA</span> 
                
             </h2>

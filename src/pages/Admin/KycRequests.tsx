@@ -282,7 +282,7 @@ const KycRequests: React.FC = () => {
   const approve = async (id: number) => {
     try {
       await api.patch(`/admin/sellerKyc/approve/${id}`);
-      navigate("/admin/agentsBrokersBuilders");
+      navigate("/admin/users/agentsBrokersBuilders");
     } catch (e) {
       console.error(e);
       alert("Approve failed");
