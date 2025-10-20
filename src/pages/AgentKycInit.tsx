@@ -42,7 +42,7 @@ export default function AgentKycInit() {
       if (aadhar) fd.append("aadhar", aadhar);
 
       await api.post("/user/initiateKyc", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
+        // headers: { "Content-Type": "multipart/form-data" },
       });
 
       setMsg("Your KYC has been initiated and is pending for approval with the admin.");
