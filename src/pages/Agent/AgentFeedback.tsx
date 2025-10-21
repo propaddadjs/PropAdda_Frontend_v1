@@ -1,120 +1,132 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { api } from "../../lib/api";
 import { useAuth } from "../../auth/AuthContext";
 import { Send, MessageSquare, Star } from "lucide-react";
 
 // --- Configuration ---
-//  const API_BASE_URL =
-//   import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
+//  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "https://propadda-backend-v1-506455747754.asia-south2.run.app";
 
-// const AGENT_ID = 1; // Replace with dynamic Agent ID
-
-// --- Data Structure ---
 const FEEDBACK_CATEGORIES_MAP = {
-  'Website Usability': ['Navigation', 'Design Aesthetics', 'Responsiveness', 'Speed/Performance'],
-  'Property Posting Experience': ['Form Clarity', 'Media Upload Flow', 'Location Pinning', 'Preview Accuracy'],
-  'Agent Panel Features': ['Dashboard Metrics', 'Listings Table Filters', 'KYC Status View', 'Profile Management'],
-  'Support & Services': ['Customer Service Interaction', 'Photoshoot Quality', 'Graphics Request Process', 'Response Time'],
-  'Suggestions for Improvement': ['New Feature Idea', 'Existing Feature Modification', 'Platform Suggestion'],
-  'Overall Experience': ['General Positive', 'General Negative', 'Other'],
-};
+  "Website Usability": [
+    "Navigation",
+    "Design Aesthetics",
+    "Responsiveness",
+    "Speed/Performance",
+  ],
+  "Property Posting Experience": [
+    "Form Clarity",
+    "Media Upload Flow",
+    "Location Pinning",
+    "Preview Accuracy",
+  ],
+  "Agent Panel Features": [
+    "Dashboard Metrics",
+    "Listings Table Filters",
+    "KYC Status View",
+    "Profile Management",
+  ],
+  "Support & Services": [
+    "Customer Service Interaction",
+    "Photoshoot Quality",
+    "Graphics Request Process",
+    "Response Time",
+  ],
+  "Suggestions for Improvement": [
+    "New Feature Idea",
+    "Existing Feature Modification",
+    "Platform Suggestion",
+  ],
+  "Overall Experience": ["General Positive", "General Negative", "Other"],
+} as const;
 
-// FIX: Define the union type for the valid category keys
 type CategoryKey = keyof typeof FEEDBACK_CATEGORIES_MAP;
-
 const CATEGORY_OPTIONS = Object.keys(FEEDBACK_CATEGORIES_MAP) as CategoryKey[];
 
-
-// --- Types ---
-interface FeedbackDetails {
-  feedbackType: string;
-  feedbackCategory: string; 
+// Frontend shape matching backend model
+interface FeedbackPayload {
+  feedbackCategory: string;
+  feedbackSubcategory?: string | null;
+  feedbackDetail: string;
   rating: number;
-  feedbackText: string;
+  // don't send user id; backend maps auth -> user
 }
 
 const AgentFeedback: React.FC = () => {
-  // Use CategoryKey for better type safety on the category field
   const { user } = useAuth();
-  const [formData, setFormData] = useState<{
-    category: CategoryKey | string; // Allow CategoryKey or ""
-    subCategory: string;
-    rating: number;
-    feedbackText: string;
-  }>({
-    category: "",
-    subCategory: "",
+
+  const [formData, setFormData] = useState({
+    category: "" as CategoryKey | "",
+    subCategory: "" as string,
     rating: 0,
     feedbackText: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState<"success" | "error" | null>(null);
 
-  // Mock initial agent details
-const MOCK_AGENT = {
-  name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
-  email: user?.email,
-};
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<
+    "success" | "error" | null
+  >(null);
+
+  const MOCK_AGENT = {
+    name: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+    email: user?.email,
+  };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    // Assert value as CategoryKey to resolve type issue
-    const newCategory = e.target.value as CategoryKey; 
-    
-    // FIX: Index map using the asserted type
-    // const firstSubCategory = FEEDBACK_CATEGORIES_MAP[newCategory]?.[0] || '';
-    
-    setFormData(prev => ({ 
-      ...prev, 
-      category: newCategory, 
-      subCategory: "" 
+    const newCategory = e.target.value as CategoryKey;
+    setFormData((prev) => ({
+      ...prev,
+      category: newCategory,
+      subCategory: "", // reset subcategory when category changes
     }));
   };
 
   const handleSubCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData(prev => ({ ...prev, subCategory: e.target.value }));
+    setFormData((prev) => ({ ...prev, subCategory: e.target.value }));
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, feedbackText: e.target.value }));
+    setFormData((prev) => ({ ...prev, feedbackText: e.target.value }));
   };
 
   const handleRatingChange = (newRating: number) => {
-    setFormData(prev => ({ ...prev, rating: newRating }));
+    setFormData((prev) => ({ ...prev, rating: newRating }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmissionStatus(null);
-    
-    // Validation Check uses explicit casting for safety/checking
+
+    // Basic validation
     if (!formData.category) {
-        alert("Please select a Feedback Category.");
-        return;
+      alert("Please select a Feedback Category.");
+      return;
     }
     const categoryKey = formData.category as CategoryKey;
-    if (FEEDBACK_CATEGORIES_MAP[categoryKey] && !formData.subCategory) {
-         alert("Please select a Feedback Subcategory.");
-         return;
+    const subcats = FEEDBACK_CATEGORIES_MAP[categoryKey] ?? [];
+    if (subcats.length > 0 && !formData.subCategory) {
+      alert("Please select a Feedback Subcategory.");
+      return;
     }
-    if (!formData.feedbackText) {
-        alert("Please enter your feedback text.");
-        return;
+    if (!formData.feedbackText?.trim()) {
+      alert("Please enter your feedback text.");
+      return;
     }
 
     setIsSubmitting(true);
 
-    const payload: FeedbackDetails = {
-      feedbackCategory: formData.category, 
-      feedbackText: `[Category: ${formData.category} | Subcategory: ${formData.subCategory || 'N/A'}] - ${formData.feedbackText}`,
-      feedbackType: user?.role as any,
+    // Build payload to match backend entity field names exactly
+    const payload: FeedbackPayload = {
+      feedbackCategory: formData.category,
+      feedbackSubcategory: formData.subCategory || null,
+      feedbackDetail: formData.feedbackText.trim(),
       rating: formData.rating,
     };
 
     try {
-      // await axios.post(`${API_BASE_URL}/agent/addFeedbackFromAgent/${AGENT_ID}`, payload);
+      console.log("Feedback payload:", payload);
+      // backend endpoint uses authenticated user from token; no user id here
       await api.post("/user/addFeedbackFromUser", payload);
-      
+
       setSubmissionStatus("success");
       setFormData({
         category: "",
@@ -130,8 +142,7 @@ const MOCK_AGENT = {
     }
   };
 
-  // FIX: Cast formData.category to CategoryKey before indexing
-  const currentSubCategories = formData.category 
+  const currentSubCategories = formData.category
     ? FEEDBACK_CATEGORIES_MAP[formData.category as CategoryKey] || []
     : [];
 
@@ -142,7 +153,6 @@ const MOCK_AGENT = {
       </h2>
 
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 md:p-8">
-        
         {submissionStatus === "success" && (
           <div className="p-4 mb-6 rounded-lg bg-green-100 text-green-800 border border-green-300">
             Thank you! Your feedback has been successfully submitted.
@@ -158,7 +168,9 @@ const MOCK_AGENT = {
           {/* Name and Email - Readonly */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Name
+              </label>
               <input
                 type="text"
                 value={MOCK_AGENT.name}
@@ -167,7 +179,9 @@ const MOCK_AGENT = {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
               <input
                 type="email"
                 value={MOCK_AGENT.email}
@@ -181,7 +195,10 @@ const MOCK_AGENT = {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Main Category */}
             <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="category"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Select Feedback Category
               </label>
               <select
@@ -192,17 +209,23 @@ const MOCK_AGENT = {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-500 focus:ring-opacity-50"
               >
-                {/* Placeholder option */}
-                <option value="" disabled>---Select Category---</option>
-                {CATEGORY_OPTIONS.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                <option value="" disabled>
+                  ---Select Category---
+                </option>
+                {CATEGORY_OPTIONS.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
             </div>
-            
+
             {/* Subcategory */}
             <div>
-              <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="subCategory"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Select Subcategory
               </label>
               <select
@@ -214,26 +237,31 @@ const MOCK_AGENT = {
                 disabled={!formData.category || currentSubCategories.length === 0}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-500 focus:ring-opacity-50 disabled:bg-gray-100 disabled:text-gray-500"
               >
-                {/* Placeholder option (always present) */}
-                <option value="" disabled>---Select Subcategory---</option>
-                {currentSubCategories.map(subCat => (
-                  <option key={subCat} value={subCat}>{subCat}</option>
+                <option value="" disabled>
+                  ---Select Subcategory---
+                </option>
+                {currentSubCategories.map((subCat) => (
+                  <option key={subCat} value={subCat}>
+                    {subCat}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
-          
+
           {/* Rate Propadda */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Rate PropAdda ({formData.rating} Stars)
             </label>
             <div className="flex space-x-1">
-              {[1, 2, 3, 4, 5].map(star => (
+              {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
                   className={`w-8 h-8 cursor-pointer transition-colors ${
-                    star <= formData.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                    star <= formData.rating
+                      ? "text-yellow-400 fill-yellow-400"
+                      : "text-gray-300"
                   }`}
                   onClick={() => handleRatingChange(star)}
                 />
@@ -243,7 +271,10 @@ const MOCK_AGENT = {
 
           {/* Feedback Text */}
           <div>
-            <label htmlFor="feedbackText" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="feedbackText"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Type your feedback
             </label>
             <textarea
@@ -266,7 +297,26 @@ const MOCK_AGENT = {
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
                 Submitting...
               </>
             ) : (
