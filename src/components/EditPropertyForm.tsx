@@ -583,7 +583,7 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
   };
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 bg-white p-6 sm:p-8 shadow-lg rounded-lg mt-2">
+    <div className="mx-auto w-full max-w-[380px] md:max-w-[660px] lg:max-w-[920px] px-4 sm:px-6 lg:px-8 bg-white p-6 sm:p-8 shadow-lg rounded-lg mt-2">
       <div className="flex justify-center">
         <div className="mb-6 rounded-2xl bg-gradient-to-r from-orange-50 to-[#ffe9df] border border-orange-100 p-5">
           <h2 className="text-xl font-bold text-gray-800 flex gap-3">
@@ -639,7 +639,7 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
 
       {/* Floors block (stack on phones, side-by-side on md+) */}
       {showFloorsUI && (
-        <div className="flex flex-col md:flex-row items-end gap-4 mb-6">
+        <div className="flex flex-col md:flex-row items-start gap-4 mb-6">
           <div className="flex-1">
             <label className="flex block text-sm font-medium mb-2">
               <Layers className="w-4 h-4 text-orange-500 mr-1" />
