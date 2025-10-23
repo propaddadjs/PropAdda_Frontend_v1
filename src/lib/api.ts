@@ -52,4 +52,34 @@ export async function tryRefreshViaCookie() {
   return resp.data;
 }
 
+export type UploadSessionFileRequest = {
+  name: string;
+  contentType: string;
+  size: number;
+};
+
+export type UploadSessionFileResponse = {
+  fileIndex: number;
+  objectName: string;
+  sessionUrl: string;
+  contentType: string;
+};
+
+export type UploadSessionResponse = {
+  uploadId: string;
+  files: UploadSessionFileResponse[];
+};
+
+/**
+ * Create a resumable upload session for the given files.
+ * - files: array of { name, contentType, size }
+ * - userId: optional (owner id)
+ *
+ * Returns UploadSessionResponse
+ */
+export async function createUploadSession(files: UploadSessionFileRequest[], userId?: number) {
+  const resp = await api.post<UploadSessionResponse>("/api/uploads/sessions", { files, userId });
+  return resp.data;
+}
+
 export default api;

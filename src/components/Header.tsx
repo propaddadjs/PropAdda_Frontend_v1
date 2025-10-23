@@ -93,7 +93,7 @@ const Header: React.FC<HeaderProps> = ({ title, headerImage }) => {
     <header className="w-full">
       {/* Hero with background image + gradient overlay */}
       <div
-        className="relative w-full h-[220px] sm:h-[300px] md:h-[400px] 2xl:h-[700px] bg-cover bg-center"
+        className="relative w-full h-[240px] md:h-[240px] lg:h-[300px] xl:h-[360px] 2xl:h-[460px] bg-cover bg-center 2xl:bg-[25%_75%]"
         style={{
           // keep the same gradient overlay and use the dynamic image
           backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 50%), url('${bg}')`,

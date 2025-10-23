@@ -41,7 +41,7 @@ import {
   Users,
   Wrench,
 } from "lucide-react";
-import { api } from "../lib/api";
+import { api, createUploadSession } from "../lib/api";
 import { useAuth } from "../auth/AuthContext";
 
 // ---------------- Types ----------------
@@ -692,6 +692,238 @@ const PropertyForm: React.FC = () => {
   const { user } = useAuth();
   const ownerId = user?.userId ?? null;
   // -------------- Submit --------------
+  // const handleSubmit = async () => {
+  //   const isPlotNow = formData.propertyType === "Plot/Land";
+
+  //   // Required rules (dynamic where applicable)
+  //   const required: { key: keyof FormData | string; dbName: string; validator?: (v: unknown) => boolean }[] = [
+  //     { key: "propertyType", dbName: "property_type", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
+  //     { key: "preference", dbName: "preference", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
+  //     { key: "title", dbName: "title", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
+  //     { key: "description", dbName: "description", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
+  //     { key: "price", dbName: "price", validator: (v: unknown) => typeof v === "number" && !Number.isNaN(v) && v > 0 },
+  //     { key: "area", dbName: "area", validator: (v: unknown) => typeof v === "number" && !Number.isNaN(v) && v > 0 },
+  //     { key: "state", dbName: "state", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
+  //     { key: "city", dbName: "city", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
+  //     { key: "locality", dbName: "locality", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
+  //     // totalFloors is mandatory EXCEPT when Commercial Plot/Land
+  //     ...(isPlotNow
+  //       ? []
+  //       : [{ key: "totalFloors", dbName: "total_floors", validator: (v: unknown) => typeof v === "number" && !Number.isNaN(v) }]),
+  //     { key: "nearbyPlace", dbName: "nearbyPlace", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
+  //     { key: "address", dbName: "address", validator: (v: unknown) => typeof v === "string" && v.trim().length > 0 },
+  //     { key: "pincode", dbName: "pincode", validator: (v: unknown) => v !== undefined && v !== null && String(v).trim().length === 6 },
+  //     // optional residential extras
+  //     { key: "bedrooms", dbName: "bedrooms", validator: (v: unknown) => v === undefined || (typeof v === "number" && !Number.isNaN(v)) },
+  //     { key: "bathrooms", dbName: "bathrooms", validator: (v: unknown) => v === undefined || (typeof v === "number" && !Number.isNaN(v)) },
+  //     { key: "furnishing", dbName: "furnishing", validator: (v: unknown) => v === undefined || typeof v === "string" },
+  //     { key: "facing", dbName: "facing", validator: (v: unknown) => v === undefined || typeof v === "string" },
+  //     { key: "age", dbName: "age", validator: (v: unknown) => v === undefined || typeof v === "string" },
+  //     // possessionBy required only when availability === 'Under Construction'
+  //     { key: "possessionBy", dbName: "possession_by", validator: (v: unknown) => v === undefined || typeof v === "string" },
+  //     { key: "balconies", dbName: "balconies", validator: (v: unknown) => v === undefined || (typeof v === "number" && !Number.isNaN(v)) },
+  //     { key: "powerBackup", dbName: "power_backup", validator: (v: unknown) => v === undefined || typeof v === "string" },
+  //   ];
+
+  //   const missing: string[] = [];
+  //   for (const rule of required) {
+  //     const value = (formData as any)[rule.key];
+  //     if (rule.key === "possessionBy") {
+  //       if (formData.availability === "Under Construction") {
+  //         const ok = rule.validator ? rule.validator(value) : value !== undefined && value !== null && String(value).trim() !== "";
+  //         if (!ok) missing.push(rule.dbName);
+  //       }
+  //       continue;
+  //     }
+  //     const ok = rule.validator ? rule.validator(value) : value !== undefined && value !== null && String(value).trim() !== "";
+  //     if (!ok) missing.push(rule.dbName);
+  //   }
+
+  //   if (missing.length > 0) {
+  //     alert(missing.map((col) => `Please fill the ${col}. It's a mandatory field.`).join("\n"));
+  //     return;
+  //   }
+
+  //   setSavingOpen(true);
+  //   setSaveStatus("saving");
+  //   setSaveMsg("We are saving your property details. Please wait…");
+
+  //   //const HARD_CODED_USER_ID = 2;
+
+  //   const payload = { ...formData, media: mediaMeta };
+  //   console.log("POST payload:", payload);
+
+  //   const url = category === "residential" ? "/residential-properties/add" : "/commercial-properties/add";
+
+  //   if (category.toLowerCase() === "commercial") {
+  //     (payload as any).commercialOwnerId = ownerId;
+  //   } else {
+  //     (payload as any).residentialOwnerId = ownerId;
+  //   }
+
+  //   try {
+  //     const form = new FormData();
+  //     const propertyBlob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+  //     form.append("property", propertyBlob);
+  //     for (const vid of mediaFiles?.videos ?? []) form.append("files", vid, vid.name);
+  //     for (const img of mediaFiles?.images ?? []) form.append("files", img, img.name);
+  //     for (const doc of mediaFiles?.brochures ?? []) form.append("files", doc, doc.name);
+
+  //     // debug entries
+  //     // @ts-ignore
+  //     for (const pair of form.entries()) console.log("form entry:", pair[0], pair[1]);
+
+  //     const resp = await api.post(url, form, {
+  //       headers: { Accept: "application/json" },
+  //     });
+
+  //     console.log("Server response:", resp.data);
+  //     setSaveStatus("success");
+  //     setSaveMsg("Your property was submitted to Admin for approval.");
+  //     // optional: brief pause, then go
+  //     setTimeout(() => {
+  //       navigate("/agent/listings/pending", { replace: true });
+  //     }, 2000);
+  //   } catch (err) {
+  //     console.error("Submit error:", err);
+  //     setSaveStatus("error");
+  //     setSaveMsg("Failed to submit property. Please try again.");
+  //   }
+  // };
+
+  // inside PropertyForm component - replace existing handleSubmit with this
+const CHUNK_SIZE = 8 * 1024 * 1024; // 8MB per chunk
+
+async function uploadFileResumable(sessionUrl: string, file: File, onProgress?: (uploaded: number) => void) {
+  // uploads file in chunks using PUT + Content-Range to sessionUrl
+  const total = file.size;
+  let start = 0;
+  let attempt = 0;
+
+  while (start < total) {
+    const end = Math.min(total, start + CHUNK_SIZE);
+    const chunk = file.slice(start, end);
+    const contentRange = `bytes ${start}-${end - 1}/${total}`;
+
+    // Retry loop per chunk
+    for (attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch(sessionUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+            "Content-Range": contentRange,
+          },
+          body: chunk,
+        });
+
+        // 308 = Resume Incomplete (accepted partial)
+        if (res.status === 308 || (res.status >= 200 && res.status < 300)) {
+          // Update start if server accepted chunk
+          // GCS may return Range header with last-received byte; we simply advance to `end`
+          start = end;
+          if (onProgress) onProgress(start);
+          break; // proceed to next chunk
+        } else {
+          const txt = await res.text().catch(() => "");
+          throw new Error(`Chunk upload failed status=${res.status} body=${txt}`);
+        }
+      } catch (err) {
+        console.warn("Chunk upload error, attempt", attempt, err);
+        if (attempt === 2) throw err;
+        // exponential backoff
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+      }
+    }
+  }
+
+  // success — finalization may return 200/201 and object metadata
+  return true;
+}
+
+function detectMediaType(file: File) {
+  const t = file.type || "";
+  if (t.startsWith("image/")) return "IMAGE";
+  if (t.startsWith("video/")) return "VIDEO";
+  if (t.startsWith("application/") || t.startsWith("text/") || /\.pdf$/i.test(file.name)) return "BROCHURE";
+  return "OTHER";
+}
+
+async function startResumableSession(startUrl: string, file: File) {
+  const res = await fetch(startUrl, {
+    method: "POST",
+    mode: "cors",
+    headers: {
+      "x-goog-resumable": "start",
+      "Content-Type": file.type || "application/octet-stream",
+    },
+    body: "", // optional metadata may go here, empty is fine
+  });
+
+  // Accept 200/201 success. GCS returns 201 for many signed POST start calls; treat 200/201 as ok.
+  if (!res.ok && res.status !== 200 && res.status !== 201) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`Failed to start resumable session (status ${res.status}): ${txt}`);
+  }
+
+  const sessionUrl = res.headers.get("Location");
+  if (!sessionUrl) throw new Error("No Location header received from start-resumable POST");
+  return sessionUrl;
+}
+
+// Upload file in chunks to the provided resumable session URI (Location).
+async function uploadChunksToSession(sessionUrl: string, file: File, onProgress?: (uploaded: number) => void) {
+  let start = 0;
+  const total = file.size;
+
+  while (start < total) {
+    const end = Math.min(total, start + CHUNK_SIZE);
+    const chunk = file.slice(start, end);
+    const contentRange = `bytes ${start}-${end - 1}/${total}`;
+
+    // try each chunk up to 3 times (simple retry)
+    let attempt = 0;
+    let success = false;
+    for (; attempt < 3 && !success; attempt++) {
+      try {
+        const r = await fetch(sessionUrl, {
+          method: "PUT",
+          mode: "cors",
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+            "Content-Range": contentRange,
+          },
+          body: chunk,
+        });
+
+        // 308 = Resume Incomplete, 2xx means accepted / final success
+        if (r.status === 308 || (r.status >= 200 && r.status < 300)) {
+          start = end; // advance
+          if (onProgress) onProgress(start);
+          success = true;
+          break;
+        } else {
+          const txt = await r.text().catch(() => "");
+          throw new Error(`Chunk failed status=${r.status} body=${txt}`);
+        }
+      } catch (err) {
+        console.warn("Chunk upload error, attempt", attempt, err);
+        if (attempt < 2) {
+          // backoff before retry
+          await new Promise((res) => setTimeout(res, 1000 * (attempt + 1)));
+        }
+      }
+    }
+
+    if (!success) {
+      throw new Error(`Failed to upload chunk after retries: bytes ${start}-${end - 1}`);
+    }
+  }
+
+  // finished all chunks
+  return true;
+}
+
   const handleSubmit = async () => {
     const isPlotNow = formData.propertyType === "Plot/Land";
 
@@ -744,52 +976,101 @@ const PropertyForm: React.FC = () => {
       return;
     }
 
-    setSavingOpen(true);
-    setSaveStatus("saving");
-    setSaveMsg("We are saving your property details. Please wait…");
+  setSavingOpen(true);
+  setSaveStatus("saving");
+  setSaveMsg("We are saving your property details. Please wait…");
 
-    //const HARD_CODED_USER_ID = 2;
+  const payload = { ...formData, media: mediaMeta };
+  if (category.toLowerCase() === "commercial") {
+    (payload as any).commercialOwnerId = ownerId;
+  } else {
+    (payload as any).residentialOwnerId = ownerId;
+  }
 
-    const payload = { ...formData, media: mediaMeta };
-    console.log("POST payload:", payload);
+  try {
+    // Flatten files in the same order you append them on the old flow:
+    // videos first, then images, then brochures
+    const flatFiles: File[] = [
+      ...(mediaFiles.videos ?? []),
+      ...(mediaFiles.images ?? []),
+      ...(mediaFiles.brochures ?? []),
+    ];
 
-    const url = category === "residential" ? "/residential-properties/add" : "/commercial-properties/add";
+    const haveFiles = flatFiles.length > 0;
 
-    if (category.toLowerCase() === "commercial") {
-      (payload as any).commercialOwnerId = ownerId;
-    } else {
-      (payload as any).residentialOwnerId = ownerId;
-    }
-
-    try {
-      const form = new FormData();
-      const propertyBlob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-      form.append("property", propertyBlob);
-      for (const vid of mediaFiles?.videos ?? []) form.append("files", vid, vid.name);
-      for (const img of mediaFiles?.images ?? []) form.append("files", img, img.name);
-      for (const doc of mediaFiles?.brochures ?? []) form.append("files", doc, doc.name);
-
-      // debug entries
-      // @ts-ignore
-      for (const pair of form.entries()) console.log("form entry:", pair[0], pair[1]);
-
-      const resp = await api.post(url, form, {
-        headers: { Accept: "application/json" },
-      });
-
-      console.log("Server response:", resp.data);
+    if (!haveFiles) {
+      // No raw files selected — use claim endpoint with metadata only
+      const claimUrl = category === "residential" ? "/residential-properties/add/claimed" : "/commercial-properties/add/claimed";
+      const resp = await api.post(claimUrl, { property: payload, uploadId: null, media: mediaMeta });
+      console.log("Server response (no files):", resp.data);
       setSaveStatus("success");
       setSaveMsg("Your property was submitted to Admin for approval.");
-      // optional: brief pause, then go
-      setTimeout(() => {
-        navigate("/agent/listings/pending", { replace: true });
-      }, 2000);
-    } catch (err) {
-      console.error("Submit error:", err);
-      setSaveStatus("error");
-      setSaveMsg("Failed to submit property. Please try again.");
+      setTimeout(() => navigate("/agent/listings/pending", { replace: true }), 1200);
+      return;
     }
-  };
+
+    // Build minimal file descriptors for session creation
+    const filesReq = flatFiles.map((f) => ({
+      name: f.name,
+      contentType: f.type || "application/octet-stream",
+      size: f.size,
+    }));
+
+    // 1) Create upload session on backend — expects { files, userId } and returns uploadId + files[]
+    const session = await createUploadSession(filesReq, ownerId ?? undefined);
+    // Example session.files[i] should contain: { fileIndex, objectName, sessionUrl } where
+    // sessionUrl === signed POST URL (startUrl)
+    console.log("Created session:", session.uploadId, session.files);
+
+    const uploadedMedia: Array<{ mediaType: string; name: string; objectName: string; size: number }> = [];
+
+    // 2) For each file: POST startUrl -> get Location -> upload chunks to Location
+    for (let i = 0; i < flatFiles.length; i++) {
+      const f = flatFiles[i];
+      const fileResp = session.files[i];
+      if (!fileResp) throw new Error("Session response missing file entry for index " + i);
+
+      const startUrl = fileResp.sessionUrl; // this is the signed POST start URL returned by backend
+      setSaveMsg(`Starting upload for ${f.name} (${i + 1}/${flatFiles.length})...`);
+
+      // Start the resumable session (POST startUrl with x-goog-resumable: start)
+      const sessionUrl = await startResumableSession(startUrl, f);
+      console.log("Resumable session URL:", sessionUrl);
+
+      // Upload chunks to the sessionUrl
+      await uploadChunksToSession(sessionUrl, f, (uploaded) => {
+        const pct = Math.min(100, Math.round((uploaded / f.size) * 100));
+        setSaveMsg(`Uploading ${f.name}: ${pct}%`);
+      });
+
+      // Collect metadata for claim endpoint. Use objectName returned by backend (deterministic path).
+      uploadedMedia.push({
+        mediaType: detectMediaType(f),
+        name: f.name,
+        objectName: fileResp.objectName,
+        size: f.size,
+      });
+
+      // small pause so UI message updates feel sequential
+      await new Promise((r) => setTimeout(r, 120));
+    }
+
+    // 3) Claim uploaded objects with property metadata on backend
+    const claimUrl = category === "residential" ? "/residential-properties/add/claimed" : "/commercial-properties/add/claimed";
+    const claimBody = { property: payload, uploadId: session.uploadId, media: uploadedMedia };
+    const claimResp = await api.post(claimUrl, claimBody);
+    console.log("Claim response:", claimResp.data);
+
+    setSaveStatus("success");
+    setSaveMsg("Your property was submitted to Admin for approval.");
+    setTimeout(() => navigate("/agent/listings/pending", { replace: true }), 1200);
+  } catch (err: any) {
+    console.error("Submit error (resumable flow):", err);
+    setSaveStatus("error");
+    setSaveMsg(err?.message ? String(err.message) : "Failed to submit property. Please try again.");
+    // OPTIONAL: mark session as failed on backend (not implemented here)
+  }
+};
 
   // Preference-aware subtype options: show "Plot/Land" only when preference === "Sale"
   const subtypeOptions = (() => {

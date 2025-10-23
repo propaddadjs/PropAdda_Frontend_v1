@@ -19,6 +19,9 @@ module.exports = {
         // Add this line
         times: ['"Times New Roman"', 'serif'],
       },
+      screens: {
+        '27inch':'1920px'
+      }
     },
   },
   plugins: [
