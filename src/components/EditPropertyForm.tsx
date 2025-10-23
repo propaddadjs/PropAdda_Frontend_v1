@@ -46,7 +46,7 @@ import {
   Video,
   Wrench,
 } from "lucide-react";
-import { api } from "../lib/api";
+import { api, createUploadSession } from "../lib/api";
 
 // ---------- Shared styling (same as create page) ----------
 const INPUT_CLASS =
@@ -320,11 +320,7 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
     "By 2032",
   ] as const;
 
-  // const onMediaChanged = (meta: SavedMeta[], files?: FilesPayload) => {
-  //   setMediaMeta(meta || []);
-  //   if (files) setMediaFiles(files);
-  // };
-    const onMediaChanged = useCallback((meta: SavedMeta[], files?: FilesPayload) => {
+  const onMediaChanged = useCallback((meta: SavedMeta[], files?: FilesPayload) => {
     setMediaMeta(meta || []);
     if (files) setMediaFiles(files);
   }, []);
@@ -404,7 +400,6 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
     if (!showFloorsUI) return;
 
     setFormData((prev) => {
-      // If nothing to change, return previous object (no state update)
       const newTotalFloors = Number(total || 0);
       let changed = false;
       const next: PropertyFormData = { ...prev };
@@ -414,7 +409,6 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
         changed = true;
       }
 
-      // If current floor is greater than new total, clamp it
       if (typeof prev.floor === "number" && prev.floor > newTotalFloors) {
         next.floor = newTotalFloors;
         changed = true;
@@ -429,7 +423,6 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
     if (!isSell) return;
 
     setFormData((prev) => {
-      // Only update if these fields are not already undefined
       if (prev.lockIn === undefined && prev.yearlyIncrease === undefined) return prev;
       return { ...prev, lockIn: undefined, yearlyIncrease: undefined };
     });
@@ -484,104 +477,387 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({
     setMediaMeta([]);
   };
 
-  const handleSubmit = async () => {
-    const missing: string[] = [];
-    if (!formData.title?.trim()) missing.push("title");
-    if (!formData.description?.trim()) missing.push("description");
-    if (!formData.price || formData.price <= 0) missing.push("price");
-    if (!formData.area || formData.area <= 0) missing.push("area");
-    if (!formData.state?.trim()) missing.push("state");
-    if (!formData.city?.trim()) missing.push("city");
-    if (!formData.locality?.trim()) missing.push("locality");
-    if (!formData.address?.trim()) missing.push("address");
-    if (!formData.nearbyPlace?.trim()) missing.push("nearbyPlace");
-    if (!formData.pincode || String(formData.pincode).length !== 6) missing.push("pincode");
-    if (!isPlot && (formData.totalFloors === undefined || formData.totalFloors === null)) missing.push("totalFloors");
+  // ----------------------------
+  // Helper functions for resumable upload flow
+  // ----------------------------
+  async function startResumableStartUrl(startUrl: string, contentType: string): Promise<string> {
+    // startUrl is a signed POST URL. Browser must POST with header 'x-goog-resumable: start'
+    const resp = await fetch(startUrl, {
+      method: "POST",
+      headers: {
+        "x-goog-resumable": "start",
+        "Content-Type": "application/json; charset=UTF-8",
+        // Some signed URLs require Content-Type included in signature; using json body {} is simplest
+      },
+      body: "{}",
+    });
 
-    if (showAvailability && formData.availability === "Under Construction" && !formData.possessionBy) {
-      missing.push("possession_by");
+    if (!resp.ok && resp.status !== 200 && resp.status !== 201) {
+      const text = await resp.text().catch(() => "");
+      throw new Error(`Failed to start resumable session: ${resp.status} ${resp.statusText} ${text}`);
     }
 
-    if (missing.length) {
-      alert("Please fill required fields: " + missing.join(", "));
+    const location = resp.headers.get("Location");
+    if (!location) throw new Error("No Location returned when starting resumable upload");
+    return location;
+  }
+
+  async function uploadWholeFileToSession(sessionUri: string, file: File): Promise<void> {
+    // Upload entire file in a single PUT with Content-Range: bytes 0-(n-1)/n
+    const size = file.size;
+    const end = size - 1;
+    const contentRange = `bytes 0-${end}/${size}`;
+
+    const resp = await fetch(sessionUri, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || "application/octet-stream",
+        "Content-Range": contentRange,
+      },
+      body: file,
+    });
+
+    // For resumable uploads, successful finalization might return 200/201,
+    // or 308 if not complete. But since we uploaded full file, expect 200/201.
+    if (!(resp.ok || resp.status === 308)) {
+      const text = await resp.text().catch(() => "");
+      throw new Error(`Failed to upload file chunk: ${resp.status} ${resp.statusText} ${text}`);
+    }
+  }
+
+  type SessionFileResponse = {
+    fileIndex: number;
+    objectName: string;
+    sessionUrl: string; // startUrl
+    contentType?: string;
+  };
+
+  /**
+   * Create an upload session on backend.
+   * backend endpoint: POST /api/uploads/sessions
+   * Request body: { files: [{ name, contentType, size }], userId? }
+   * Response shape (expected): { uploadId: string, files: [{ fileIndex, objectName, sessionUrl, contentType }] }
+   */
+  async function createUploadSession(
+    filesReq: { name: string; contentType: string; size: number }[],
+    userId?: number
+  ): Promise<any> {
+    const body = { files: filesReq, userId };
+    const resp = await api.post("/api/uploads/sessions", body);
+    return resp.data;
+  }
+
+  /**
+   * POST the signed "start" URL to return the resumable session URL (Location header).
+   * startUrl is the signed POST URL returned by backend which must be invoked with header:
+   *   x-goog-resumable: start
+   * Many signed URLs also require Content-Type header to be present in the signature; we pass file.type.
+   */
+  async function startResumableSession(startUrl: string, file: File): Promise<string> {
+    const headers: Record<string, string> = {
+      "x-goog-resumable": "start",
+      // include content-type so signed POST URL that included contentType in signature will validate
+      "Content-Type": file.type || "application/octet-stream",
+    };
+
+    const resp = await fetch(startUrl, {
+      method: "POST",
+      headers,
+      body: "{}", // GCS accepts empty JSON metadata body; many examples use "{}"
+      // Note: no credentials; signed URL contains auth
+    });
+
+    // Successful start returns 200/201 and a Location header with the session URI
+    if (resp.status === 200 || resp.status === 201) {
+      const location = resp.headers.get("Location");
+      if (!location) throw new Error("No Location header returned from start URL");
+      return location;
+    } else {
+      const text = await resp.text().catch(() => "");
+      throw new Error(`Failed to start resumable session: ${resp.status} ${resp.statusText} ${text}`);
+    }
+  }
+
+  /**
+   * Upload a file to a resumable session URL in chunks.
+   * sessionUrl: the URL returned in Location header for the resumable session
+   * file: File to upload
+   * progressCb: (uploadedBytes) => void
+   *
+   * Implements the Google resumable protocol behavior:
+   *  - send PUT with Content-Range header for each chunk
+   *  - server returns 308 (Resume Incomplete) with Range header when partial
+   *  - server returns 200/201 when finished
+   */
+  async function uploadChunksToSession(
+    sessionUrl: string,
+    file: File,
+    progressCb: (uploadedBytes: number) => void
+  ): Promise<void> {
+    const CHUNK_SIZE = 8 * 1024 * 1024; // 8 MiB - adjust if you want smaller/larger
+    const total = file.size;
+    let offset = 0;
+
+    // optional retry function for a single chunk
+    async function putChunk(start: number, endExclusive: number, attempt = 0): Promise<Response> {
+      const chunk = file.slice(start, endExclusive);
+      const contentRange = `bytes ${start}-${endExclusive - 1}/${total}`;
+
+      const headers: Record<string, string> = {
+        "Content-Type": file.type || "application/octet-stream",
+        "Content-Range": contentRange,
+      };
+
+      try {
+        const res = await fetch(sessionUrl, {
+          method: "PUT",
+          headers,
+          body: chunk,
+        });
+        return res;
+      } catch (err) {
+        if (attempt < 2) {
+          // small backoff retry
+          await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+          return putChunk(start, endExclusive, attempt + 1);
+        }
+        throw err;
+      }
+    }
+
+    while (offset < total) {
+      const end = Math.min(offset + CHUNK_SIZE, total);
+      const res = await putChunk(offset, end);
+
+      // 200/201 => upload finished (server may return whole object metadata)
+      if (res.status === 200 || res.status === 201) {
+        // mark progress as fully uploaded
+        progressCb(total);
+        return;
+      }
+
+      // 308 Resume Incomplete => check Range header (optional) and advance offset
+      if (res.status === 308) {
+        // Range header might be like: "bytes=0-1048575"
+        const range = res.headers.get("Range");
+        if (range) {
+          // parse last byte uploaded
+          const m = range.match(/bytes=0-(\d+)/);
+          if (m) {
+            const last = Number(m[1]);
+            offset = Math.min(total, last + 1);
+          } else {
+            // if parse fails, advance by chunk size
+            offset = end;
+          }
+        } else {
+          // No Range header - assume server accepted full chunk
+          offset = end;
+        }
+        progressCb(offset);
+        // continue to upload next chunk
+        continue;
+      }
+
+      // Some servers return 400/403/4xx for errors; throw with body for debugging
+      const text = await res.text().catch(() => "");
+      throw new Error(`Chunk upload failed: status=${res.status} ${res.statusText} body=${text}`);
+    }
+
+    // If loop ends normally, progressCb should have been called to total
+    progressCb(total);
+  }
+
+  /**
+   * Detect media type string to match server expectations.
+   * Returns one of: "IMAGE", "VIDEO", "BROCHURE", "OTHER"
+   */
+  function detectMediaType(file: File): string {
+    const t = (file.type || "").toLowerCase();
+    if (t.startsWith("image/")) return "IMAGE";
+    if (t.startsWith("video/")) return "VIDEO";
+    // common docs for brochures: pdf, msword, or application/*
+    if (t === "application/pdf" || t.includes("word") || t.includes("officedocument")) return "BROCHURE";
+    return "OTHER";
+  }
+
+  // ----------------------------
+  // NEW handleSubmit: supports resumable direct-to-GCS when replaceMode === true
+  // ----------------------------
+ const handleSubmit = async () => {
+  // Basic client-side validation (same checks you had)
+  const missing: string[] = [];
+  if (!formData.title?.trim()) missing.push("title");
+  if (!formData.description?.trim()) missing.push("description");
+  if (!formData.price || formData.price <= 0) missing.push("price");
+  if (!formData.area || formData.area <= 0) missing.push("area");
+  if (!formData.state?.trim()) missing.push("state");
+  if (!formData.city?.trim()) missing.push("city");
+  if (!formData.locality?.trim()) missing.push("locality");
+  if (!formData.address?.trim()) missing.push("address");
+  if (!formData.nearbyPlace?.trim()) missing.push("nearbyPlace");
+  if (!formData.pincode || String(formData.pincode).length !== 6) missing.push("pincode");
+  if (!isPlot && (formData.totalFloors === undefined || formData.totalFloors === null)) missing.push("totalFloors");
+
+  if (showAvailability && formData.availability === "Under Construction" && !formData.possessionBy) {
+    missing.push("possession_by");
+  }
+
+  if (missing.length) {
+    alert("Please fill required fields: " + missing.join(", "));
+    return;
+  }
+
+  // Validate file counts if replacing
+  if (replaceMode) {
+    const imgCount = mediaFiles?.images?.length ?? 0;
+    const vidCount = mediaFiles?.videos?.length ?? 0;
+    const broCount = mediaFiles?.brochures?.length ?? 0;
+
+    if (imgCount > 10) {
+      alert("You can upload up to 10 images.");
+      return;
+    }
+    if (vidCount > 4) {
+      alert("You can upload up to 4 videos.");
+      return;
+    }
+    if (broCount > 4) {
+      alert("You can upload up to 4 brochures.");
+      return;
+    }
+  }
+
+  setSavingOpen(true);
+  setSaveStatus("saving");
+  setSaveMsg("We are saving your property details. Please wait…");
+
+  // Build payload object (same shape backend expects)
+  const payload: PropertyFormData & {
+    listingId: number;
+    category: PropertyCategory;
+  } = {
+    listingId,
+    category,
+    ...formData,
+    // keep original preference/propertyType (like your current code)
+    preference: initialData.preference,
+    propertyType: initialData.propertyType,
+  };
+
+  // Attach owner id
+  if ((category || "").toLowerCase() === "commercial") {
+    (payload as any).commercialOwnerId = agentId;
+  } else {
+    (payload as any).residentialOwnerId = agentId;
+  }
+
+  try {
+    // If replaceMode: we want to upload to GCS (resumable) and then call claimed update endpoint
+    if (replaceMode) {
+      // Flatten files in the same order: videos, images, brochures
+      const flatFiles: File[] = [
+        ...(mediaFiles?.videos ?? []),
+        ...(mediaFiles?.images ?? []),
+        ...(mediaFiles?.brochures ?? []),
+      ];
+
+      const haveFiles = flatFiles.length > 0;
+
+      if (!haveFiles) {
+        // No files were chosen in replace mode — still call claimed endpoint to indicate media replaced with none
+        const claimedUrl = category === "Commercial" ? "/commercial-properties/update/claimed" : "/residential-properties/update/claimed";
+        const body = { uploadId: null, property: payload, media: [] as any[] };
+        const resp = await api.put(claimedUrl, body, { headers: { Accept: "application/json" } });
+        console.log("Claimed update (no files) response:", resp.data);
+        setSaveStatus("success");
+        setSaveMsg("Your property was updated.");
+        setTimeout(() => navigate("/agent/listings/pending", { replace: true }), 1200);
+        return;
+      }
+
+      // Build minimal file descriptors for session creation
+      const filesReq = flatFiles.map((f) => ({
+        name: f.name,
+        contentType: f.type || "application/octet-stream",
+        size: f.size,
+      }));
+
+      // 1) Create upload session on backend (returns uploadId + files[] with objectName + sessionUrl)
+      const session = await createUploadSession(filesReq, agentId ?? undefined);
+      console.log("Created session:", session.uploadId, session.files);
+
+      const uploadedMedia: Array<{ mediaType: string; name: string; objectName: string; size: number }> = [];
+
+      // 2) For each file: POST startUrl -> read Location -> upload chunks to Location (resumable)
+      for (let i = 0; i < flatFiles.length; i++) {
+        const f = flatFiles[i];
+        const fileResp = session.files[i];
+        if (!fileResp) throw new Error("Session response missing file entry for index " + i);
+
+        const startUrl = fileResp.sessionUrl; // signed POST (start) URL
+        setSaveMsg(`Starting upload for ${f.name} (${i + 1}/${flatFiles.length})...`);
+
+        // Start resumable session (POST startUrl with x-goog-resumable: start) -> returns sessionUrl (Location header)
+        const sessionUrl = await startResumableSession(startUrl, f);
+        console.log("Resumable session URL:", sessionUrl);
+
+        // Upload file in chunks to sessionUrl; progressCallback receives uploaded bytes
+        await uploadChunksToSession(sessionUrl, f, (uploadedBytes) => {
+          const pct = Math.min(100, Math.round((uploadedBytes / f.size) * 100));
+          setSaveMsg(`Uploading ${f.name}: ${pct}%`);
+        });
+
+        // After upload, collect metadata for claim endpoint (objectName provided by session.files)
+        uploadedMedia.push({
+          mediaType: detectMediaType(f),
+          name: f.name,
+          objectName: fileResp.objectName,
+          size: f.size,
+        });
+
+        // small pause so UI messages update nicely
+        await new Promise((r) => setTimeout(r, 120));
+      }
+
+      // 3) Call claimed update endpoint with property + uploadedMedia
+      const claimUrl = category === "Commercial" ? "/commercial-properties/update/claimed" : "/residential-properties/update/claimed";
+      const claimBody = { property: payload, uploadId: session.uploadId, media: uploadedMedia };
+      const claimResp = await api.put(claimUrl, claimBody, { headers: { Accept: "application/json" } });
+      console.log("Claim update response:", claimResp.data);
+
+      setSaveStatus("success");
+      setSaveMsg("Your property (and uploaded media) was updated and submitted for admin review.");
+      setTimeout(() => navigate("/agent/listings/pending", { replace: true }), 1200);
       return;
     }
 
-    if (replaceMode) {
-      const imgCount = mediaFiles?.images?.length ?? 0;
-      const vidCount = mediaFiles?.videos?.length ?? 0;
-      const broCount = mediaFiles?.brochures?.length ?? 0;
-
-      if (imgCount > 10) {
-        alert("You can upload up to 10 images.");
-        return;
-      }
-      if (vidCount > 4) {
-        alert("You can upload up to 4 videos.");
-        return;
-      }
-      if (broCount > 4) {
-        alert("You can upload up to 4 brochures.");
-        return;
-      }
-    }
-
-    setSavingOpen(true);
-    setSaveStatus("saving");
-    setSaveMsg("We are saving your property details. Please wait…");
-
-    const HARD_CODED_USER_ID = 2;
-
-    const payload: PropertyFormData & {
-      listingId: number;
-      category: PropertyCategory;
-    } = {
-      listingId,
-      category,
-      ...formData,
-      preference: initialData.preference,
-      propertyType: initialData.propertyType,
-    };
-
-    if (category.toLowerCase() === "commercial") {
-      (payload as any).commercialOwnerId = HARD_CODED_USER_ID;
-    } else {
-      (payload as any).residentialOwnerId = HARD_CODED_USER_ID;
-    }
-
+    // Non-replace flow: keep existing files, send multipart (backend expects multipart for /update)
     const url = category === "Commercial" ? "/commercial-properties/update" : "/residential-properties/update";
+    const form = new FormData();
+    const propertyBlob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+    form.append("property", propertyBlob);
 
-    try {
-      const form = new FormData();
-      const propertyBlob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-      form.append("property", propertyBlob);
-
-      if (replaceMode && mediaFiles) {
-        for (const vid of mediaFiles.videos ?? []) {
-          form.append("files", vid, vid.name);
-        }
-        for (const img of mediaFiles.images ?? []) {
-          form.append("files", img, img.name);
-        }
-        for (const doc of mediaFiles.brochures ?? []) {
-          form.append("files", doc, doc.name);
-        }
-      }
-
-      const resp = await api.put(url, form, { headers: { Accept: "application/json" } });
-      console.log("Update response:", resp.data);
-      setSaveStatus("success");
-      setSaveMsg("Your property was submitted to Admin for approval.");
-      setTimeout(() => {
-        navigate("/agent/listings/pending", { replace: true });
-      }, 2000);
-    } catch (err) {
-      console.error("Update error:", err);
-      setSaveStatus("error");
-      setSaveMsg(`Failed to submit property. Please try again. listing id is ${listingId}`);
+    // If for some reason user selected raw files even when not replaceMode, append them (safe)
+    if (mediaFiles) {
+      for (const vid of mediaFiles.videos ?? []) form.append("files", vid, vid.name);
+      for (const img of mediaFiles.images ?? []) form.append("files", img, img.name);
+      for (const doc of mediaFiles.brochures ?? []) form.append("files", doc, doc.name);
     }
-  };
 
+    const resp = await api.put(url, form, { headers: { Accept: "application/json" } });
+    console.log("Update response (multipart):", resp.data);
+    setSaveStatus("success");
+    setSaveMsg("Your property was updated.");
+    setTimeout(() => navigate("/agent/listings/pending", { replace: true }), 1200);
+  } catch (err: any) {
+    console.error("Update error:", err);
+    setSaveStatus("error");
+    setSaveMsg(err?.message ? String(err.message) : `Failed to submit property. Please try again. listing id is ${listingId}`);
+  }
+};
+
+  // ... rest of component markup is unchanged (render) ...
   return (
     <div className="mx-auto w-full max-w-[380px] md:max-w-[660px] lg:max-w-[920px] px-4 sm:px-6 lg:px-8 bg-white p-6 sm:p-8 shadow-lg rounded-lg mt-2">
       <div className="flex justify-center">
