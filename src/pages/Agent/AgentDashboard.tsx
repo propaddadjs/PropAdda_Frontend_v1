@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
+import ShareModal from "../../components/ShareModal";
 import {
   Home,
   IndianRupee,
@@ -23,6 +24,7 @@ import {
   ActivitySquare,
   Drone,
   UserCheck2,
+  Share2
 } from "lucide-react";
 
 /* ---------------- Types ---------------- */
@@ -170,6 +172,7 @@ const AgentDashboard: React.FC = () => {
   const [expiredPreview, setExpiredPreview] = useState<PropertyResponse[]>([]);
   const [loadingExpired, setLoadingExpired] = useState<boolean>(true);
   const [errorExpired, setErrorExpired] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   /* modal state */
   const [reqModalOpen, setReqModalOpen] = useState(false);
@@ -426,8 +429,24 @@ const AgentDashboard: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <Link to="/agent/listings/active" className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-600 font-semibold border border-orange-500 hover:bg-orange-500 hover:text-white transition">
+                  <ActivitySquare />View Active Listings
+                </Link>
+              </div> */}
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+                <button
+                  onClick={() => setShareOpen(true)}
+                  className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition"
+                  title="Share / Download snapshot"
+                >
+                  <Share2 className="w-4 h-4 text-orange-500" /> Share
+                </button>
+
+                <Link
+                  to="/agent/listings/active"
+                  className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-600 font-semibold border border-orange-500 hover:bg-orange-500 hover:text-white transition"
+                >
                   <ActivitySquare />View Active Listings
                 </Link>
               </div>
@@ -618,6 +637,24 @@ const AgentDashboard: React.FC = () => {
           </div>
         </div>
       )}
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        agent={{
+          firstName: details?.firstName ?? "",
+          lastName: details?.lastName ?? "",
+          city: details?.city ?? "",
+          state: details?.state ?? "",
+          profileImageUrl: details?.profileImageUrl,
+          propaddaVerified: details?.propaddaVerified,
+        }}
+        metrics={{
+          totalPropertiesPosted: metrics.totalPropertiesListed,
+          activeProperties: metrics.activeProperties,
+          totalPropertiesSold: metrics.totalPropertiesSold,
+          totalPropertiesPendingApproval: metrics.totalPropertiesPendingApproval,
+        }}
+      />
     </div>
   );
 };
