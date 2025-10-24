@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import ShareModal from "../../components/ShareModal";
+import logoUrl from "../../images/logo.png"
 import {
   Home,
   IndianRupee,
@@ -654,6 +655,7 @@ const AgentDashboard: React.FC = () => {
           totalPropertiesSold: metrics.totalPropertiesSold,
           totalPropertiesPendingApproval: metrics.totalPropertiesPendingApproval,
         }}
+        logoUrl={logoUrl}
       />
     </div>
   );
