@@ -1,4 +1,4 @@
-// src/components/AdminLayout.tsx
+// Author-Hemant Arora
 import React, { useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";

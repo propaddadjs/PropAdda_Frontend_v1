@@ -1,3 +1,4 @@
+// Author-Hemant Arora
 import React from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import img1 from "../images/img_1.png";

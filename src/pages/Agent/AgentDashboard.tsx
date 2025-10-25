@@ -1,9 +1,9 @@
-// (entire file — updated per your requests)
+// Author-Hemant Arora
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import ShareModal from "../../components/ShareModal";
-import logoUrl from "../../images/logo.png"
+import logoUrl from "../../images/logo.png";
 import {
   Home,
   IndianRupee,
@@ -25,7 +25,7 @@ import {
   ActivitySquare,
   Drone,
   UserCheck2,
-  Share2
+  Share2,
 } from "lucide-react";
 
 /* ---------------- Types ---------------- */
@@ -173,9 +173,13 @@ const AgentDashboard: React.FC = () => {
   const [expiredPreview, setExpiredPreview] = useState<PropertyResponse[]>([]);
   const [loadingExpired, setLoadingExpired] = useState<boolean>(true);
   const [errorExpired, setErrorExpired] = useState<string | null>(null);
-  const [shareOpen, setShareOpen] = useState(false);
 
-  /* modal state */
+  // share modal state
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareImgUrl, setShareImgUrl] = useState<string | null>(null);
+
+  /* modal state (requests) */
   const [reqModalOpen, setReqModalOpen] = useState(false);
   const [reqType, setReqType] = useState<"graphics" | "photoshoot" | null>(null);
   const [propsLoading, setPropsLoading] = useState(false);
@@ -360,6 +364,28 @@ const AgentDashboard: React.FC = () => {
     }
   };
 
+  // prepare share image by copying profile to share bucket via backend
+  const prepareShareImage = async () => {
+    setShareLoading(true);
+    setShareImgUrl(null);
+    try {
+      const resp = await api.post("/agent/share/copyProfile");
+      const publicUrl = resp.data?.url;
+      if (publicUrl) {
+        setShareImgUrl(publicUrl);
+      } else {
+        // fallback to original profile URL if copy failed
+        setShareImgUrl(details?.profileImageUrl ?? null);
+      }
+    } catch (err) {
+      console.error("Failed to copy profile to share bucket:", err);
+      setShareImgUrl(details?.profileImageUrl ?? null);
+    } finally {
+      setShareLoading(false);
+      setShareOpen(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-8">
@@ -429,20 +455,15 @@ const AgentDashboard: React.FC = () => {
                   </span>
                 )}
               </div>
-
-              {/* <div className="flex items-center gap-3">
-                <Link to="/agent/listings/active" className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-600 font-semibold border border-orange-500 hover:bg-orange-500 hover:text-white transition">
-                  <ActivitySquare />View Active Listings
-                </Link>
-              </div> */}
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
-                {/* <button
-                  onClick={() => setShareOpen(true)}
-                  className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition"
+                <button
+                  onClick={prepareShareImage}
+                  disabled={shareLoading}
+                  className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-orange-50 text-orange-600 font-semibold border border-orange-500 hover:bg-orange-500 hover:text-white transition disabled:opacity-60"
                   title="Share / Download snapshot"
                 >
-                  <Share2 className="w-4 h-4 text-orange-500" /> Share
-                </button> */}
+                  <Share2 /> {shareLoading ? "Preparing..." : "Share"}
+                </button>
 
                 <Link
                   to="/agent/listings/active"
@@ -638,15 +659,19 @@ const AgentDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
       <ShareModal
         open={shareOpen}
-        onClose={() => setShareOpen(false)}
+        onClose={() => {
+          setShareOpen(false);
+          setShareImgUrl(null);
+        }}
         agent={{
           firstName: details?.firstName ?? "",
           lastName: details?.lastName ?? "",
           city: details?.city ?? "",
           state: details?.state ?? "",
-          profileImageUrl: details?.profileImageUrl,
+          profileImageUrl: shareImgUrl ?? details?.profileImageUrl,
           propaddaVerified: details?.propaddaVerified,
         }}
         metrics={{

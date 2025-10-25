@@ -1,4 +1,4 @@
-// src/pages/admin/AllListings.tsx
+// Author-Hemant Arora
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { api } from "../../lib/api";

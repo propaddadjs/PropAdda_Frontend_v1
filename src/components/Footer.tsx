@@ -1,3 +1,4 @@
+// Author-Hemant Arora
 import React from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import propaddaLogo from '../images/logo.png';

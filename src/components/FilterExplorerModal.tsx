@@ -1,4 +1,4 @@
-// src/components/FilterExplorerModal.tsx
+// Author-Hemant Arora
 import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import axios from "axios";
 import { X, MapPin, Building2, Filter, Home, Component, Shapes } from "lucide-react";

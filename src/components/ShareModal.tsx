@@ -1,8 +1,12 @@
-// src/components/ShareModal.tsx
+// Author-Hemant Arora
 import React, { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import { api } from "../lib/api";
-import { Download, Facebook, Twitter, Linkedin, MessageCircle, X, CheckCircle2 } from "lucide-react";
+import { Download, X } from "lucide-react";
+import xIcon from "../images/xIcon.png";
+import facebookIcon from "../images/facebookIcon.png";
+import linkedinIcon from "../images/linkedinIcon.png";
+import whatsappIcon from "../images/whatsappIcon.png";
 
 type Agent = {
   firstName: string;
@@ -38,53 +42,108 @@ export default function ShareModal({
 
   if (!open) return null;
 
-  // --- Prepare images for html2canvas (same-origin workaround)
-  const ensureImagesAreRenderable = async (): Promise<string[]> => {
+  const ensureImagesAreRenderable = async (): Promise<{
+    createdObjectUrls: string[];
+    restoreMap: Array<{ img: HTMLImageElement; originalSrc: string | null }>;
+  }> => {
     const createdObjectUrls: string[] = [];
-    if (!modalRef.current) return createdObjectUrls;
+    const restoreMap: Array<{ img: HTMLImageElement; originalSrc: string | null }> = [];
+    if (!modalRef.current) return { createdObjectUrls, restoreMap };
 
     const imgs = Array.from(modalRef.current.querySelectorAll<HTMLImageElement>("img"));
+
     await Promise.all(
       imgs.map(async (img) => {
-        if (!img.src || img.src.startsWith("blob:") || img.src.startsWith("data:")) return;
+        // skip images that already use blob: or data: (they're fine)
+        if (!img.src || img.src.startsWith("blob:") || img.src.startsWith("data:")) {
+          restoreMap.push({ img, originalSrc: img.src ?? null });
+          return;
+        }
+
+        // Save original src for restore later
+        const originalSrc = img.src;
+        restoreMap.push({ img, originalSrc });
+
         try {
-          img.crossOrigin = "anonymous";
-        } catch {}
-        try {
-          const resp = await fetch(img.src, { mode: "cors" });
+          // Attempt to fetch the image so we can create an object URL (avoids taint)
+          // Set crossOrigin to anonymous to encourage CORS-friendly responses
+          try { img.crossOrigin = "anonymous"; } catch {}
+
+          const resp = await fetch(originalSrc, { mode: "cors" });
           if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
           const blob = await resp.blob();
           const objectUrl = URL.createObjectURL(blob);
           createdObjectUrls.push(objectUrl);
+
+          // Replace src with object URL and wait for it to load (or error) before returning
           await new Promise<void>((resolve) => {
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
+            const onDone = () => {
+              img.removeEventListener("load", onDone);
+              img.removeEventListener("error", onDone);
+              resolve();
+            };
+            img.addEventListener("load", onDone);
+            img.addEventListener("error", onDone);
             img.src = objectUrl;
           });
-        } catch {}
+        } catch (err) {
+          // If fetch fails (likely CORS), we leave the original src intact.
+          // console.warn("Could not fetch image for html2canvas:", originalSrc, err);
+        }
       })
     );
-    return createdObjectUrls;
+
+    return { createdObjectUrls, restoreMap };
   };
 
   const renderToBlob = async (): Promise<Blob> => {
     if (!modalRef.current) throw new Error("Modal not ready");
-    const createdUrls = await ensureImagesAreRenderable();
+
+    // Prepare images and get information to restore later
+    const { createdObjectUrls, restoreMap } = await ensureImagesAreRenderable();
+
     try {
       const canvas = await html2canvas(modalRef.current as HTMLElement, {
         scale: 1,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
+        windowWidth: document.documentElement.clientWidth,
+        windowHeight: document.documentElement.clientHeight,
       });
+
       const blob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob((b) => resolve(b), "image/png")
       );
-      createdUrls.forEach((u) => URL.revokeObjectURL(u));
+
+      // Restore original image srcs BEFORE revoking object URLs
+      restoreMap.forEach(({ img, originalSrc }) => {
+        try {
+          if (originalSrc) {
+            img.src = originalSrc;
+          } else {
+            // If original was empty, remove src attribute
+            img.removeAttribute("src");
+          }
+        } catch (e) {
+          // ignore
+        }
+      });
+
+      // Revoke created object URLs now that images were restored
+      createdObjectUrls.forEach((u) => URL.revokeObjectURL(u));
+
       if (!blob) throw new Error("Could not create image blob");
       return blob;
     } catch (err) {
-      createdUrls.forEach((u) => URL.revokeObjectURL(u));
+      // On error, still attempt to restore and revoke
+      restoreMap.forEach(({ img, originalSrc }) => {
+        try {
+          if (originalSrc) img.src = originalSrc;
+          else img.removeAttribute("src");
+        } catch (e) {}
+      });
+      createdObjectUrls.forEach((u) => URL.revokeObjectURL(u));
       throw err;
     }
   };
@@ -193,7 +252,7 @@ export default function ShareModal({
                 {/* Agent photo */}
                 <div className="flex-shrink-0 w-full sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-md overflow-hidden bg-white flex items-center justify-center">
                   {agent.profileImageUrl ? (
-                    <img src={agent.profileImageUrl} alt="agent" className="w-36 h-36 md:w-36 md:h-36 lg:w-full lg:h-full object-cover" />
+                    <img src={agent.profileImageUrl} alt="agent" className="w-36 h-36 md:w-36 md:h-36 lg:w-full lg:h-full object-contain" />
                   ) : (
                     <div className="text-3xl sm:text-4xl text-orange-500 font-bold">
                       {(agent.firstName?.[0] ?? "A") + (agent.lastName?.[0] ?? "")}
@@ -221,19 +280,19 @@ export default function ShareModal({
                   {/* Stats */}
                   <div className="mt-4 grid grid-cols-3 gap-3">
                     <div className="bg-orange-50 border border-orange-500 px-3 py-2 rounded-lg text-center">
-                      <div className="text-xs text-gray-500">Posted Properties</div>
+                      <div className="text-xs text-black">Posted Properties</div>
                       <div className="text-lg md:text-xl font-semibold text-orange-600">
                         {metrics.totalPropertiesPosted ?? 0}
                       </div>
                     </div>
                     <div className="bg-orange-50 border border-orange-500 px-3 py-2 rounded-lg text-center">
-                      <div className="text-xs text-gray-500">Active Listings</div>
+                      <div className="text-xs text-black">Active Listings</div>
                       <div className="text-lg md:text-xl font-semibold text-orange-600">
                         {metrics.activeProperties ?? 0}
                       </div>
                     </div>
                     <div className="bg-orange-50 border border-orange-500 px-3 py-2 rounded-lg text-center">
-                      <div className="text-xs text-gray-500">Sold Properties</div>
+                      <div className="text-xs text-black">Sold Properties</div>
                       <div className="text-lg md:text-xl font-semibold text-orange-600">
                         {metrics.totalPropertiesSold ?? 0}
                       </div>
@@ -256,23 +315,27 @@ export default function ShareModal({
                 >
                   <Download className="w-5 h-5" />
                 </button>
-                {[MessageCircle, Facebook, Twitter, Linkedin].map((Icon, i) => (
+                {[
+                  { src: whatsappIcon, key: "whatsapp", label: "Share on WhatsApp" },
+                  { src: facebookIcon, key: "facebook", label: "Share on Facebook" },
+                  { src: xIcon, key: "twitter", label: "Share on X" },
+                  { src: linkedinIcon, key: "linkedin", label: "Share on LinkedIn" },
+                ].map((item) => (
                   <button
-                    key={i}
-                    onClick={() =>
-                      onShareGeneric(["whatsapp", "facebook", "twitter", "linkedin"][i] as any)
-                    }
+                    key={item.key}
+                    onClick={() => onShareGeneric(item.key as any)}
                     disabled={busy}
-                    className="inline-flex items-center justify-center p-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                    aria-label={item.label}
+                    className={`inline-flex items-center justify-center p-2 rounded ${busy ? "opacity-60 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"} `}
                   >
-                    <Icon className="w-5 h-5" />
+                    <img src={item.src} alt={item.label} className="w-5 h-5 object-contain" />
                   </button>
                 ))}
               </div>
 
               <button
                 onClick={onClose}
-                className="px-3 py-1 bg-gray-100 rounded text-sm hover:bg-gray-200"
+                className="px-3 py-1 bg-red-500 rounded text-sm text-white hover:bg-red-600"
               >
                 Close
               </button>

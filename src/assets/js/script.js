@@ -1,3 +1,4 @@
+  // Author-Hemant Arora
   const track = document.querySelector('.carousel-track');
   const leftBtn = document.querySelector('.left-btn');
   const rightBtn = document.querySelector('.right-btn');

@@ -1,3 +1,4 @@
+// Author-Hemant Arora
 import React from "react";
 import quote from "../images/quote.png";
 import avatar from "../images/avatar_male.png";

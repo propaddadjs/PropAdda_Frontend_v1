@@ -1,4 +1,4 @@
-// src/pages/KycInfo.tsx
+// Author-Hemant Arora
 import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useInView } from "framer-motion";

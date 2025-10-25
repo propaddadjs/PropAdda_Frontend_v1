@@ -1,4 +1,4 @@
-// src/components/FilterSidebar.tsx
+// Author-Hemant Arora
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Slider from "rc-slider";

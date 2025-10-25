@@ -1,4 +1,4 @@
-// src/pages/SearchResults.tsx
+// Author-Hemant Arora
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";

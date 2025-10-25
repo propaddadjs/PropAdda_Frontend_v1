@@ -1,4 +1,4 @@
-// src/components/AmenitiesPanel.tsx
+// Author-Hemant Arora
 import {
   Snowflake, PawPrint, UtensilsCrossed, Wind,
   FlameKindling, Waves, Shirt, CloudFog, Trees,

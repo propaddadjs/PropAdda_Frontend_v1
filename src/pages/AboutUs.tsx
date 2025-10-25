@@ -1,3 +1,4 @@
+// Author-Hemant Arora
 import React, { useRef } from "react";
 import { motion, useReducedMotion, type Variants, useInView } from "framer-motion";
 import headerImg from "../images/Banners/about-us.png";

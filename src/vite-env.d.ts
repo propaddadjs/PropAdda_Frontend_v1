@@ -1,3 +1,4 @@
+// Author-Hemant Arora
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {

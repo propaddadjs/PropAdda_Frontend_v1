@@ -1,4 +1,4 @@
-// src/components/TermsContent.tsx
+// Author-Hemant Arora
 import React from "react";
 
 const TermsContent: React.FC = () => {

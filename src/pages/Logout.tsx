@@ -1,4 +1,4 @@
-// src/pages/Logout.tsx
+// Author-Hemant Arora
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";

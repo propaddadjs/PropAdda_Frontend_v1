@@ -1,4 +1,4 @@
-// src/pages/FilteredPropertiesPage.tsx
+// Author-Hemant Arora
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import FilterSidebarBuyer, { type Filters as BuyerFilters } from "../components/FilterSidebarBuyer";

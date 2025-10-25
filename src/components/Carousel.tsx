@@ -1,3 +1,4 @@
+// Author-Hemant Arora
 import React, { useRef } from "react";
 
 interface CarouselProps {
