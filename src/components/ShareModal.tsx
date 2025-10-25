@@ -96,134 +96,14 @@ export default function ShareModal({
     return { createdObjectUrls, restoreMap };
   };
 
-  const renderToBlob = async (): Promise<Blob> => {
-    if (!modalRef.current) throw new Error("Modal not ready");
-
-    // Prepare images and get information to restore later
-    const { createdObjectUrls, restoreMap } = await ensureImagesAreRenderable();
-
-    try {
-      const canvas = await html2canvas(modalRef.current as HTMLElement, {
-        scale: 1,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-        windowWidth: document.documentElement.clientWidth,
-        windowHeight: document.documentElement.clientHeight,
-      });
-
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob((b) => resolve(b), "image/png")
-      );
-
-      // Restore original image srcs BEFORE revoking object URLs
-      restoreMap.forEach(({ img, originalSrc }) => {
-        try {
-          if (originalSrc) {
-            img.src = originalSrc;
-          } else {
-            // If original was empty, remove src attribute
-            img.removeAttribute("src");
-          }
-        } catch (e) {
-          // ignore
-        }
-      });
-
-      // Revoke created object URLs now that images were restored
-      createdObjectUrls.forEach((u) => URL.revokeObjectURL(u));
-
-      if (!blob) throw new Error("Could not create image blob");
-      return blob;
-    } catch (err) {
-      // On error, still attempt to restore and revoke
-      restoreMap.forEach(({ img, originalSrc }) => {
-        try {
-          if (originalSrc) img.src = originalSrc;
-          else img.removeAttribute("src");
-        } catch (e) {}
-      });
-      createdObjectUrls.forEach((u) => URL.revokeObjectURL(u));
-      throw err;
-    }
-  };
-
-  // const createRenderableCloneAndObjectUrls = async (): Promise<{
-  //   cloneEl: HTMLElement;
-  //   createdObjectUrls: string[];
-  // }> => {
-  //   if (!modalRef.current) throw new Error("Modal ref not available");
-
-  //   // Deep clone the modal element (including children)
-  //   const clone = modalRef.current.cloneNode(true) as HTMLElement;
-
-  //   // Style clone so it's offscreen and doesn't affect layout
-  //   clone.style.position = "fixed";
-  //   clone.style.left = "-9999px";
-  //   clone.style.top = "0";
-  //   clone.style.opacity = "0";
-  //   clone.style.pointerEvents = "none";
-  //   clone.style.zIndex = "99999";
-
-  //   // Append to body so html2canvas can render it
-  //   document.body.appendChild(clone);
-
-  //   const imgs = Array.from(clone.querySelectorAll<HTMLImageElement>("img"));
-  //   const createdObjectUrls: string[] = [];
-
-  //   // For each image in the clone, if it has a non-blob/data src, try to fetch it
-  //   await Promise.all(
-  //     imgs.map(async (img) => {
-  //       const src = img.getAttribute("src") ?? "";
-  //       if (!src || src.startsWith("blob:") || src.startsWith("data:")) {
-  //         // nothing to do
-  //         return;
-  //       }
-
-  //       // Make a best-effort fetch of the image with CORS
-  //       try {
-  //         // ensure we request CORS — many public images will allow this
-  //         const resp = await fetch(encodeURI(src), { mode: "cors", cache: "force-cache" });
-  //         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  //         const blob = await resp.blob();
-  //         const objectUrl = URL.createObjectURL(blob);
-  //         createdObjectUrls.push(objectUrl);
-
-  //         // Replace the clone's image src with object URL and wait for load
-  //         await new Promise<void>((resolve) => {
-  //           const onDone = () => {
-  //             img.removeEventListener("load", onDone);
-  //             img.removeEventListener("error", onDone);
-  //             resolve();
-  //           };
-  //           img.addEventListener("load", onDone);
-  //           img.addEventListener("error", onDone);
-  //           // Set crossOrigin just in case (won't help if server rejects)
-  //           try {
-  //             img.crossOrigin = "anonymous";
-  //           } catch (e) {}
-  //           img.src = objectUrl;
-  //         });
-  //       } catch (e) {
-  //         // If fetch fails (likely CORS), try to set crossOrigin and hope html2canvas can still use it.
-  //         try {
-  //           img.crossOrigin = "anonymous";
-  //         } catch (err) {}
-  //         // leave src as-is; html2canvas might still be able to draw it if CORS allows
-  //       }
-  //     })
-  //   );
-
-  //   return { cloneEl: clone, createdObjectUrls };
-  // };
-
-  // const renderCloneToBlob = async (): Promise<Blob> => {
+  // const renderToBlob = async (): Promise<Blob> => {
   //   if (!modalRef.current) throw new Error("Modal not ready");
 
-  //   const { cloneEl, createdObjectUrls } = await createRenderableCloneAndObjectUrls();
+  //   // Prepare images and get information to restore later
+  //   const { createdObjectUrls, restoreMap } = await ensureImagesAreRenderable();
 
   //   try {
-  //     const canvas = await html2canvas(cloneEl as HTMLElement, {
+  //     const canvas = await html2canvas(modalRef.current as HTMLElement, {
   //       scale: 1,
   //       useCORS: true,
   //       backgroundColor: "#ffffff",
@@ -236,24 +116,107 @@ export default function ShareModal({
   //       canvas.toBlob((b) => resolve(b), "image/png")
   //     );
 
-  //     // cleanup
-  //     try {
-  //       document.body.removeChild(cloneEl);
-  //     } catch (e) {}
+  //     // Restore original image srcs BEFORE revoking object URLs
+  //     restoreMap.forEach(({ img, originalSrc }) => {
+  //       try {
+  //         if (originalSrc) {
+  //           img.src = originalSrc;
+  //         } else {
+  //           // If original was empty, remove src attribute
+  //           img.removeAttribute("src");
+  //         }
+  //       } catch (e) {
+  //         // ignore
+  //       }
+  //     });
 
+  //     // Revoke created object URLs now that images were restored
   //     createdObjectUrls.forEach((u) => URL.revokeObjectURL(u));
 
   //     if (!blob) throw new Error("Could not create image blob");
   //     return blob;
   //   } catch (err) {
-  //     // cleanup even on error
-  //     try {
-  //       document.body.removeChild(cloneEl);
-  //     } catch (e) {}
+  //     // On error, still attempt to restore and revoke
+  //     restoreMap.forEach(({ img, originalSrc }) => {
+  //       try {
+  //         if (originalSrc) img.src = originalSrc;
+  //         else img.removeAttribute("src");
+  //       } catch (e) {}
+  //     });
   //     createdObjectUrls.forEach((u) => URL.revokeObjectURL(u));
   //     throw err;
   //   }
   // };
+
+  const renderToBlob = async (preferJpeg = false): Promise<Blob> => {
+    if (!modalRef.current) throw new Error("Modal not ready");
+
+    // Wait for fonts to load (important for crisp text)
+    if (document && (document as any).fonts && (document as any).fonts.ready) {
+      try {
+        await (document as any).fonts.ready;
+      } catch (_) {}
+    }
+
+    // Prepare images for same-origin rendering (your existing helper that returns createdObjectUrls and restoreMap)
+    const { createdObjectUrls, restoreMap } = await ensureImagesAreRenderable();
+
+    // Pick a scale: prefer devicePixelRatio, but clamp to avoid giant files
+    const dpr = window.devicePixelRatio || 1;
+    const scale = Math.max(2, Math.min(3, dpr)); // typically 2 on retina; clamp between 2 and 3
+
+    // Get element size to pass to html2canvas (prevents incorrect small canvases)
+    const el = modalRef.current as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    const width = Math.ceil(rect.width);
+    const height = Math.ceil(rect.height);
+
+    try {
+      const canvas = await html2canvas(el, {
+        scale,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        width, // render at the element's CSS layout width
+        height,
+        windowWidth: Math.max(document.documentElement.clientWidth, width),
+        windowHeight: Math.max(document.documentElement.clientHeight, height),
+        scrollX: window.scrollX,
+        scrollY: window.scrollY,
+      });
+
+      // choose PNG or JPEG. PNG is lossless; JPEG can be smaller but lossy.
+      const blob: Blob | null = await new Promise((resolve) => {
+        if (preferJpeg) {
+          canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92); // high quality jpeg
+        } else {
+          canvas.toBlob((b) => resolve(b), "image/png");
+        }
+      });
+
+      // restore original image srcs BEFORE revoking created object URLs (important)
+      restoreMap.forEach(({ img, originalSrc }) => {
+        try {
+          if (originalSrc) img.src = originalSrc;
+          else img.removeAttribute("src");
+        } catch (e) {}
+      });
+      createdObjectUrls.forEach((u) => URL.revokeObjectURL(u));
+
+      if (!blob) throw new Error("Failed to create image blob");
+      return blob;
+    } catch (err) {
+      // ensure cleanup on error
+      restoreMap.forEach(({ img, originalSrc }) => {
+        try {
+          if (originalSrc) img.src = originalSrc;
+          else img.removeAttribute("src");
+        } catch (e) {}
+      });
+      createdObjectUrls.forEach((u) => URL.revokeObjectURL(u));
+      throw err;
+    }
+  };
 
   const downloadBlob = async (blob: Blob) => {
     const url = URL.createObjectURL(blob);
@@ -280,7 +243,6 @@ export default function ShareModal({
     try {
       setBusy(true);
       const blob = await renderToBlob();
-      // const blob = await renderCloneToBlob();
       await downloadBlob(blob);
     } catch (err) {
       console.error(err);
@@ -294,7 +256,6 @@ export default function ShareModal({
     try {
       setBusy(true);
       const blob = await renderToBlob();
-      // const blob = await renderCloneToBlob();
 
       const nav: any = navigator;
       if (nav?.canShare && nav.canShare({ files: [new File([blob], "agent.png", { type: "image/png" })] })) {
