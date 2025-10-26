@@ -263,7 +263,7 @@ export default function ShareModal({
           await nav.share({
             files: [new File([blob], "agent.png", { type: "image/png" })],
             title: `${agent.firstName} ${agent.lastName} — PropAdda`,
-            text: `Check out my PropAdda stats.`,
+            text: `Here are my stats at www.propadda.in - Bharat ka Apna Property Adda`,
           });
           return;
         } catch (err) {
