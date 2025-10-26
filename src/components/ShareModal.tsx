@@ -273,7 +273,7 @@ export default function ShareModal({
 
       const publicUrl = await uploadToBackend(blob);
       const encoded = encodeURIComponent;
-      const text = encoded(`Check my PropAdda stats — ${agent.firstName} ${agent.lastName}`);
+      const text = encoded(`Here are my stats at www.propadda.in - Bharat ka Apna Property Adda - ${agent.firstName} ${agent.lastName}`);
       const urls: Record<string, string> = {
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${encoded(publicUrl)}`,
         twitter: `https://twitter.com/intent/tweet?text=${text}&url=${encoded(publicUrl)}`,
