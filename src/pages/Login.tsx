@@ -127,7 +127,7 @@ export default function Login() {
             </h2>
             <ul className="mt-6 grid grid-cols-3 gap-4 text-sm">
               <li className="group"><div className="text-gray-400">CONTACT</div><div className="font-medium inline-flex items-center gap-2"><Phone className="w-4 h-4 text-orange-600 group-hover:scale-110 transition" /> +91 8595511411</div></li>
-              <li className="group"><div className="text-gray-400">MAIL</div><div className="font-medium inline-flex items-center gap-2"><Mail className="w-4 h-4 text-orange-600 group-hover:scale-110 transition" /> sales@propadda.in</div></li>
+              <li className="group"><div className="text-gray-400">MAIL</div><div className="font-medium inline-flex items-center gap-2"><Mail className="w-4 h-4 text-orange-600 group-hover:scale-110 transition" /> support@propadda.in</div></li>
               <li className="group"><div className="text-gray-400">ADDRESS</div><div className="font-medium inline-flex items-center gap-2"><MapPin className="w-4 h-4 text-orange-600 group-hover:scale-110 transition" /> NEW DELHI</div></li>
             </ul>
             <div className="mt-8 flex items-center gap-4 text-sm text-gray-600"><ShieldCheck className="w-5 h-5 text-green-600" /><span>Secure login • Encrypted • Trusted by property owners</span></div>

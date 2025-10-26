@@ -105,7 +105,7 @@ const Footer: React.FC = () => {
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase font-semibold mb-1">MAIL</p>
-              <p className="text-gray-800">sales@propadda.in</p>
+              <p className="text-gray-800">support@propadda.in</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase font-semibold mb-1">ADDRESS</p>

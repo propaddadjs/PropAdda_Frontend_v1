@@ -193,7 +193,7 @@ export default function Signup() {
             </h2>
             <div className="mt-6 grid grid-cols-3 gap-4 text-sm">
               <div className="group"><div className="text-gray-400">CONTACT</div><div className="font-medium inline-flex items-center gap-2"><PhoneIcon className="w-4 h-4 text-orange-600 group-hover:scale-110 transition" />+91 8595511411</div></div>
-              <div className="group"><div className="text-gray-400">MAIL</div><div className="font-medium inline-flex items-center gap-2"><Mail className="w-4 h-4 text-orange-600 group-hover:scale-110 transition" />sales@propadda.in</div></div>
+              <div className="group"><div className="text-gray-400">MAIL</div><div className="font-medium inline-flex items-center gap-2"><Mail className="w-4 h-4 text-orange-600 group-hover:scale-110 transition" />support@propadda.in</div></div>
               <div className="group"><div className="text-gray-400">ADDRESS</div><div className="font-medium inline-flex items-center gap-2"><MapPin className="w-4 h-4 text-orange-600 group-hover:scale-110 transition" />NEW DELHI</div></div>
             </div>
             <div className="mt-8 flex items-center gap-4 text-sm text-gray-600"><ShieldCheck className="w-5 h-5 text-green-600" /><span>Secure sign up • Encrypted • Verified marketplace</span></div>

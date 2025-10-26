@@ -114,7 +114,7 @@ const PrivacyPolicy: React.FC = () => {
               <br />
               Privacy Support - PropAdda
               <br />
-              Email: <a className="hover:text-themeOrange font-times" href="mailto:sales@propadda.in">sales@propadda.in</a>
+              Email: <a className="hover:text-themeOrange font-times" href="mailto:support@propadda.in">support@propadda.in</a>
               <br />
               Address: F 5, Manish Plaza 3, Sector 10, Dwarka, Delhi -110075
             </p>
@@ -158,7 +158,7 @@ const PrivacyPolicy: React.FC = () => {
               <br />
               PropAdda
               <br />
-              Email: <a className="hover:text-themeOrange font-times" href="mailto:sales@propadda.in">sales@propadda.in</a>
+              Email: <a className="hover:text-themeOrange font-times" href="mailto:support@propadda.in">support@propadda.in</a>
               <br />
               Address: F 5, Manish Plaza 3, Sector 10, Dwarka, Delhi -110075
             </p>

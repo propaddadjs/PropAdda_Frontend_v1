@@ -17,7 +17,7 @@ import sample from "../images/sample.webp";
 
 const COMPANY = {
   phone: "+91 8595511411",
-  email: "sales@propadda.in",
+  email: "support@propadda.in",
   address: "New Delhi",
   postalAddress: "F 5, Manish Plaza 3, Sector 10, Dwarka, Delhi -110075",
   mapAddress: "28.59051502965873, 77.0574798424859",
@@ -125,7 +125,7 @@ const ContactUs: React.FC = () => {
             >
               <Mail className="w-5 h-5 text-orange-600" />
               <div className="mt-2 text-sm text-gray-600">Mail</div>
-              <div className="font-semibold text-sm break-all">{COMPANY.email}</div>
+              <div className="font-semibold text-xs break-all">{COMPANY.email}</div>
             </motion.div>
 
             {/* Address Card */}
